@@ -14,13 +14,18 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libzip-dev \
-    libpq-dev 
+    libpq-dev \
+    libmagickwand-dev --no-install-recommends
 
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN pecl install imagick \
+    && docker-php-ext-enable imagick
 
 RUN docker-php-ext-install pdo_pgsql pgsql zip exif pcntl
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install gd
+
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
