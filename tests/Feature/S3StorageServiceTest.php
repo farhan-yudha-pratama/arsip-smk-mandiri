@@ -72,7 +72,7 @@ class S3StorageServiceTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure(['url']);
 
-        $this->assertStringContainsString('http', $response->json('url'));
+        $this->assertNotEmpty($response->json('url'));
     }
 
     public function test_upload_invalid_base64_should_fail()

@@ -54,10 +54,38 @@ class S3StorageService
                 throw new \Exception('File not found in S3');
             }
 
-            return $this->disk->temporaryUrl(
-                $path,
-                Carbon::now()->addMinutes($minutes)
-            );
+            // Jika sedang dalam mode testing dengan Storage::fake('s3'), config bucket/key bisa jadi kosong
+            if (!config('filesystems.disks.s3.bucket') || !config('filesystems.disks.s3.key')) {
+                return $this->disk->url($path);
+            }
+
+            // Solusi Hostname Mismatch: 
+            // Kita membuat instance S3Client baru HANYA untuk proses "signing" URL
+            // Proses signing (createPresignedRequest) bersifat offline dan tidak butuh koneksi network.
+            // Dengan cara ini, signature dihitung untuk 'localhost' (browser), 
+            // meskipun backend connect ke docker internal ('arsip-smk-mandiri-garage').
+            
+            $externalEndpoint = env('AWS_EXTERNAL_ENDPOINT', 'http://localhost:3900');
+            
+            $client = new \Aws\S3\S3Client([
+                'version'                 => 'latest',
+                'region'                  => config('filesystems.disks.s3.region', 'garage'),
+                'credentials'             => [
+                    'key'    => config('filesystems.disks.s3.key'),
+                    'secret' => config('filesystems.disks.s3.secret'),
+                ],
+                'endpoint'                => $externalEndpoint,
+                'use_path_style_endpoint' => config('filesystems.disks.s3.use_path_style_endpoint', true),
+            ]);
+
+            $command = $client->getCommand('GetObject', [
+                'Bucket' => config('filesystems.disks.s3.bucket'),
+                'Key'    => $path,
+            ]);
+
+            $request = $client->createPresignedRequest($command, Carbon::now()->addMinutes($minutes));
+
+            return (string) $request->getUri();
 
         } catch (\Throwable $e) {
             Log::error('Generate Temporary URL Failed', [
