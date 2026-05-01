@@ -3,159 +3,140 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Contracts\Filesystem\Filesystem;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver;
-use Exception;
+use Carbon\Carbon;
 
 class S3StorageService
 {
-    /** @var Filesystem|\Illuminate\Filesystem\FilesystemAdapter */
     protected $disk;
 
     public function __construct()
     {
-        // Menggunakan disk s3 dari config/filesystems.php
         $this->disk = Storage::disk('s3');
     }
 
     /**
-     * Upload Base64 dengan Validasi, Kompresi, dan S3
-     * * @param string $base64String
-     * @param string $pathFolder
-     * @param string $type
-     * @return string
-     * @throws Exception
+     * 🔥 Upload & return PATH (bukan URL)
      */
-    public function uploadBase64(string $base64String, string $pathFolder, string $type = 'foto'): string
+    public function uploadBase64(string $base64, string $path, string $category = 'image'): string
     {
         try {
-            // 1. Validasi format Base64 & Decode
-            if (!preg_match('/^data:(\w+\/[\w\-\.]+);base64,/', $base64String)) {
-                throw new Exception("Format Base64 tidak valid.");
+            [$binary, $mime, $extension] = $this->decodeBase64($base64);
+
+            $this->validateSize($binary, $category);
+
+            $filename = $path . '/' . Str::uuid() . '.' . $extension;
+
+            $this->disk->put($filename, $binary);
+
+            return $filename; // 🔥 SIMPAN INI KE DB
+
+        } catch (\Throwable $e) {
+            Log::error('S3 Upload Failed', [
+                'error_type' => get_class($e),
+                'message' => $e->getMessage(),
+                'category' => $category,
+                'path' => $path,
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * 🔥 Generate Temporary URL dari PATH
+     */
+    public function getTemporaryUrl(string $path, int $minutes = 10): string
+    {
+        try {
+            if (!$this->disk->exists($path)) {
+                throw new \Exception('File not found in S3');
             }
 
-            $fileData = explode(',', $base64String);
-            $content  = base64_decode(end($fileData));
+            return $this->disk->temporaryUrl(
+                $path,
+                Carbon::now()->addMinutes($minutes)
+            );
 
-            if (!$content) {
-                throw new Exception("Gagal melakukan decode Base64.");
-            }
+        } catch (\Throwable $e) {
+            Log::error('Generate Temporary URL Failed', [
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
 
-            // 2. Ambil Mime Type secara akurat
-            $finfo    = finfo_open();
-            $mimeType = (string) finfo_buffer($finfo, $content, FILEINFO_MIME_TYPE);
-            finfo_close($finfo);
-
-            // 3. Validasi Ukuran dan Tipe
-            $this->validateFile($content, $mimeType, $type);
-
-            // 4. Kompresi Khusus Foto
-            if ($type === 'foto') {
-                $content = $this->compressImage($content);
-            }
-
-            // 5. Penentuan Ekstensi File
-            $extension = $this->getExtensions($mimeType);
-            $fileName  = rtrim($pathFolder, '/') . '/' . Str::random(40) . '.' . $extension;
-
-            // 6. Upload ke Garage S3
-            $this->disk->put($fileName, $content);
-
-            return $fileName;
-
-        } catch (Exception $e) {
-            throw new Exception("S3 Service Error: " . $e->getMessage());
+            throw $e;
         }
     }
 
     /**
-     * Get Presigned URL (URL yang berubah secara dinamis)
+     * Optional: delete file
      */
-    public function getDynamicUrl(?string $path, int $expiresInMinutes = 5): ?string
+    public function delete(string $path): bool
     {
-        if (!$path || !$this->disk->exists($path)) {
-            return null;
-        }
-
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = $this->disk;
-
-        // Signature URL akan berubah setiap kali fungsi dipanggil
-        return $disk->temporaryUrl(
-            $path, 
-            now()->addMinutes($expiresInMinutes)
-        );
-    }
-
-    /**
-     * Validasi File
-     */
-    private function validateFile(string $content, string $mimeType, string $type): void
-    {
-        $sizeInKb = strlen($content) / 1024;
-
-        $rules = [
-            'foto'    => ['mimes' => ['image/jpeg', 'image/png', 'image/webp'], 'max' => 2048], 
-            'dokumen' => ['mimes' => ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'], 'max' => 10240], 
-            'video'   => ['mimes' => ['video/mp4', 'video/quicktime', 'video/x-msvideo'], 'max' => 51200], 
-        ];
-
-        if (!isset($rules[$type])) {
-            throw new Exception("Kategori validasi [$type] tidak ditemukan.");
-        }
-
-        if (!in_array($mimeType, $rules[$type]['mimes'])) {
-            throw new Exception("Format file ($mimeType) tidak diizinkan untuk kategori $type.");
-        }
-
-        if ($sizeInKb > $rules[$type]['max']) {
-            throw new Exception("File terlalu besar. Maksimal " . ($rules[$type]['max'] / 1024) . "MB.");
-        }
-    }
-
-    /**
-     * Kompresi Image (Intervention v3 style)
-     */
-    private function compressImage(string $content): string
-    {
-        $manager = new ImageManager(new Driver());
-        
-        // Membaca konten file
-        $image = $manager->decode($content);
-
-        // Encode ke Jpeg dengan kualitas 80%
-        return (string) $image->encodeUsingFileExtension('jpeg',80);
-    }
-
-    /**
-     * Mapping Mime Type ke Ekstensi
-     */
-    private function getExtensions(string $mimeType): string
-    {
-        $map = [
-            'image/jpeg' => 'jpg',
-            'image/png'  => 'png',
-            'image/webp' => 'webp',
-            'application/pdf' => 'pdf',
-            'application/msword' => 'doc',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
-            'video/mp4' => 'mp4',
-            'video/quicktime' => 'mov',
-        ];
-
-        return $map[$mimeType] ?? 'bin';
-    }
-
-    /**
-     * Hapus File
-     */
-    public function delete(?string $path): bool
-    {
-        if ($path && $this->disk->exists($path)) {
+        try {
             return $this->disk->delete($path);
+        } catch (\Throwable $e) {
+            Log::error('S3 Delete Failed', [
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
         }
-        return false;
+    }
+
+    protected function decodeBase64(string $base64): array
+    {
+        if (!str_contains($base64, 'base64,')) {
+            throw new \Exception('Invalid Base64 format');
+        }
+
+        [$meta, $data] = explode(',', $base64, 2);
+
+        if (!preg_match('/data:(.*?);base64/', $meta, $matches)) {
+            throw new \Exception('Invalid MIME type in Base64');
+        }
+
+        $mime = $matches[1];
+
+        $binary = base64_decode($data, true);
+
+        if ($binary === false) {
+            throw new \Exception('Base64 decode failed');
+        }
+
+        $extension = $this->mimeToExtension($mime);
+
+        return [$binary, $mime, $extension];
+    }
+
+    protected function validateSize(string $binary, string $category): void
+    {
+        $size = strlen($binary);
+
+        $limits = [
+            'image' => 2 * 1024 * 1024,
+            'document' => 5 * 1024 * 1024,
+            'video' => 20 * 1024 * 1024,
+        ];
+
+        if (!isset($limits[$category])) {
+            throw new \Exception('Invalid category');
+        }
+
+        if ($size > $limits[$category]) {
+            throw new \Exception('File size exceeds limit');
+        }
+    }
+
+    protected function mimeToExtension(string $mime): string
+    {
+        return match ($mime) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => throw new \Exception('Unsupported MIME type'),
+        };
     }
 }

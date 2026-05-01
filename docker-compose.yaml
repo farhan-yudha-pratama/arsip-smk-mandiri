@@ -1,63 +1,28 @@
 version: '3.8'
 
 services:
-    app:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: arsip-smk-mandiri-app
-        restart: unless-stopped
-        working_dir: /var/www
-        volumes:
-            - .:/var/www
-        networks:
-            - ai_network
-        depends_on:
-            - db
-
-    webserver:
-        image: nginx:alpine
-        container_name: arsip-smk-mandiri-nginx
-        restart: unless-stopped
-        ports:
-            - '8000:80'
-        volumes:
-            - .:/var/www
-            - ./docker-config/nginx.conf:/etc/nginx/conf.d/default.conf
-        networks:
-            - ai_network
-
     db:
         image: postgres:18
         container_name: arsip-smk-mandiri-db
         restart: always
         environment:
-            POSTGRES_USER: ${DB_USERNAME:-psql}
+            POSTGRES_USER: ${DB_USERNAME:-postgres}
             POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
             POSTGRES_DB: ${DB_DATABASE:-arsip_smk_mandiri_app_develop}
         ports:
-            - '5433:5432'
+            - '5432:5432'
         volumes:
             - 'D:/program/docker/postgres-data:/var/lib/postgresql'
-        networks:
-            - ai_network
 
     garage:
         image: dxflrs/garage:v2.1.0
         container_name: arsip-smk-mandiri-garage
         restart: always
         ports:
-            - '3900:3900'
-            - '3902:3902'
-            - '3903:3903'
+            - '3900:3900' # S3 API
+            - '3902:3902' # Web layout/Admin
+            - '3903:3903' # Metrics/Koneksi antar node
         volumes:
             - 'D:/program/docker/garage-storage/config/garage.toml:/etc/garage.toml'
             - 'D:/program/docker/garage-storage/data:/var/lib/garage/data'
             - 'D:/program/docker/garage-storage/meta:/var/lib/garage/meta'
-        networks:
-            - ai_network
-
-networks:
-    ai_network:
-        name: ai_network
-        driver: bridge
