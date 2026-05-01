@@ -15,10 +15,7 @@ class S3StorageService
     {
         $this->disk = Storage::disk('s3');
     }
-
-    /**
-     * 🔥 Upload & return PATH (bukan URL)
-     */
+    
     public function uploadBase64(string $base64, string $path, string $category = 'image'): string
     {
         try {
@@ -30,7 +27,7 @@ class S3StorageService
 
             $this->disk->put($filename, $binary);
 
-            return $filename; // 🔥 SIMPAN INI KE DB
+            return $filename; //SIMPAN I NI KE DB
 
         } catch (\Throwable $e) {
             Log::error('S3 Upload Failed', [
@@ -44,9 +41,6 @@ class S3StorageService
         }
     }
 
-    /**
-     * 🔥 Generate Temporary URL dari PATH
-     */
     public function getTemporaryUrl(string $path, int $minutes = 10): string
     {
         try {
@@ -54,16 +48,10 @@ class S3StorageService
                 throw new \Exception('File not found in S3');
             }
 
-            // Jika sedang dalam mode testing dengan Storage::fake('s3'), config bucket/key bisa jadi kosong
             if (!config('filesystems.disks.s3.bucket') || !config('filesystems.disks.s3.key')) {
                 return $this->disk->url($path);
             }
 
-            // Solusi Hostname Mismatch: 
-            // Kita membuat instance S3Client baru HANYA untuk proses "signing" URL
-            // Proses signing (createPresignedRequest) bersifat offline dan tidak butuh koneksi network.
-            // Dengan cara ini, signature dihitung untuk 'localhost' (browser), 
-            // meskipun backend connect ke docker internal ('arsip-smk-mandiri-garage').
             
             $externalEndpoint = env('AWS_EXTERNAL_ENDPOINT', 'http://localhost:3900');
             
@@ -97,9 +85,6 @@ class S3StorageService
         }
     }
 
-    /**
-     * Optional: delete file
-     */
     public function delete(string $path): bool
     {
         try {
@@ -161,10 +146,15 @@ class S3StorageService
     protected function mimeToExtension(string $mime): string
     {
         return match ($mime) {
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp',
-            default => throw new \Exception('Unsupported MIME type'),
-        };
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp',
+        'application/pdf' => 'pdf',
+        '@file/pdf' => 'pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+        '@file/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+        'application/msword' => 'doc',
+        default => throw new \Exception('Unsupported MIME type: ' . $mime),
+    };
     }
 }
