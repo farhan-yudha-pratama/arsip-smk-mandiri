@@ -26,18 +26,7 @@ import {
 import documentRoutes from '@/routes/documents';
 import { CreateDocumentModal } from './DocumentModal';
 import { DocumentHistoryModal } from './DocumentHistoryModal';
-
-interface Document {
-    id: string;
-    template?: { name: string };
-    title: string;
-    status: string;
-    recipient_type: string;
-    student?: { name: string };
-    teacher?: { name: string };
-    created_at: string;
-    creator?: { name: string };
-}
+import { Document } from '@/types/document';
 
 interface Props {
     documents: Document[];

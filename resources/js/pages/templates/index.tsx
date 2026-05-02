@@ -23,18 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import templateRoutes from '@/routes/templates';
 import TemplateModal from './TemplateModal';
-
-interface Template {
-    id: number;
-    name: string;
-    url: string;
-    meta_data: {
-        category?: string;
-        description?: string;
-        [key: string]: any;
-    };
-    created_at: string;
-}
+import { Template } from '@/types/template';
 
 interface Props {
     templates: Template[];
@@ -55,11 +44,6 @@ export default function Templates({ templates = [] }: Props) {
 
     const openCreateModal = () => {
         setEditingTemplate(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (template: Template) => {
-        setEditingTemplate(template);
         setIsModalOpen(true);
     };
 

@@ -234,7 +234,7 @@ export default function TemplateModal({ isOpen, onClose, editingTemplate }: Temp
                         </div>
                         <p className="text-[10px] text-muted-foreground">
                             Tambahkan kunci yang akan digunakan sebagai penanda tempat dalam
-                            dokumen (misalnya, nama untuk {{ name }})
+                            dokumen (misalnya, nama untuk {`{ name }`})
                         </p>
                     </div>
                     {!editingTemplate && (
