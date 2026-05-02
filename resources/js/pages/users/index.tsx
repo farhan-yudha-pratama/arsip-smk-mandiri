@@ -54,7 +54,7 @@ function UserRow({ user, roles }: { user: User & { roles: { name: string }[] }; 
     });
 
     const handleRoleChange = (newRole: string) => {
-        patch(usersRoute.updateRole(user.id).url, {
+        patch(usersRoute.updateRole(user.id.toString()).url, {
             data: { role: newRole },
             onSuccess: () => toast.success('Role updated successfully'),
         });

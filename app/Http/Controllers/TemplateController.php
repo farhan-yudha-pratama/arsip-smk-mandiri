@@ -37,9 +37,8 @@ class TemplateController extends Controller
     {
         $request->validate([
             'title'       => 'required|string|max:255',
-            'category'    => 'required|string',
-            'description' => 'nullable|string',
-            'document'    => 'required|string', // String Base64 dari Frontend
+            'document'    => 'required|string',
+            'metadata'    => 'nullable|array',
         ]);
 
         try {
@@ -50,16 +49,14 @@ class TemplateController extends Controller
                 'document'
             );
 
+            $metaData = $request->meta_data;
+            $metaData['placeholders'] = $request->metadata ?? [];
+
             // 2. Simpan ke Database menggunakan Model Template
             Template::create([
                 'name' => $request->title,
-                'url'  => $filePath, // Path/Key yang dikembalikan S3
-                'meta_data' => [
-                    'category'    => $request->category,
-                    'description' => $request->description,
-                    'file_type'   => 'docx', // Anda bisa mendinamiskan ini
-                    'uploaded_at' => now()->toIso8601String(),
-                ],
+                'url'  => $filePath,
+                'meta_data' => $request->metadata ?? []
             ]);
 
             return back()->with('success', 'Template dan Meta Data berhasil disimpan!');
@@ -73,14 +70,12 @@ class TemplateController extends Controller
     {
         $request->validate([
             'title'       => 'required|string|max:255',
-            'category'    => 'required|string',
-            'description' => 'nullable|string',
+            'metadata'    => 'nullable|array',
         ]);
 
         try {
             $metaData = $template->meta_data;
-            $metaData['category'] = $request->category;
-            $metaData['description'] = $request->description;
+            $metaData['placeholders'] = $request->metadata ?? [];
 
             $template->update([
                 'name' => $request->title,
@@ -105,6 +100,26 @@ class TemplateController extends Controller
             return back()->with('success', 'Template berhasil dihapus!');
         } catch (\Throwable $e) {
             return back()->withErrors(['error' => 'Gagal menghapus template: ' . $e->getMessage()]);
+        }
+    }
+
+    public function preview(Template $template)
+    {
+        try {
+            $url = $this->storageService->getTemporaryUrl($template->url);
+            return Inertia::location($url);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['error' => 'Gagal membuat link pratinjau: ' . $e->getMessage()]);
+        }
+    }
+
+    public function download(Template $template)
+    {
+        try {
+            $url = $this->storageService->getTemporaryUrl($template->url, 10, true, $template->name . '.docx');
+            return Inertia::location($url);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['error' => 'Gagal membuat link unduhan: ' . $e->getMessage()]);
         }
     }
 }

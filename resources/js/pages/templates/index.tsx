@@ -1,8 +1,17 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Label } from '@radix-ui/react-label';
-import { Edit, FileText, Plus, Search, Trash2 } from 'lucide-react';
+import {
+    Download,
+    Edit,
+    Eye,
+    FileText,
+    Plus,
+    Search,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     DialogFooter,
@@ -45,9 +54,8 @@ export default function Templates({ templates = [] }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm({
             title: '',
-            category: '',
-            description: '',
             document: '',
+            metadata: [] as string[],
         });
 
     const { delete: destroy, processing: deleting } = useForm();
@@ -56,55 +64,69 @@ export default function Templates({ templates = [] }: Props) {
         setEditingTemplate(null);
         setData({
             title: '',
-            category: '',
-            description: '',
             document: '',
+            metadata: [],
         });
         clearErrors();
         setIsModalOpen(true);
     };
 
-    const openEditModal = (template) => {
+    const openEditModal = (template: Template) => {
         setEditingTemplate(template);
         setData({
             title: template.name,
-            category: template.meta_data?.category || '',
-            description: template.meta_data?.description || '',
             document: '',
+            metadata: (Array.isArray(template.meta_data) ? template.meta_data : []) as string[],
         });
         clearErrors();
         setIsModalOpen(true);
     };
 
-    const openDeleteModal = (template) => {
+    const openDeleteModal = (template: Template) => {
         setTemplateToDelete(template);
         setIsDeleteModalOpen(true);
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
 
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
                 toast.error('File size exceeds 5MB limit');
-                e.target.value = null;
+                e.target.value = '';
 
                 return;
             }
 
             const reader = new FileReader();
             reader.onloadend = () => {
-                setData('document', reader.result);
+                setData('document', reader.result as string);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handleSubmit = (e) => {
+    const [newMetadataKey, setNewMetadataKey] = useState('');
+
+    const addMetadataKey = () => {
+        if (newMetadataKey && !data.metadata.includes(newMetadataKey)) {
+            setData('metadata', [...data.metadata, newMetadataKey]);
+            setNewMetadataKey('');
+        }
+    };
+
+    const removeMetadataKey = (key: string) => {
+        setData(
+            'metadata',
+            data.metadata.filter((k) => k !== key),
+        );
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (editingTemplate) {
-            post(templateRoutes.update.url(editingTemplate.id), {
+            post(templateRoutes.update.url(editingTemplate.id.toString()), {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     toast.success('Template updated successfully');
@@ -126,7 +148,7 @@ export default function Templates({ templates = [] }: Props) {
             return;
         }
 
-        destroy(templateRoutes.destroy.url(templateToDelete.id), {
+        destroy(templateRoutes.destroy.url(templateToDelete.id.toString()), {
             onSuccess: () => {
                 setIsDeleteModalOpen(false);
                 setTemplateToDelete(null);
@@ -138,12 +160,8 @@ export default function Templates({ templates = [] }: Props) {
         });
     };
 
-    const filteredTemplates = templates.filter(
-        (t) =>
-            t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            t.meta_data?.category
-                ?.toLowerCase()
-                .includes(searchTerm.toLowerCase()),
+    const filteredTemplates = templates.filter((t) =>
+        t.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     return (
@@ -188,10 +206,7 @@ export default function Templates({ templates = [] }: Props) {
                                         Name
                                     </th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                                        Category
-                                    </th>
-                                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                                        Description
+                                        Variables
                                     </th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                                         Uploaded At
@@ -215,14 +230,25 @@ export default function Templates({ templates = [] }: Props) {
                                                 </div>
                                             </td>
                                             <td className="p-4 align-middle">
-                                                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none">
-                                                    {template.meta_data
-                                                        ?.category || 'N/A'}
-                                                </span>
-                                            </td>
-                                            <td className="max-w-50 truncate p-4 align-middle text-muted-foreground">
-                                                {template.meta_data
-                                                    ?.description || '-'}
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(Array.isArray(template.meta_data)
+                                                        ? template.meta_data
+                                                        : []
+                                                    ).map((p: string) => (
+                                                            <Badge
+                                                                key={p}
+                                                                variant="outline"
+                                                                className="px-1 py-0 text-[10px] uppercase"
+                                                            >
+                                                                {p}
+                                                            </Badge>
+                                                        ),
+                                                    ) || (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            No variables
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="p-4 align-middle text-muted-foreground">
                                                 {new Date(
@@ -231,6 +257,34 @@ export default function Templates({ templates = [] }: Props) {
                                             </td>
                                             <td className="p-4 text-right align-middle">
                                                 <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        asChild
+                                                    >
+                                                        <a
+                                                            href={templateRoutes.preview.url(
+                                                                template.id.toString(),
+                                                            )}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </a>
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        asChild
+                                                    >
+                                                        <a
+                                                            href={templateRoutes.download.url(
+                                                                template.id.toString(),
+                                                            )}
+                                                        >
+                                                            <Download className="h-4 w-4" />
+                                                        </a>
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
@@ -306,39 +360,55 @@ export default function Templates({ templates = [] }: Props) {
                                 </p>
                             )}
                         </div>
+
                         <div className="grid gap-2">
-                            <Label htmlFor="category">Category</Label>
-                            <Input
-                                id="category"
-                                value={data.category}
-                                onChange={(e) =>
-                                    setData('category', e.target.value)
-                                }
-                                placeholder="e.g. Akademik, Tata Usaha"
-                            />
-                            {errors.category && (
-                                <p className="text-xs text-destructive">
-                                    {errors.category}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="description">
-                                Description (Optional)
-                            </Label>
-                            <Input
-                                id="description"
-                                value={data.description}
-                                onChange={(e) =>
-                                    setData('description', e.target.value)
-                                }
-                                placeholder="Brief description of the template"
-                            />
-                            {errors.description && (
-                                <p className="text-xs text-destructive">
-                                    {errors.description}
-                                </p>
-                            )}
+                            <Label>Metadata Fields (Placeholders)</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={newMetadataKey}
+                                    onChange={(e) =>
+                                        setNewMetadataKey(e.target.value)
+                                    }
+                                    placeholder="e.g. name, date, address"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            addMetadataKey();
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={addMetadataKey}
+                                >
+                                    Add
+                                </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                {data.metadata.map((key) => (
+                                    <Badge
+                                        key={key}
+                                        variant="secondary"
+                                        className="flex items-center gap-1 px-2 py-1"
+                                    >
+                                        {key}
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                removeMetadataKey(key)
+                                            }
+                                            className="ml-1 rounded-full hover:bg-muted"
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
+                                ))}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground">
+                                Add keys that will be used as placeholders in
+                                the document (e.g. name for {'{{name}}'})
+                            </p>
                         </div>
                         {!editingTemplate && (
                             <div className="grid gap-2">

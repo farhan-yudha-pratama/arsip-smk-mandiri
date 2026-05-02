@@ -41,7 +41,7 @@ class S3StorageService
         }
     }
 
-    public function getTemporaryUrl(string $path, int $minutes = 10): string
+    public function getTemporaryUrl(string $path, int $minutes = 10, bool $download = false, ?string $filename = null): string
     {
         try {
             if (!$this->disk->exists($path)) {
@@ -66,10 +66,20 @@ class S3StorageService
                 'use_path_style_endpoint' => config('filesystems.disks.s3.use_path_style_endpoint', true),
             ]);
 
-            $command = $client->getCommand('GetObject', [
+            $params = [
                 'Bucket' => config('filesystems.disks.s3.bucket'),
                 'Key'    => $path,
-            ]);
+            ];
+
+            if ($download) {
+                $disposition = 'attachment';
+                if ($filename) {
+                    $disposition .= '; filename="' . $filename . '"';
+                }
+                $params['ResponseContentDisposition'] = $disposition;
+            }
+
+            $command = $client->getCommand('GetObject', $params);
 
             $request = $client->createPresignedRequest($command, Carbon::now()->addMinutes($minutes));
 

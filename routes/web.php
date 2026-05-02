@@ -23,6 +23,8 @@ Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
     Route::post('/templates', [TemplateController::class, 'store'])->name('templates.store');
     Route::post('/templates/{template}', [TemplateController::class, 'update'])->name('templates.update');
     Route::delete('/templates/{template}', [TemplateController::class, 'destroy'])->name('templates.destroy');
+    Route::get('/templates/{template}/preview', [TemplateController::class, 'preview'])->name('templates.preview');
+    Route::get('/templates/{template}/download', [TemplateController::class, 'download'])->name('templates.download');
 });
 
 require __DIR__.'/settings.php';
