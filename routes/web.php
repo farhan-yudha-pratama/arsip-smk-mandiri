@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -12,9 +13,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 });
 
-Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
+Route::middleware(['auth', 'role:SUPERADMIN'])->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+});
 
-Route::middleware(['auth', 'role:operator'])->group(function () {
+Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
+    Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::post('/templates', [TemplateController::class, 'store'])->name('templates.store');
     Route::post('/templates/{template}', [TemplateController::class, 'update'])->name('templates.update');
     Route::delete('/templates/{template}', [TemplateController::class, 'destroy'])->name('templates.destroy');
