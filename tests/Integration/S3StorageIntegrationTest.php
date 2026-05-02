@@ -90,6 +90,8 @@ class S3StorageIntegrationTest extends TestCase
         $this->assertNotNull($url);
         $this->assertStringContainsString('http', $url);
         $this->assertStringContainsString('X-Amz', $url); // 🔥 signed URL
+
+        $this->service->delete($path);
     }
 
     public function test_invalid_base64_should_fail()

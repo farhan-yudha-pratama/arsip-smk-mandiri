@@ -10,9 +10,29 @@ class Template extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $guarded = [];
+    /**
+     * Nama tabel jika berbeda dengan jamak nama model (opsional).
+     */
+    protected $table = 'templates';
 
-    protected $casts = [
-        'meta_data' => 'array',
+    /**
+     * Kolom yang dapat diisi secara massal.
+     */
+    protected $fillable = [
+        'name',
+        'url',
+        'meta_data',
     ];
+
+    /**
+     * Mendefinisikan konversi tipe data (Casting).
+     * Menggunakan method casts() memberikan fleksibilitas lebih pada Laravel 10/11+.
+     */
+    protected function casts(): array
+    {
+        return [
+            'meta_data' => 'array', // Mengonversi JSON di DB menjadi array PHP secara otomatis
+            'id' => 'string',
+        ];
+    }
 }
