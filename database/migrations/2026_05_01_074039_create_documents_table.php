@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignUuid('template_id')->nullable()->constrained('templates')->nullOnDelete();
             $table->string('document_number')->unique()->nullable();
             $table->string('title');
-            $table->enum('status', ['DRAFT', 'GENERATED', 'SIGNED', 'ARCHIVED']);
+            $table->enum('status', ['DRAFT', 'PROCESSING', 'GENERATED', 'SIGNED', 'ARCHIVED', 'FAILED']);
             $table->enum('recipient_type', ['STUDENT', 'TEACHER', 'EXTERNAL']);
             $table->foreignUuid('student_id')->nullable()->constrained('students')->nullOnDelete();
             $table->foreignUuid('teacher_id')->nullable()->constrained('teachers')->nullOnDelete();

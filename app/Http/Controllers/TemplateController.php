@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Template;
 use App\Services\S3StorageService;
+use App\Services\DocumentTemplateService;
+use App\Jobs\ProcessTemplateUploadJob;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -42,24 +44,48 @@ class TemplateController extends Controller
         ]);
 
         try {
-            // 1. Upload ke S3 melalui Service
-            $filePath = $this->storageService->uploadBase64(
-                $request->document, 
-                'templates', 
-                'document'
+            // 1. Decode Base64 and Save to Temp File
+            if (!str_contains($request->document, 'base64,')) {
+                return back()->withErrors(['document' => 'Format Base64 tidak valid']);
+            }
+
+            [$meta, $data] = explode(',', $request->document, 2);
+            $binary = base64_decode($data);
+            
+            if ($binary === false) {
+                return back()->withErrors(['document' => 'Gagal mendekode data Base64']);
+            }
+
+            $tempDir = storage_path('app/temp_uploads');
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Get extension from mime if possible, else default to docx
+            $extension = 'docx';
+            if (preg_match('/data:(.*?);base64/', $meta, $matches)) {
+                $mime = $matches[1];
+                $extension = match ($mime) {
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                    'application/msword' => 'doc',
+                    'application/pdf' => 'pdf',
+                    default => 'docx'
+                };
+            }
+
+            $tempFileName = 'tpl_' . uniqid() . '.' . $extension;
+            $tempFilePath = $tempDir . DIRECTORY_SEPARATOR . $tempFileName;
+            
+            file_put_contents($tempFilePath, $binary);
+
+            // 2. Dispatch Job
+            ProcessTemplateUploadJob::dispatch(
+                $tempFilePath,
+                $request->title,
+                $request->metadata ?? []
             );
 
-            $metaData = $request->meta_data;
-            $metaData['placeholders'] = $request->metadata ?? [];
-
-            // 2. Simpan ke Database menggunakan Model Template
-            Template::create([
-                'name' => $request->title,
-                'url'  => $filePath,
-                'meta_data' => $request->metadata ?? []
-            ]);
-
-            return back()->with('success', 'Template dan Meta Data berhasil disimpan!');
+            return back()->with('success', 'Template sedang diproses di latar belakang. Silakan tunggu beberapa saat.');
 
         } catch (\Throwable $e) {
             return back()->withErrors(['document' => 'Gagal memproses data: ' . $e->getMessage()]);
@@ -120,6 +146,68 @@ class TemplateController extends Controller
             return Inertia::location($url);
         } catch (\Throwable $e) {
             return back()->withErrors(['error' => 'Gagal membuat link unduhan: ' . $e->getMessage()]);
+        }
+    }
+
+    public function extractVariables(Request $request, DocumentTemplateService $templateService)
+    {
+        $request->validate([
+            'document' => 'required|string',
+        ]);
+
+        try {
+            if (!str_contains($request->document, 'base64,')) {
+                return response()->json(['error' => 'Format Base64 tidak valid'], 400);
+            }
+
+            [$meta, $data] = explode(',', $request->document, 2);
+            $binary = base64_decode($data);
+            
+            if ($binary === false) {
+                return response()->json(['error' => 'Gagal mendekode data Base64'], 400);
+            }
+
+            $tempDir = storage_path('app/temp_uploads');
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Get extension
+            $extension = 'docx';
+            if (preg_match('/data:(.*?);base64/', $meta, $matches)) {
+                $mime = $matches[1];
+                $extension = match ($mime) {
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                    'application/msword' => 'doc',
+                    default => 'docx'
+                };
+            }
+
+            if ($extension !== 'docx') {
+                return response()->json(['error' => 'Format file tidak didukung untuk ekstraksi variabel, gunakan .docx'], 400);
+            }
+
+            $tempFileName = 'extract_' . uniqid() . '.' . $extension;
+            $tempFilePath = $tempDir . DIRECTORY_SEPARATOR . $tempFileName;
+            
+            file_put_contents($tempFilePath, $binary);
+
+            $variables = $templateService->extractVariables($tempFilePath);
+
+            // Clean up temp file
+            if (file_exists($tempFilePath)) {
+                unlink($tempFilePath);
+            }
+
+            return response()->json([
+                'success' => true,
+                'variables' => $variables
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Gagal mengekstrak variabel: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

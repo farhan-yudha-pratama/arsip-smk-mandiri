@@ -14,6 +14,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import documents from '@/routes/documents';
 import templates from '@/routes/templates';
 import users from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -23,6 +24,13 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+
+    {
+        title: 'Documents',
+        href: documents.index(),
+        icon: BookOpen,
+        roles: ['SUPERADMIN', 'ADMIN', 'OPERATOR'],
     },
 
     {

@@ -21,7 +21,7 @@ class S3StorageService
         try {
             [$binary, $mime, $extension] = $this->decodeBase64($base64);
 
-            $this->validateSize($binary, $category);
+            $this->validateSize(strlen($binary), $category);
 
             $filename = $path . '/' . Str::uuid() . '.' . $extension;
 
@@ -31,6 +31,36 @@ class S3StorageService
 
         } catch (\Throwable $e) {
             Log::error('S3 Upload Failed', [
+                'error_type' => get_class($e),
+                'message' => $e->getMessage(),
+                'category' => $category,
+                'path' => $path,
+            ]);
+
+            throw $e;
+        }
+    }
+
+    public function uploadFile(string $filePath, string $path, string $category = 'document'): string
+    {
+        try {
+            if (!file_exists($filePath)) {
+                throw new \Exception('File not found: ' . $filePath);
+            }
+
+            $this->validateSize(filesize($filePath), $category);
+
+            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+            $filename = $path . '/' . Str::uuid() . '.' . $extension;
+
+            $stream = fopen($filePath, 'r');
+            $this->disk->put($filename, $stream);
+            fclose($stream);
+
+            return $filename;
+
+        } catch (\Throwable $e) {
+            Log::error('S3 File Upload Failed', [
                 'error_type' => get_class($e),
                 'message' => $e->getMessage(),
                 'category' => $category,
@@ -134,13 +164,12 @@ class S3StorageService
         return [$binary, $mime, $extension];
     }
 
-    protected function validateSize(string $binary, string $category): void
+    protected function validateSize(int $size, string $category): void
     {
-        $size = strlen($binary);
 
         $limits = [
             'image' => 2 * 1024 * 1024,
-            'document' => 5 * 1024 * 1024,
+            'document' => 100 * 1024 * 1024,
             'video' => 20 * 1024 * 1024,
         ];
 
