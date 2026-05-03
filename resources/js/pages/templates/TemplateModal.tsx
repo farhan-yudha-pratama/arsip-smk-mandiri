@@ -217,25 +217,40 @@ export default function TemplateModal({ isOpen, onClose, editingTemplate }: Temp
                                 <Badge
                                     key={key}
                                     variant="secondary"
-                                    className="flex items-center gap-1 px-2 py-1"
+                                    className="flex items-center gap-1 px-2 py-1 max-w-full"
                                 >
-                                    {key}
+                                    <span 
+                                        className="cursor-pointer hover:text-primary transition-colors truncate max-w-[150px]"
+                                        onClick={() => {
+                                            const tag = `{{${key}}}`;
+                                            navigator.clipboard.writeText(tag);
+                                            toast.success(`Copied ${tag} to clipboard`);
+                                        }}
+                                        title={`Klik untuk copy placeholder: {{${key}}}`}
+                                    >
+                                        {key}
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() =>
                                             removeMetadataKey(key)
                                         }
-                                        className="ml-1 rounded-full hover:bg-muted"
+                                        className="ml-1 rounded-full hover:bg-muted p-0.5 shrink-0"
                                     >
                                         <Trash2 className="h-3 w-3" />
                                     </button>
                                 </Badge>
                             ))}
                         </div>
-                        <p className="text-[10px] text-muted-foreground">
-                            Tambahkan kunci yang akan digunakan sebagai penanda tempat dalam
-                            dokumen (misalnya, nama untuk {`{ name }`})
-                        </p>
+                        <div className="space-y-1 mt-1">
+                            <p className="text-[10px] text-muted-foreground">
+                                Tambahkan kunci yang akan digunakan sebagai penanda tempat dalam
+                                dokumen (misalnya, nama untuk {`{{ nama }}`})
+                            </p>
+                            <p className="text-[10px] bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 p-2 rounded border border-amber-100 dark:border-amber-900">
+                                <strong>Tips:</strong> Klik pada label di atas untuk menyalin, lalu <strong>paste</strong> ke Word. Hindari mengetik manual di Word untuk mencegah placeholder terpecah di XML dokumen.
+                            </p>
+                        </div>
                     </div>
                     {!editingTemplate && (
                         <div className="grid gap-2">
