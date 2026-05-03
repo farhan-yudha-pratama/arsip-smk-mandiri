@@ -10,3 +10,20 @@ export function cn(...inputs: ClassValue[]) {
 export function toUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     return typeof url === 'string' ? url : url.url;
 }
+
+export function formatDateTime(date: string | Date | number) {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    return new Intl.DateTimeFormat('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(d);
+}
+
+export function formatDate(date: string | Date | number) {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    return new Intl.DateTimeFormat('id-ID', {
+        dateStyle: 'medium',
+    }).format(d);
+}

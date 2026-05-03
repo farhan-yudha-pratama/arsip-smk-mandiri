@@ -41,7 +41,7 @@ class S3StorageService
         }
     }
 
-    public function uploadFile(string $filePath, string $path, string $category = 'document'): string
+    public function uploadFile(string $filePath, string $path, string $category = 'document', ?string $originalExtension = null): string
     {
         try {
             if (!file_exists($filePath)) {
@@ -50,7 +50,7 @@ class S3StorageService
 
             $this->validateSize(filesize($filePath), $category);
 
-            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+            $extension = $originalExtension ?? pathinfo($filePath, PATHINFO_EXTENSION);
             $filename = $path . '/' . Str::uuid() . '.' . $extension;
 
             $stream = fopen($filePath, 'r');

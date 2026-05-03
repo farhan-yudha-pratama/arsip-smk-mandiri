@@ -51,7 +51,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
-        recipient_type: 'EXTERNAL',
+        recipient_type: 'STUDENT',
         student_id: '',
         teacher_id: '',
         meta_data_values: {} as Record<string, string>,
@@ -159,7 +159,6 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                 <SelectContent>
                                     <SelectItem value="STUDENT">Student</SelectItem>
                                     <SelectItem value="TEACHER">Teacher</SelectItem>
-                                    <SelectItem value="EXTERNAL">External</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.recipient_type && <p className="text-xs text-destructive">{errors.recipient_type}</p>}

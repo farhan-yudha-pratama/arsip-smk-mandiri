@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, Download, X } from 'lucide-react';
+import { formatDateTime } from '@/lib/utils';
 
 interface DocumentHistoryModalProps {
     open: boolean;
@@ -72,7 +73,7 @@ export function DocumentHistoryModal({
                                                 {hist.note}
                                             </td>
                                             <td className="p-3 align-middle">
-                                                {new Date(hist.created_at).toLocaleString('id-ID')}
+                                                {formatDateTime(hist.created_at)}
                                             </td>
                                             <td className="p-3 align-middle">
                                                 {hist.creator?.name || 'Sistem'}

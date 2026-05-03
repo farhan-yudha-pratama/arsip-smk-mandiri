@@ -11,6 +11,9 @@ import {
     Globe,
     Loader2,
     Pencil,
+    CheckCircle,
+    Upload,
+    MailOpen,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -28,7 +31,10 @@ import documentRoutes from '@/routes/documents';
 import { CreateDocumentModal } from './DocumentModal';
 import { EditDocumentModal } from './EditDocumentModal';
 import { DocumentHistoryModal } from './DocumentHistoryModal';
+import { IncomingMailModal } from './IncomingMailModal';
+import { UploadSignedModal } from './UploadSignedModal';
 import { Document } from '@/types/document';
+import { formatDateTime } from '@/lib/utils';
 
 interface Props {
     documents: Document[];
@@ -46,8 +52,12 @@ export default function Documents({ documents = [], templates, students, teacher
     const [documentForHistory, setDocumentForHistory] = useState<Document | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [documentToEdit, setDocumentToEdit] = useState<Document | null>(null);
+    const [isIncomingModalOpen, setIsIncomingModalOpen] = useState(false);
+    const [isUploadSignedOpen, setIsUploadSignedOpen] = useState(false);
+    const [documentForUpload, setDocumentForUpload] = useState<Document | null>(null);
 
     const { delete: destroy, processing: deleting } = useForm();
+    const { post: postArchive, processing: archiving } = useForm();
 
     const openDeleteModal = (doc: Document) => {
         setDocumentToDelete(doc);
@@ -62,6 +72,18 @@ export default function Documents({ documents = [], templates, students, teacher
     const openEditModal = (doc: Document) => {
         setDocumentToEdit(doc);
         setIsEditModalOpen(true);
+    };
+
+    const openUploadSignedModal = (doc: Document) => {
+        setDocumentForUpload(doc);
+        setIsUploadSignedOpen(true);
+    };
+
+    const handleArchive = (doc: Document) => {
+        postArchive(`/documents/${doc.id}/archive`, {
+            onSuccess: () => toast.success('Document archived successfully'),
+            onError: () => toast.error('Failed to archive document'),
+        });
     };
 
     const handleDelete = () => {
@@ -93,8 +115,9 @@ export default function Documents({ documents = [], templates, students, teacher
                 </Badge>
             );
             case 'GENERATED': return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">{status}</Badge>;
-            case 'SIGNED': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">{status}</Badge>;
+            case 'SIGNED': return <Badge className="bg-green-500 text-white hover:bg-green-600 border-green-600">{status}</Badge>;
             case 'ARCHIVED': return <Badge variant="outline" className="bg-gray-100 text-gray-700">{status}</Badge>;
+            case 'EXTERNAL': return <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200">{status}</Badge>;
             case 'FAILED': return <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200">{status}</Badge>;
             default: return <Badge variant="outline">{status}</Badge>;
         }
@@ -125,9 +148,14 @@ export default function Documents({ documents = [], templates, students, teacher
                             Generate and manage your documents from templates.
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto">
-                        <Plus className="mr-2 h-4 w-4" /> Generate Document
-                    </Button>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button variant="outline" onClick={() => setIsIncomingModalOpen(true)} className="w-full sm:w-auto">
+                            <MailOpen className="mr-2 h-4 w-4" /> Register Incoming Mail
+                        </Button>
+                        <Button onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto">
+                            <Plus className="mr-2 h-4 w-4" /> Generate Document
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 shadow-sm">
@@ -184,7 +212,7 @@ export default function Documents({ documents = [], templates, students, teacher
                                             </td>
                                             <td className="p-4 align-middle text-muted-foreground">
                                                 <div className="flex flex-col">
-                                                    <span>{new Date(doc.created_at).toLocaleDateString()}</span>
+                                                    <span>{formatDateTime(doc.created_at)}</span>
                                                     <span className="text-[10px]">{doc.creator?.name || 'System'}</span>
                                                 </div>
                                             </td>
@@ -209,6 +237,29 @@ export default function Documents({ documents = [], templates, students, teacher
                                                     >
                                                         <History className="h-4 w-4 text-muted-foreground" />
                                                     </Button>
+                                                    {doc.status === 'GENERATED' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => openUploadSignedModal(doc)}
+                                                            title="Upload Signed Document"
+                                                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                        >
+                                                            <Upload className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    {doc.status === 'SIGNED' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleArchive(doc)}
+                                                            title="Finish & Archive"
+                                                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                                            disabled={archiving}
+                                                        >
+                                                            <CheckCircle className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
@@ -218,7 +269,7 @@ export default function Documents({ documents = [], templates, students, teacher
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
-                                                    {doc.status === 'DRAFT' && (
+                                                    {(doc.status === 'DRAFT' || doc.status === 'FAILED') && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -265,6 +316,17 @@ export default function Documents({ documents = [], templates, students, teacher
                 onOpenChange={setIsEditModalOpen}
                 document={documentToEdit}
                 templates={templates}
+            />
+
+            <IncomingMailModal 
+                open={isIncomingModalOpen}
+                onOpenChange={setIsIncomingModalOpen}
+            />
+
+            <UploadSignedModal 
+                open={isUploadSignedOpen}
+                onOpenChange={setIsUploadSignedOpen}
+                document={documentForUpload}
             />
 
             {/* Delete Confirmation Modal */}

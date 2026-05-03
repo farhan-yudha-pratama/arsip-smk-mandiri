@@ -14,6 +14,9 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\Settings;
+use PhpOffice\PhpWord\IOFactory;
+use App\Models\OutgoingMail;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -67,29 +70,53 @@ class GenerateDocumentJob implements ShouldQueue
         $tempOutputPath = tempnam(sys_get_temp_dir(), 'doc');
         $templateProcessor->saveAs($tempOutputPath);
 
-        // 3. Upload generated file to S3
-        $fileName = 'documents/' . Str::uuid() . '.docx';
-        Log::info('Uploading generated document to S3', ['path' => $fileName]);
-        $stream = fopen($tempOutputPath, 'r');
+        // 3. Convert DOCX to PDF
+        Log::info('Converting DOCX to PDF');
+        
+        // Configure PDF renderer (DomPDF)
+        Settings::setPdfRendererName(Settings::PDF_RENDERER_DOMPDF);
+        Settings::setPdfRendererPath(base_path('vendor/dompdf/dompdf'));
+
+        $phpWord = IOFactory::load($tempOutputPath);
+        $tempPdfPath = tempnam(sys_get_temp_dir(), 'pdf') . '.pdf';
+        
+        $xmlWriter = IOFactory::createWriter($phpWord, 'PDF');
+        $xmlWriter->save($tempPdfPath);
+
+        // 4. Upload generated PDF to S3
+        $fileName = 'documents/' . Str::uuid() . '.pdf';
+        Log::info('Uploading generated PDF to S3', ['path' => $fileName]);
+        $stream = fopen($tempPdfPath, 'r');
         Storage::disk('s3')->put($fileName, $stream);
         fclose($stream);
 
         // Clean up temp files
         if (file_exists($tempTemplatePath)) unlink($tempTemplatePath);
         if (file_exists($tempOutputPath)) unlink($tempOutputPath);
+        if (file_exists($tempPdfPath)) unlink($tempPdfPath);
 
-        // 4. Update Document record
+        // 5. Update Document record
         $this->document->update([
             'status' => StatusDocument::GENERATED,
             'current_url' => $fileName,
         ]);
 
-        // 5. Create History record
+        // Get Recipient Name for history and mail
+        $recipientName = $this->document->student->name ?? $this->document->teacher->name ?? 'External';
+
+        // 6. Record in Outgoing Mail
+        OutgoingMail::create([
+            'document_id' => $this->document->id,
+            'recipient_name' => $recipientName,
+            'sent_at' => now(),
+        ]);
+
+        // 7. Create History record
         DocumentHistory::create([
             'document_id' => $this->document->id,
             'file_path' => $fileName,
             'version_name' => StatusDocument::GENERATED,
-            'note' => 'Generated successfully in background from template: ' . $template->name,
+            'note' => "Generated successfully as PDF for {$recipientName}. Template: " . $template->name,
             'created_by' => $this->document->created_by,
             'created_at' => now(),
         ]);

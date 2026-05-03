@@ -19,6 +19,8 @@ use Inertia\Inertia;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Str;
 use App\Jobs\GenerateDocumentJob;
+use App\Models\IncomingMail;
+use App\Models\OutgoingMail;
 
 class DocumentController extends Controller
 {
@@ -111,8 +113,8 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        if ($document->status !== StatusDocument::DRAFT) {
-            return back()->withErrors(['error' => 'Only draft documents can be modified.']);
+        if (!in_array($document->status, [StatusDocument::DRAFT, StatusDocument::FAILED])) {
+            return back()->withErrors(['error' => 'Only draft or failed documents can be modified.']);
         }
 
         $request->validate([
@@ -157,7 +159,8 @@ class DocumentController extends Controller
     public function download(Document $document)
     {
         try {
-            $url = $this->storageService->getTemporaryUrl($document->current_url, 10, true, $document->title . '.docx');
+            $extension = pathinfo($document->current_url, PATHINFO_EXTENSION) ?: 'pdf';
+            $url = $this->storageService->getTemporaryUrl($document->current_url, 10, true, $document->title . '.' . $extension);
             return Inertia::location($url);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to generate download link: ' . $e->getMessage()]);
@@ -172,7 +175,8 @@ class DocumentController extends Controller
 
         try {
             $versionName = $history->version_name->value ?? $history->version_name;
-            $url = $this->storageService->getTemporaryUrl($history->file_path, 10, true, $document->title . ' - ' . $versionName . '.docx');
+            $extension = pathinfo($history->file_path, PATHINFO_EXTENSION) ?: 'pdf';
+            $url = $this->storageService->getTemporaryUrl($history->file_path, 10, true, $document->title . ' - ' . $versionName . '.' . $extension);
             return Inertia::location($url);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to generate download link: ' . $e->getMessage()]);
@@ -197,6 +201,123 @@ class DocumentController extends Controller
             });
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to delete document: ' . $e->getMessage()]);
+        }
+    }
+    public function uploadSigned(Request $request, Document $document)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
+        try {
+            return DB::transaction(function () use ($request, $document) {
+                $file = $request->file('file');
+                $path = $this->storageService->uploadFile(
+                    $file->getRealPath(), 
+                    'documents', 
+                    'document', 
+                    $file->getClientOriginalExtension()
+                );
+
+                $document->update([
+                    'status' => StatusDocument::SIGNED,
+                    'current_url' => $path,
+                ]);
+
+                $recipientName = $document->student->name ?? $document->teacher->name ?? 'External';
+
+                DocumentHistory::create([
+                    'document_id' => $document->id,
+                    'file_path' => $path,
+                    'version_name' => StatusDocument::SIGNED,
+                    'note' => "Signed document uploaded for {$recipientName}.",
+                    'created_by' => Auth::id(),
+                    'created_at' => now(),
+                ]);
+
+                return back()->with('success', 'Signed document uploaded successfully!');
+            });
+        } catch (\Exception $e) {
+            Log::error('Upload Signed Failed', ['error' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to upload signed document: ' . $e->getMessage()]);
+        }
+    }
+
+    public function archive(Document $document)
+    {
+        try {
+            return DB::transaction(function () use ($document) {
+                $document->update([
+                    'status' => StatusDocument::ARCHIVED,
+                ]);
+
+                $recipientName = $document->student->name ?? $document->teacher->name ?? 'External';
+
+                DocumentHistory::create([
+                    'document_id' => $document->id,
+                    'file_path' => $document->current_url,
+                    'version_name' => StatusDocument::ARCHIVED,
+                    'note' => "Document finished and archived for {$recipientName}.",
+                    'created_by' => Auth::id(),
+                    'created_at' => now(),
+                ]);
+
+                return back()->with('success', 'Document archived successfully!');
+            });
+        } catch (\Exception $e) {
+            Log::error('Archive Failed', ['error' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to archive document: ' . $e->getMessage()]);
+        }
+    }
+
+    public function storeIncoming(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'sender_origin' => 'required|string|max:255',
+            'received_at' => 'required|date',
+            'file' => 'required|file|mimes:pdf,docx,doc|max:10240',
+        ]);
+
+        try {
+            return DB::transaction(function () use ($request) {
+                $file = $request->file('file');
+                $path = $this->storageService->uploadFile(
+                    $file->getRealPath(), 
+                    'documents', 
+                    'document', 
+                    $file->getClientOriginalExtension()
+                );
+
+                $document = Document::create([
+                    'title' => $request->title,
+                    'status' => StatusDocument::ARCHIVED,
+                    'recipient_type' => RecipientType::EXTERNAL,
+                    'meta_data_values' => [],
+                    'current_url' => $path,
+                    'created_by' => Auth::id(),
+                ]);
+
+                IncomingMail::create([
+                    'document_id' => $document->id,
+                    'sender_origin' => $request->sender_origin,
+                    'received_at' => $request->received_at,
+                ]);
+
+                DocumentHistory::create([
+                    'document_id' => $document->id,
+                    'file_path' => $path,
+                    'version_name' => StatusDocument::ARCHIVED,
+                    'note' => "Incoming external document from {$request->sender_origin}.",
+                    'created_by' => Auth::id(),
+                    'created_at' => now(),
+                ]);
+
+                return back()->with('success', 'Incoming mail registered successfully!');
+            });
+        } catch (\Exception $e) {
+            Log::error('Store Incoming Failed', ['error' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to register incoming mail: ' . $e->getMessage()]);
         }
     }
 }

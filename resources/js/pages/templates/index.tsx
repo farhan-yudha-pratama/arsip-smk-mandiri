@@ -24,6 +24,7 @@ import {
 import templateRoutes from '@/routes/templates';
 import TemplateModal from './TemplateModal';
 import { Template } from '@/types/template';
+import { formatDateTime } from '@/lib/utils';
 
 interface Props {
     templates: Template[];
@@ -160,9 +161,7 @@ export default function Templates({ templates = [] }: Props) {
                                                 </div>
                                             </td>
                                             <td className="p-4 align-middle text-muted-foreground">
-                                                {new Date(
-                                                    template.created_at,
-                                                ).toLocaleDateString()}
+                                                {formatDateTime(template.created_at)}
                                             </td>
                                             <td className="p-4 text-right align-middle">
                                                 <div className="flex justify-end gap-2">
