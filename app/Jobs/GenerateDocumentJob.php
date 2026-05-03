@@ -72,8 +72,8 @@ class GenerateDocumentJob implements ShouldQueue
             $sofficePath = env('LIBREOFFICE_PATH');
 
             if (!$sofficePath) {
-                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    // Cek lokasi standar Windows
+                if (app()->environment('local')) {
+                    // Local development on Windows
                     $standardPaths = [
                         'C:\Program Files\LibreOffice\program\soffice.exe',
                         'C:\Program Files (x86)\LibreOffice\program\soffice.exe',
@@ -84,9 +84,12 @@ class GenerateDocumentJob implements ShouldQueue
                             break;
                         }
                     }
+                } elseif (app()->environment('staging')) {
+                    // Staging environment (Docker)
+                    $sofficePath = 'soffice';
                 }
                 
-                // Fallback jika tidak ditemukan atau bukan Windows
+                // Fallback jika tidak ditemukan atau environment lain
                 if (!$sofficePath) {
                     $sofficePath = 'soffice';
                 }
