@@ -45,4 +45,14 @@ class Document extends Model
     {
         return $this->hasMany(DocumentHistory::class);
     }
+
+    public function incomingMail()
+    {
+        return $this->hasOne(IncomingMail::class);
+    }
+
+    public function outgoingMail()
+    {
+        return $this->hasOne(OutgoingMail::class);
+    }
 }

@@ -59,17 +59,21 @@ class DocumentController extends Controller
             'student_id' => 'nullable|exists:students,id',
             'teacher_id' => 'nullable|exists:teachers,id',
             'meta_data_values' => 'nullable|array',
+            'is_draft' => 'nullable|boolean',
         ]);
 
         try {
             return DB::transaction(function () use ($request) {
                 $template = Template::findOrFail($request->template_id);
 
-                // 1. Create Document record with PROCESSING status
+                $isDraft = $request->boolean('is_draft');
+                $status = $isDraft ? StatusDocument::DRAFT : StatusDocument::PROCESSING;
+
+                // 1. Create Document record with status
                 $document = Document::create([
                     'template_id' => $template->id,
                     'title' => $request->title,
-                    'status' => StatusDocument::PROCESSING,
+                    'status' => $status,
                     'recipient_type' => $request->recipient_type,
                     'student_id' => $request->student_id,
                     'teacher_id' => $request->teacher_id,
@@ -82,8 +86,8 @@ class DocumentController extends Controller
                 DocumentHistory::create([
                     'document_id' => $document->id,
                     'file_path' => '',
-                    'version_name' => StatusDocument::PROCESSING,
-                    'note' => 'Generation started in background.',
+                    'version_name' => $status,
+                    'note' => $isDraft ? 'Document saved as draft.' : 'Generation started in background.',
                     'created_by' => Auth::id(),
                     'created_at' => now(),
                 ]);
@@ -91,14 +95,62 @@ class DocumentController extends Controller
                 Log::info('Document record created', ['id' => $document->id]);
                 Log::info('Using Template', ['id' => $template->id, 'name' => $template->name]);
 
-                // 3. Dispatch Job
-                GenerateDocumentJob::dispatch($document, $request->meta_data_values ?? []);
+                if (!$isDraft) {
+                    // 3. Dispatch Job
+                    GenerateDocumentJob::dispatch($document, $request->meta_data_values ?? []);
+                    return back()->with('success', 'Document generation started in background!');
+                }
 
-                return back()->with('success', 'Document generation started in background!');
+                return back()->with('success', 'Document saved as draft!');
             });
         } catch (\Exception $e) {
             Log::error('DocumentController@store exception', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return back()->withErrors(['error' => 'Failed to start document generation: ' . $e->getMessage()]);
+        }
+    }
+
+    public function update(Request $request, Document $document)
+    {
+        if ($document->status !== StatusDocument::DRAFT) {
+            return back()->withErrors(['error' => 'Only draft documents can be modified.']);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'meta_data_values' => 'nullable|array',
+            'is_draft' => 'nullable|boolean',
+        ]);
+
+        try {
+            return DB::transaction(function () use ($request, $document) {
+                $isDraft = $request->boolean('is_draft');
+                $status = $isDraft ? StatusDocument::DRAFT : StatusDocument::PROCESSING;
+
+                $document->update([
+                    'title' => $request->title,
+                    'meta_data_values' => $request->meta_data_values ?? [],
+                    'status' => $status,
+                ]);
+
+                DocumentHistory::create([
+                    'document_id' => $document->id,
+                    'file_path' => '',
+                    'version_name' => $status,
+                    'note' => $isDraft ? 'Draft updated.' : 'Generation started from draft.',
+                    'created_by' => Auth::id(),
+                    'created_at' => now(),
+                ]);
+
+                if (!$isDraft) {
+                    GenerateDocumentJob::dispatch($document, $request->meta_data_values ?? []);
+                    return back()->with('success', 'Document generation started in background!');
+                }
+
+                return back()->with('success', 'Draft updated successfully!');
+            });
+        } catch (\Exception $e) {
+            Log::error('DocumentController@update exception', ['error' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to update document: ' . $e->getMessage()]);
         }
     }
 

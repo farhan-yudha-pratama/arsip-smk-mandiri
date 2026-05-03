@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import {
     Dialog,
@@ -48,14 +48,17 @@ interface Props {
 }
 
 export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers }: Props) {
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
         recipient_type: 'EXTERNAL',
         student_id: '',
         teacher_id: '',
         meta_data_values: {} as Record<string, string>,
+        is_draft: false,
     });
+
+    const isDraftRef = useRef(false);
 
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
 
@@ -84,11 +87,18 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+        const isDraft = isDraftRef.current;
+
+        transform((currentData) => ({
+            ...currentData,
+            is_draft: isDraft,
+        }));
+
         post(documentRoutes.store.url(), {
             onSuccess: () => {
                 onOpenChange(false);
                 reset();
-                toast.success('Document generation started in background');
+                toast.success(isDraft ? 'Document saved as draft' : 'Document generation started in background');
             },
         });
     };
@@ -223,8 +233,20 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={processing || !data.template_id}>
-                            {processing ? 'Generating...' : 'Generate Document'}
+                        <Button 
+                            type="submit" 
+                            variant="secondary"
+                            onClick={() => { isDraftRef.current = true; }}
+                            disabled={processing || !data.template_id}
+                        >
+                            {processing && isDraftRef.current ? 'Saving...' : 'Save as Draft'}
+                        </Button>
+                        <Button 
+                            type="submit" 
+                            onClick={() => { isDraftRef.current = false; }}
+                            disabled={processing || !data.template_id}
+                        >
+                            {processing && !isDraftRef.current ? 'Generating...' : 'Generate Document'}
                         </Button>
                     </DialogFooter>
                 </form>

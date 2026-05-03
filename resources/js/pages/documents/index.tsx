@@ -10,6 +10,7 @@ import {
     UserCircle,
     Globe,
     Loader2,
+    Pencil,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import documentRoutes from '@/routes/documents';
 import { CreateDocumentModal } from './DocumentModal';
+import { EditDocumentModal } from './EditDocumentModal';
 import { DocumentHistoryModal } from './DocumentHistoryModal';
 import { Document } from '@/types/document';
 
@@ -42,6 +44,8 @@ export default function Documents({ documents = [], templates, students, teacher
     const [searchTerm, setSearchTerm] = useState('');
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [documentForHistory, setDocumentForHistory] = useState<Document | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [documentToEdit, setDocumentToEdit] = useState<Document | null>(null);
 
     const { delete: destroy, processing: deleting } = useForm();
 
@@ -53,6 +57,11 @@ export default function Documents({ documents = [], templates, students, teacher
     const openHistoryModal = (doc: Document) => {
         setDocumentForHistory(doc);
         setIsHistoryModalOpen(true);
+    };
+
+    const openEditModal = (doc: Document) => {
+        setDocumentToEdit(doc);
+        setIsEditModalOpen(true);
     };
 
     const handleDelete = () => {
@@ -209,6 +218,17 @@ export default function Documents({ documents = [], templates, students, teacher
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
+                                                    {doc.status === 'DRAFT' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => openEditModal(doc)}
+                                                            title="Edit & Generate"
+                                                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -238,6 +258,13 @@ export default function Documents({ documents = [], templates, students, teacher
                 open={isHistoryModalOpen}
                 onOpenChange={setIsHistoryModalOpen}
                 document={documentForHistory}
+            />
+
+            <EditDocumentModal
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                document={documentToEdit}
+                templates={templates}
             />
 
             {/* Delete Confirmation Modal */}
