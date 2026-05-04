@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryNumberingController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\UserController;
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'role:SUPERADMIN'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
+    // Templates
     Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::post('/templates', [TemplateController::class, 'store'])->name('templates.store');
     Route::post('/templates/extract-variables', [TemplateController::class, 'extractVariables'])->name('templates.extract-variables');
@@ -39,6 +41,12 @@ Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
     Route::delete('/templates/{template}', [TemplateController::class, 'destroy'])->name('templates.destroy');
     Route::get('/templates/{template}/preview', [TemplateController::class, 'preview'])->name('templates.preview');
     Route::get('/templates/{template}/download', [TemplateController::class, 'download'])->name('templates.download');
+
+    // Kategori Penomoran Surat
+    Route::get('/category-numbering', [CategoryNumberingController::class, 'index'])->name('category-numbering.index');
+    Route::post('/category-numbering', [CategoryNumberingController::class, 'store'])->name('category-numbering.store');
+    Route::put('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'update'])->name('category-numbering.update');
+    Route::delete('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'destroy'])->name('category-numbering.destroy');
 });
 
 require __DIR__.'/settings.php';

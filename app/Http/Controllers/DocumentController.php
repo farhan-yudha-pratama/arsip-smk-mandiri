@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Enums\RecipientType;
 use App\Enums\StatusDocument;
+use App\Models\CategoryNumbering;
 use App\Models\Document;
 use App\Models\DocumentHistory;
 use App\Models\Student;
@@ -75,17 +77,19 @@ class DocumentController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $templates = Template::all();
-        $students = Student::all();
-        $teachers = Teacher::all();
+        $templates         = Template::all();
+        $students          = Student::all();
+        $teachers          = Teacher::all();
+        $categoryNumbering = CategoryNumbering::orderBy('letter_code')->get();
 
         return Inertia::render('documents/outgoing', [
-            'documents' => $documents,
-            'templates' => $templates,
-            'students' => $students,
-            'teachers' => $teachers,
-            'recipientTypes' => RecipientType::cases(),
-            'filters' => $request->only('search', 'status', 'recipient'),
+            'documents'         => $documents,
+            'templates'         => $templates,
+            'students'          => $students,
+            'teachers'          => $teachers,
+            'categoryNumbering' => $categoryNumbering,
+            'recipientTypes'    => RecipientType::cases(),
+            'filters'           => $request->only('search', 'status', 'recipient'),
         ]);
     }
 
@@ -94,13 +98,14 @@ class DocumentController extends Controller
         Log::info('DocumentController@store hit', $request->all());
 
         $request->validate([
-            'template_id' => 'required|exists:templates,id',
-            'title' => 'required|string|max:255',
-            'recipient_type' => 'required|string',
-            'student_id' => 'nullable|exists:students,id',
-            'teacher_id' => 'nullable|exists:teachers,id',
-            'meta_data_values' => 'nullable|array',
-            'is_draft' => 'nullable|boolean',
+            'template_id'           => 'required|exists:templates,id',
+            'title'                 => 'required|string|max:255',
+            'recipient_type'        => 'required|string',
+            'student_id'            => 'nullable|exists:students,id',
+            'teacher_id'            => 'nullable|exists:teachers,id',
+            'meta_data_values'      => 'nullable|array',
+            'is_draft'              => 'nullable|boolean',
+            'category_numbering_id' => 'nullable|exists:category_numbering,id',
         ]);
 
         try {
@@ -137,8 +142,12 @@ class DocumentController extends Controller
                 Log::info('Using Template', ['id' => $template->id, 'name' => $template->name]);
 
                 if (!$isDraft) {
-                    // 3. Dispatch Job
-                    GenerateDocumentJob::dispatch($document, $request->meta_data_values ?? []);
+                    // 3. Dispatch Job dengan category_numbering_id untuk penomoran surat
+                    GenerateDocumentJob::dispatch(
+                        $document,
+                        $request->meta_data_values ?? [],
+                        $request->integer('category_numbering_id') ?: null,
+                    );
                     return back()->with('success', 'Pembuatan dokumen dimulai di latar belakang!');
                 }
 
@@ -157,9 +166,10 @@ class DocumentController extends Controller
         }
 
         $request->validate([
-            'title' => 'required|string|max:255',
-            'meta_data_values' => 'nullable|array',
-            'is_draft' => 'nullable|boolean',
+            'title'                 => 'required|string|max:255',
+            'meta_data_values'      => 'nullable|array',
+            'is_draft'              => 'nullable|boolean',
+            'category_numbering_id' => 'nullable|exists:category_numbering,id',
         ]);
 
         try {
@@ -183,7 +193,11 @@ class DocumentController extends Controller
                 ]);
 
                 if (!$isDraft) {
-                    GenerateDocumentJob::dispatch($document, $request->meta_data_values ?? []);
+                    GenerateDocumentJob::dispatch(
+                        $document,
+                        $request->meta_data_values ?? [],
+                        $request->integer('category_numbering_id') ?: null,
+                    );
                     return back()->with('success', 'Pembuatan dokumen dimulai di latar belakang!');
                 }
 

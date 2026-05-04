@@ -7,6 +7,7 @@ use App\Enums\StatusDocument;
 use App\Models\Document;
 use App\Models\DocumentHistory;
 use App\Notifications\DocumentGenerationFailedNotification;
+use App\Services\DocumentNumberingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\OutgoingMail;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 class GenerateDocumentJob implements ShouldQueue
@@ -26,12 +28,26 @@ class GenerateDocumentJob implements ShouldQueue
     protected $metaDataValues;
 
     /**
-     * Create a new job instance.
+     * ID kategori surat (dari category_numbering.id).
+     * Nullable — jika null, nomor surat tidak di-generate.
      */
-    public function __construct(Document $document, array $metaDataValues)
-    {
-        $this->document = $document;
-        $this->metaDataValues = $metaDataValues;
+    protected ?int $categoryNumberingId;
+
+    /**
+     * Buat instance job baru.
+     *
+     * @param Document   $document           Dokumen yang akan di-generate.
+     * @param array      $metaDataValues     Nilai placeholder template.
+     * @param int|null   $categoryNumberingId ID kategori surat untuk penomoran.
+     */
+    public function __construct(
+        Document $document,
+        array $metaDataValues,
+        ?int $categoryNumberingId = null,
+    ) {
+        $this->document            = $document;
+        $this->metaDataValues      = $metaDataValues;
+        $this->categoryNumberingId = $categoryNumberingId;
     }
 
     /**
@@ -119,10 +135,41 @@ class GenerateDocumentJob implements ShouldQueue
             Storage::disk('s3')->put($fileName, $stream);
             fclose($stream);
 
-            $this->document->update([
-                'status' => StatusDocument::GENERATED,
+            // ── Generate nomor surat (jika kategori tersedia) ────────────────
+            $nomorSurat = null;
+            if ($this->categoryNumberingId) {
+                try {
+                    /** @var DocumentNumberingService $numberingService */
+                    $numberingService = app(DocumentNumberingService::class);
+                    $kategori         = $numberingService->ambilKategori(
+                        \App\Models\CategoryNumbering::findOrFail($this->categoryNumberingId)->letter_code
+                    );
+                    $nomorSurat = $numberingService->generateNomorSurat($this->document, $kategori);
+
+                    Log::info('GenerateDocumentJob: Nomor surat berhasil digenerate', [
+                        'document_id' => $this->document->id,
+                        'nomor_surat' => $nomorSurat,
+                    ]);
+                } catch (RuntimeException $e) {
+                    // Penomoran gagal tidak menghentikan proses generate dokumen,
+                    // hanya dicatat di log sebagai peringatan.
+                    Log::warning('GenerateDocumentJob: Penomoran surat gagal — ' . $e->getMessage(), [
+                        'document_id'          => $this->document->id,
+                        'category_numbering_id' => $this->categoryNumberingId,
+                    ]);
+                }
+            }
+
+            $updatePayload = [
+                'status'      => StatusDocument::GENERATED,
                 'current_url' => $fileName,
-            ]);
+            ];
+
+            if ($nomorSurat !== null) {
+                $updatePayload['document_number'] = $nomorSurat;
+            }
+
+            $this->document->update($updatePayload);
 
             $recipientName = $this->document->student->name ?? $this->document->teacher->name ?? 'External';
 

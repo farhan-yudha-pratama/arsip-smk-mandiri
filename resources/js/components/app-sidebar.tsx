@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, LayoutTemplate, Users } from 'lucide-react';
+import { BookOpen, FolderGit2, Hash, LayoutGrid, LayoutTemplate, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -17,6 +17,7 @@ import { dashboard } from '@/routes';
 import documents from '@/routes/documents';
 import templates from '@/routes/templates';
 import users from '@/routes/users';
+import categoryNumbering from '@/routes/category-numbering';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -50,6 +51,13 @@ const mainNavItems: NavItem[] = [
         title: 'Templates',
         href: templates.index(),
         icon: LayoutTemplate,
+        roles: ['SUPERADMIN', 'ADMIN'],
+    },
+
+    {
+        title: 'Kategori Penomoran',
+        href: categoryNumbering.index(),
+        icon: Hash,
         roles: ['SUPERADMIN', 'ADMIN'],
     },
 ];
