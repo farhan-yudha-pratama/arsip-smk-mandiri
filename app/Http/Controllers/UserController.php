@@ -10,14 +10,25 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->where('id', '!=', Auth::id())->get();
+        $search = $request->query('search');
+
+        $users = User::with('roles')
+            ->where('id', '!=', Auth::id())
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('email', 'like', '%' . $search . '%');
+            })
+            ->paginate(20)
+            ->withQueryString();
+
         $roles = RoleType::cases();
 
         return Inertia::render('users/index', [
             'users' => $users,
             'roles' => collect($roles)->map(fn($role) => $role->value),
+            'filters' => $request->only('search'),
         ]);
     }
 
@@ -29,6 +40,6 @@ class UserController extends Controller
 
         $user->syncRoles([$request->role]);
 
-        return back()->with('status', 'User role updated successfully.');
+        return back()->with('status', 'Peran pengguna berhasil diperbarui.');
     }
 }

@@ -91,7 +91,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
             onSuccess: () => {
                 onOpenChange(false);
                 reset();
-                toast.success(isDraft ? 'Document saved as draft' : 'Document generation started in background');
+                toast.success(isDraft ? 'Dokumen disimpan sebagai draf' : 'Pembuatan dokumen dimulai di latar belakang');
             },
         });
     };
@@ -107,9 +107,9 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                 {/* Header */}
                 <div className="px-6 py-4 border-b flex items-center justify-between bg-muted/30">
                     <div>
-                        <h2 className="text-xl font-bold tracking-tight">Generate Document</h2>
+                        <h2 className="text-xl font-bold tracking-tight">Buat Dokumen</h2>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                            Select a template and fill in the required information to generate a document.
+                            Pilih template dan lengkapi informasi yang dibutuhkan untuk membuat dokumen.
                         </p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full">
@@ -128,7 +128,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                     onValueChange={(value) => setData('template_id', value)}
                                 >
                                     <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="Select template" />
+                                        <SelectValue placeholder="Pilih template" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {templates.map((t) => (
@@ -142,13 +142,13 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="title" className="text-sm font-semibold">Document Title</Label>
+                                <Label htmlFor="title" className="text-sm font-semibold">Judul Dokumen</Label>
                                 <Input
                                     id="title"
                                     className="h-11"
                                     value={data.title}
                                     onChange={(e) => setData('title', e.target.value)}
-                                    placeholder="e.g. Surat Keterangan Lulus - John Doe"
+                                    placeholder="contoh: Surat Keterangan Lulus - John Doe"
                                 />
                                 {errors.title && <p className="text-xs font-medium text-destructive">{errors.title}</p>}
                             </div>
@@ -156,17 +156,17 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="recipient_type" className="text-sm font-semibold">Recipient Type</Label>
+                                <Label htmlFor="recipient_type" className="text-sm font-semibold">Tipe Penerima</Label>
                                 <Select
                                     value={data.recipient_type}
                                     onValueChange={(value) => setData('recipient_type', value)}
                                 >
                                     <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="Select recipient type" />
+                                        <SelectValue placeholder="Pilih tipe penerima" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="STUDENT">Student</SelectItem>
-                                        <SelectItem value="TEACHER">Teacher</SelectItem>
+                                        <SelectItem value="STUDENT">Siswa</SelectItem>
+                                        <SelectItem value="TEACHER">Guru</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.recipient_type && <p className="text-xs font-medium text-destructive">{errors.recipient_type}</p>}
@@ -174,12 +174,12 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
                             {data.recipient_type === 'STUDENT' && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="student" className="text-sm font-semibold">Student</Label>
+                                    <Label htmlFor="student" className="text-sm font-semibold">Siswa</Label>
                                     <SearchableSelect
                                         options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.id }))}
                                         value={data.student_id}
                                         onChange={(value) => setData('student_id', value)}
-                                        placeholder="Select student"
+                                        placeholder="Pilih Siswa"
                                         className="h-11"
                                     />
                                     {errors.student_id && <p className="text-xs font-medium text-destructive">{errors.student_id}</p>}
@@ -188,12 +188,12 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
                             {data.recipient_type === 'TEACHER' && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="teacher" className="text-sm font-semibold">Teacher</Label>
+                                    <Label htmlFor="teacher" className="text-sm font-semibold">Guru</Label>
                                     <SearchableSelect
                                         options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.id }))}
                                         value={data.teacher_id}
                                         onChange={(value) => setData('teacher_id', value)}
-                                        placeholder="Select teacher"
+                                        placeholder="Pilih Guru"
                                         className="h-11"
                                     />
                                     {errors.teacher_id && <p className="text-xs font-medium text-destructive">{errors.teacher_id}</p>}
@@ -205,7 +205,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                             <div className="space-y-4 rounded-xl border bg-muted/20 p-5">
                                 <h3 className="font-bold text-sm flex items-center gap-2">
                                     <span className="w-1.5 h-4 bg-primary rounded-full"></span>
-                                    Template Variables
+                                    Variabel Template
                                 </h3>
                                 <div className="grid gap-6 sm:grid-cols-2">
                                     {(selectedTemplate.meta_data || []).map((key) => {
@@ -229,14 +229,14 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                         options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.name }))}
                                                         value={data.meta_data_values[key] || ''}
                                                         onChange={(value) => handleMetaDataChange(key, value)}
-                                                        placeholder="Select student"
+                                                        placeholder="Pilih Siswa"
                                                     />
                                                 ) : isTeacherKey ? (
                                                     <SearchableSelect
                                                         options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.name }))}
                                                         value={data.meta_data_values[key] || ''}
                                                         onChange={(value) => handleMetaDataChange(key, value)}
-                                                        placeholder="Select teacher"
+                                                        placeholder="Pilih Guru"
                                                     />
                                                 ) : (
                                                     <Input
@@ -244,7 +244,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                         className="h-10"
                                                         value={data.meta_data_values[key] || ''}
                                                         onChange={(e) => handleMetaDataChange(key, e.target.value)}
-                                                        placeholder={`Enter ${key}`}
+                                                        placeholder={`Masukkan ${key}`}
                                                     />
                                                 )}
                                             </div>
@@ -259,7 +259,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                 {/* Footer */}
                 <div className="px-6 py-4 border-t bg-muted/30 flex items-center justify-end gap-3">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                        Batal
                     </Button>
                     <Button
                         type="submit"
@@ -268,7 +268,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                         onClick={() => { isDraftRef.current = true; }}
                         disabled={processing || !data.template_id}
                     >
-                        {processing && isDraftRef.current ? 'Saving...' : 'Save as Draft'}
+                        {processing && isDraftRef.current ? 'Menyimpan...' : 'Simpan Draf'}
                     </Button>
                     <Button
                         type="submit"
@@ -277,7 +277,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                         disabled={processing || !data.template_id}
                         className="min-w-[140px]"
                     >
-                        {processing && !isDraftRef.current ? 'Generating...' : 'Generate Document'}
+                        {processing && !isDraftRef.current ? 'Membuat...' : 'Buat Dokumen'}
                     </Button>
                 </div>
             </div>

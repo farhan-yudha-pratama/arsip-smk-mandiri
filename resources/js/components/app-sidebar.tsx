@@ -27,14 +27,20 @@ const mainNavItems: NavItem[] = [
     },
 
     {
-        title: 'Documents',
-        href: documents.index(),
+        title: 'Surat Masuk',
+        href: documents.incoming.index(),
+        icon: BookOpen,
+        roles: ['SUPERADMIN', 'ADMIN', 'OPERATOR'],
+    },
+    {
+        title: 'Surat Keluar',
+        href: documents.outgoing.index(),
         icon: BookOpen,
         roles: ['SUPERADMIN', 'ADMIN', 'OPERATOR'],
     },
 
     {
-        title: 'User Management',
+        title: 'Manajemen Pengguna',
         href: users.index(),
         icon: Users,
         roles: ['SUPERADMIN'],

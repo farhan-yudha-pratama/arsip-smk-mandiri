@@ -18,20 +18,29 @@ class TemplateController extends Controller
         $this->storageService = $storageService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $templates = Template::latest()->get()->map(function ($template) {
-            return [
-                'id' => $template->id,
-                'name' => $template->name,
-                'url' => $template->url,
-                'meta_data' => $template->meta_data,
-                'created_at' => $template->created_at->toDateTimeString(),
-            ];
-        });
+        $search = $request->query('search');
+
+        $templates = Template::latest()
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', '%' . $search . '%');
+            })
+            ->paginate(20)
+            ->withQueryString()
+            ->through(function ($template) {
+                return [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'url' => $template->url,
+                    'meta_data' => $template->meta_data,
+                    'created_at' => $template->created_at->toDateTimeString(),
+                ];
+            });
 
         return Inertia::render('templates/index', [
-            'templates' => $templates
+            'templates' => $templates,
+            'filters' => $request->only('search')
         ]);
     }
 

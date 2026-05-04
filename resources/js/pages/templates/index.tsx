@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import {
     Download,
     Edit,
@@ -25,12 +25,14 @@ import templateRoutes from '@/routes/templates';
 import TemplateModal from './TemplateModal';
 import { Template } from '@/types/template';
 import { formatDateTime } from '@/lib/utils';
+import { Pagination } from '@/components/Pagination';
 
 interface Props {
-    templates: Template[];
+    templates: { data: Template[]; links: any[] };
+    filters: any;
 }
 
-export default function Templates({ templates = [] }: Props) {
+export default function Templates({ templates = { data: [], links: [] }, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(
@@ -39,7 +41,7 @@ export default function Templates({ templates = [] }: Props) {
     const [templateToDelete, setTemplateToDelete] = useState<Template | null>(
         null,
     );
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(filters?.search || '');
 
     const { delete: destroy, processing: deleting } = useForm();
 
@@ -70,9 +72,7 @@ export default function Templates({ templates = [] }: Props) {
         });
     };
 
-    const filteredTemplates = templates.filter((t) =>
-        t.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    const filteredTemplates = templates.data;
 
     return (
         <>
@@ -104,6 +104,11 @@ export default function Templates({ templates = [] }: Props) {
                         className="flex-1 bg-transparent text-sm outline-none"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                router.get(templateRoutes.index.url(), { search: searchTerm }, { preserveState: true, replace: true });
+                            }
+                        }}
                     />
                 </div>
 
@@ -221,6 +226,9 @@ export default function Templates({ templates = [] }: Props) {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                    <div className="p-4 border-t flex justify-end">
+                         <Pagination links={templates.links} />
                     </div>
                 </div>
             </div>

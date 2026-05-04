@@ -14,11 +14,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
     
     // Documents
-    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/document-incoming', [DocumentController::class, 'incomingIndex'])->name('documents.incoming.index');
+    Route::get('/document-outgoing', [DocumentController::class, 'outgoingIndex'])->name('documents.outgoing.index');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
     Route::get('/documents/{document}/history/{history}/download', [DocumentController::class, 'downloadHistory'])->name('documents.history.download');
-    Route::post('/documents/incoming', [DocumentController::class, 'storeIncoming'])->name('documents.incoming');
+    Route::post('/documents/incoming', [DocumentController::class, 'storeIncoming'])->name('documents.incoming.store');
     Route::post('/documents/{document}/signed', [DocumentController::class, 'uploadSigned'])->name('documents.upload-signed');
     Route::post('/documents/{document}/archive', [DocumentController::class, 'archive'])->name('documents.archive');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');

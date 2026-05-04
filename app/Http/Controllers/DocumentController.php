@@ -31,22 +31,61 @@ class DocumentController extends Controller
         $this->storageService = $storageService;
     }
 
-    public function index()
+    public function incomingIndex(Request $request)
     {
-        $documents = Document::with(['template', 'student', 'teacher', 'creator', 'history.creator'])
+        $search = $request->query('search');
+        $statusFilter = $request->query('status');
+
+        $documents = Document::has('incomingMail')
+            ->with(['incomingMail', 'creator', 'history.creator'])
+            ->when($search, function ($query, $search) {
+                $query->where('title', 'like', '%' . $search . '%');
+            })
+            ->when($statusFilter && $statusFilter !== 'ALL', function ($query) use ($statusFilter) {
+                $query->where('status', $statusFilter);
+            })
             ->latest()
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
+
+        return Inertia::render('documents/incoming', [
+            'documents' => $documents,
+            'filters' => $request->only('search', 'status'),
+        ]);
+    }
+
+    public function outgoingIndex(Request $request)
+    {
+        $search = $request->query('search');
+        $statusFilter = $request->query('status');
+        $recipientFilter = $request->query('recipient');
+
+        $documents = Document::doesntHave('incomingMail')
+            ->with(['template', 'student', 'teacher', 'creator', 'history.creator'])
+            ->when($search, function ($query, $search) {
+                $query->where('title', 'like', '%' . $search . '%');
+            })
+            ->when($statusFilter && $statusFilter !== 'ALL', function ($query) use ($statusFilter) {
+                $query->where('status', $statusFilter);
+            })
+            ->when($recipientFilter && $recipientFilter !== 'ALL', function ($query) use ($recipientFilter) {
+                $query->where('recipient_type', $recipientFilter);
+            })
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
 
         $templates = Template::all();
         $students = Student::all();
         $teachers = Teacher::all();
 
-        return Inertia::render('documents/index', [
+        return Inertia::render('documents/outgoing', [
             'documents' => $documents,
             'templates' => $templates,
             'students' => $students,
             'teachers' => $teachers,
             'recipientTypes' => RecipientType::cases(),
+            'filters' => $request->only('search', 'status', 'recipient'),
         ]);
     }
 
@@ -100,21 +139,21 @@ class DocumentController extends Controller
                 if (!$isDraft) {
                     // 3. Dispatch Job
                     GenerateDocumentJob::dispatch($document, $request->meta_data_values ?? []);
-                    return back()->with('success', 'Document generation started in background!');
+                    return back()->with('success', 'Pembuatan dokumen dimulai di latar belakang!');
                 }
 
-                return back()->with('success', 'Document saved as draft!');
+                return back()->with('success', 'Dokumen disimpan sebagai draf!');
             });
         } catch (\Exception $e) {
             Log::error('DocumentController@store exception', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return back()->withErrors(['error' => 'Failed to start document generation: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memulai pembuatan dokumen: ' . $e->getMessage()]);
         }
     }
 
     public function update(Request $request, Document $document)
     {
         if (!in_array($document->status, [StatusDocument::DRAFT, StatusDocument::FAILED])) {
-            return back()->withErrors(['error' => 'Only draft or failed documents can be modified.']);
+            return back()->withErrors(['error' => 'Hanya dokumen draf atau gagal yang dapat diubah.']);
         }
 
         $request->validate([
@@ -145,14 +184,14 @@ class DocumentController extends Controller
 
                 if (!$isDraft) {
                     GenerateDocumentJob::dispatch($document, $request->meta_data_values ?? []);
-                    return back()->with('success', 'Document generation started in background!');
+                    return back()->with('success', 'Pembuatan dokumen dimulai di latar belakang!');
                 }
 
-                return back()->with('success', 'Draft updated successfully!');
+                return back()->with('success', 'Draf berhasil diperbarui!');
             });
         } catch (\Exception $e) {
             Log::error('DocumentController@update exception', ['error' => $e->getMessage()]);
-            return back()->withErrors(['error' => 'Failed to update document: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui dokumen: ' . $e->getMessage()]);
         }
     }
 
@@ -163,14 +202,14 @@ class DocumentController extends Controller
             $url = $this->storageService->getTemporaryUrl($document->current_url, 10, true, $document->title . '.' . $extension);
             return Inertia::location($url);
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to generate download link: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat tautan unduhan: ' . $e->getMessage()]);
         }
     }
 
     public function downloadHistory(Document $document, DocumentHistory $history)
     {
         if (!$history->file_path) {
-            return back()->withErrors(['error' => 'File not found for this history version.']);
+            return back()->withErrors(['error' => 'File tidak ditemukan untuk versi riwayat ini.']);
         }
 
         try {
@@ -179,7 +218,7 @@ class DocumentController extends Controller
             $url = $this->storageService->getTemporaryUrl($history->file_path, 10, true, $document->title . ' - ' . $versionName . '.' . $extension);
             return Inertia::location($url);
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to generate download link: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat tautan unduhan: ' . $e->getMessage()]);
         }
     }
 
@@ -197,10 +236,10 @@ class DocumentController extends Controller
 
                 $document->delete();
 
-                return back()->with('success', 'Document deleted successfully!');
+                return back()->with('success', 'Dokumen berhasil dihapus!');
             });
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to delete document: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus dokumen: ' . $e->getMessage()]);
         }
     }
     public function uploadSigned(Request $request, Document $document)
@@ -235,11 +274,11 @@ class DocumentController extends Controller
                     'created_at' => now(),
                 ]);
 
-                return back()->with('success', 'Signed document uploaded successfully!');
+                return back()->with('success', 'Dokumen yang ditandatangani berhasil diunggah!');
             });
         } catch (\Exception $e) {
             Log::error('Upload Signed Failed', ['error' => $e->getMessage()]);
-            return back()->withErrors(['error' => 'Failed to upload signed document: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal mengunggah dokumen yang ditandatangani: ' . $e->getMessage()]);
         }
     }
 
@@ -262,11 +301,11 @@ class DocumentController extends Controller
                     'created_at' => now(),
                 ]);
 
-                return back()->with('success', 'Document archived successfully!');
+                return back()->with('success', 'Dokumen berhasil diarsipkan!');
             });
         } catch (\Exception $e) {
             Log::error('Archive Failed', ['error' => $e->getMessage()]);
-            return back()->withErrors(['error' => 'Failed to archive document: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal mengarsipkan dokumen: ' . $e->getMessage()]);
         }
     }
 
@@ -313,11 +352,11 @@ class DocumentController extends Controller
                     'created_at' => now(),
                 ]);
 
-                return back()->with('success', 'Incoming mail registered successfully!');
+                return back()->with('success', 'Surat masuk berhasil didaftarkan!');
             });
         } catch (\Exception $e) {
             Log::error('Store Incoming Failed', ['error' => $e->getMessage()]);
-            return back()->withErrors(['error' => 'Failed to register incoming mail: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal mendaftar surat masuk: ' . $e->getMessage()]);
         }
     }
 }

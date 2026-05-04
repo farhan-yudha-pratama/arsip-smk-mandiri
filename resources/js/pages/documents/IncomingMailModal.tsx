@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 import { toast } from 'sonner';
+import documentRoutes from '@/routes/documents';
 import {
     Dialog,
     DialogContent,
@@ -29,14 +30,14 @@ export function IncomingMailModal({ open, onOpenChange }: Props) {
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         
-        post('/documents/incoming', {
+        post(documentRoutes.incoming.store.url(), {
             onSuccess: () => {
                 onOpenChange(false);
                 reset();
-                toast.success('Incoming mail registered successfully');
+                toast.success('Surat masuk berhasil didaftarkan');
             },
             onError: () => {
-                toast.error('Failed to register incoming mail');
+                toast.error('Gagal mendaftarkan surat masuk');
             }
         });
     };
@@ -45,38 +46,38 @@ export function IncomingMailModal({ open, onOpenChange }: Props) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Register Incoming Mail</DialogTitle>
+                    <DialogTitle>Registrasi Surat Masuk</DialogTitle>
                     <DialogDescription>
-                        Enter details for external incoming documents.
+                        Masukkan detail untuk dokumen masuk eksternal.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="title">Document Title</Label>
+                        <Label htmlFor="title">Judul Dokumen</Label>
                         <Input
                             id="title"
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
-                            placeholder="e.g. Surat Undangan Rapat"
+                            placeholder="contoh: Surat Undangan Rapat"
                             required
                         />
                         {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="sender_origin">Sender Name / Origin</Label>
+                        <Label htmlFor="sender_origin">Nama Pengirim / Asal</Label>
                         <Input
                             id="sender_origin"
                             value={data.sender_origin}
                             onChange={(e) => setData('sender_origin', e.target.value)}
-                            placeholder="e.g. Dinas Pendidikan"
+                            placeholder="contoh: Dinas Pendidikan"
                             required
                         />
                         {errors.sender_origin && <p className="text-xs text-destructive">{errors.sender_origin}</p>}
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="received_at">Received Date</Label>
+                        <Label htmlFor="received_at">Tanggal Diterima</Label>
                         <Input
                             id="received_at"
                             type="date"
@@ -101,10 +102,10 @@ export function IncomingMailModal({ open, onOpenChange }: Props) {
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={processing}>
-                            {processing ? 'Registering...' : 'Register Mail'}
+                            {processing ? 'Mendaftarkan...' : 'Daftarkan Surat'}
                         </Button>
                     </DialogFooter>
                 </form>
