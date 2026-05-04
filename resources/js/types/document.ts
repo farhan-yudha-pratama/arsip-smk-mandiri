@@ -8,6 +8,7 @@ export interface Document {
     student?: { name: string };
     teacher?: { name: string };
     meta_data_values: Record<string, string>;
+    category_numbering_id?: string | number;
     created_at: string;
     creator?: { name: string };
 }

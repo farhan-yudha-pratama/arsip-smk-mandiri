@@ -50,10 +50,11 @@ interface Props {
     templates: any[];
     students: any[];
     teachers: any[];
+    categoryNumbering: any[];
     filters: any;
 }
 
-export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, filters }: Props) {
+export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -376,6 +377,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 templates={templates}
                 students={students}
                 teachers={teachers}
+                categoryNumberings={categoryNumbering}
             />
 
             <DocumentHistoryModal
@@ -391,6 +393,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 templates={templates}
                 students={students}
                 teachers={teachers}
+                categoryNumberings={categoryNumbering}
             />
 
             <IncomingMailModal 

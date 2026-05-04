@@ -64,6 +64,40 @@ class GenerateDocumentJob implements ShouldQueue
         $tempPdfPath = '';
 
         try {
+            // ── Generate nomor surat SEBELUM proses template ─────────────────
+            // Agar nomor surat yang sudah di-increment otomatis langsung masuk
+            // ke dalam template sebagai nilai {{nomor-surat}}.
+            $nomorSurat = null;
+            if ($this->categoryNumberingId) {
+                try {
+                    /** @var DocumentNumberingService $numberingService */
+                    $numberingService = app(DocumentNumberingService::class);
+                    $kategori         = $numberingService->ambilKategori(
+                        \App\Models\CategoryNumbering::findOrFail($this->categoryNumberingId)->letter_code
+                    );
+                    $nomorSurat = $numberingService->generateNomorSurat($this->document, $kategori);
+
+                    // Inject nomor surat ke meta_data_values agar placeholder
+                    // {{nomor-surat}} di template diganti dengan nilai nyata.
+                    $this->metaDataValues['nomor-surat'] = $nomorSurat;
+
+                    Log::info('GenerateDocumentJob: Nomor surat berhasil digenerate', [
+                        'document_id' => $this->document->id,
+                        'nomor_surat' => $nomorSurat,
+                    ]);
+                } catch (RuntimeException $e) {
+                    // Penomoran gagal tidak menghentikan proses generate dokumen,
+                    // hanya dicatat di log sebagai peringatan.
+                    Log::warning('GenerateDocumentJob: Penomoran surat gagal — ' . $e->getMessage(), [
+                        'document_id'          => $this->document->id,
+                        'category_numbering_id' => $this->categoryNumberingId,
+                    ]);
+                }
+            }
+
+
+            Log:info("Nomor surat: ". $nomorSurat);
+
             $templateContent = Storage::disk('s3')->get($template->url);
             $tempTemplatePath = tempnam(sys_get_temp_dir(), 'tpl');
             file_put_contents($tempTemplatePath, $templateContent);
@@ -134,31 +168,6 @@ class GenerateDocumentJob implements ShouldQueue
             $stream = fopen($tempPdfPath, 'r');
             Storage::disk('s3')->put($fileName, $stream);
             fclose($stream);
-
-            // ── Generate nomor surat (jika kategori tersedia) ────────────────
-            $nomorSurat = null;
-            if ($this->categoryNumberingId) {
-                try {
-                    /** @var DocumentNumberingService $numberingService */
-                    $numberingService = app(DocumentNumberingService::class);
-                    $kategori         = $numberingService->ambilKategori(
-                        \App\Models\CategoryNumbering::findOrFail($this->categoryNumberingId)->letter_code
-                    );
-                    $nomorSurat = $numberingService->generateNomorSurat($this->document, $kategori);
-
-                    Log::info('GenerateDocumentJob: Nomor surat berhasil digenerate', [
-                        'document_id' => $this->document->id,
-                        'nomor_surat' => $nomorSurat,
-                    ]);
-                } catch (RuntimeException $e) {
-                    // Penomoran gagal tidak menghentikan proses generate dokumen,
-                    // hanya dicatat di log sebagai peringatan.
-                    Log::warning('GenerateDocumentJob: Penomoran surat gagal — ' . $e->getMessage(), [
-                        'document_id'          => $this->document->id,
-                        'category_numbering_id' => $this->categoryNumberingId,
-                    ]);
-                }
-            }
 
             $updatePayload = [
                 'status'      => StatusDocument::GENERATED,

@@ -15,6 +15,13 @@ interface Template {
     meta_data: string[];
 }
 
+interface CategoryNumbering {
+    id: number;
+    name_numbering_document: string;
+    letter_code: string;
+    format_pattern: string;
+}
+
 interface Student {
     id: string;
     name: string;
@@ -34,12 +41,14 @@ interface Props {
     templates: Template[];
     students: Student[];
     teachers: Teacher[];
+    categoryNumberings: CategoryNumbering[];
 }
 
-export function EditDocumentModal({ open, onOpenChange, document, templates, students, teachers }: Props) {
+export function EditDocumentModal({ open, onOpenChange, document, templates, students, teachers, categoryNumberings = [] }: Props) {
     const { data, setData, put, processing, errors, reset, clearErrors, transform } = useForm({
         title: '',
         meta_data_values: {} as Record<string, string>,
+        category_numbering_id: '' as string | number,
         is_draft: false,
     });
 
@@ -51,6 +60,7 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
             setData({
                 title: document.title || '',
                 meta_data_values: document.meta_data_values || {},
+                category_numbering_id: document.category_numbering_id || '',
                 is_draft: false,
             });
 
@@ -164,6 +174,37 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                                                         value={data.meta_data_values[key] || ''}
                                                         onChange={(value) => handleMetaDataChange(key, value)}
                                                         placeholder="Select teacher"
+                                                    />
+                                                ) : cleanKey === 'nomor-surat' ? (
+                                                    <SearchableSelect
+                                                        options={categoryNumberings.map(c => ({ 
+                                                            label: `${c.name_numbering_document} (${c.letter_code})`, 
+                                                            value: c.id.toString() 
+                                                        }))}
+                                                        value={data.category_numbering_id.toString()}
+                                                        onChange={(value) => {
+                                                            const category = categoryNumberings.find(c => c.id.toString() === value);
+                                                            if (category) {
+                                                                setData(prev => ({
+                                                                    ...prev,
+                                                                    category_numbering_id: category.id,
+                                                                    meta_data_values: {
+                                                                        ...prev.meta_data_values,
+                                                                        [key]: (function() {
+                                                                            const now = new Date();
+                                                                            const monthRomawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+                                                                            return category.format_pattern
+                                                                                .replace('{nomor_urut}', '[AUTO]')
+                                                                                .replace('{kode}', category.letter_code)
+                                                                                .replace('{instansi}', 'SMK-M')
+                                                                                .replace('{bulan_romawi}', monthRomawi[now.getMonth()])
+                                                                                .replace('{tahun}', now.getFullYear().toString());
+                                                                        })()
+                                                                    }
+                                                                }));
+                                                            }
+                                                        }}
+                                                        placeholder="Pilih Kategori Penomoran"
                                                     />
                                                 ) : (
                                                     <Input
