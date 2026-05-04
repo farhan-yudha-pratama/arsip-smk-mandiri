@@ -42,16 +42,20 @@ import { DocumentHistoryModal } from './DocumentHistoryModal';
 import { IncomingMailModal } from './IncomingMailModal';
 import { UploadSignedModal } from './UploadSignedModal';
 import { Document } from '@/types/document';
+import { Template } from '@/types/template';
+import { Student, Teacher } from '@/types/user';
+import { CategoryNumbering } from '@/types/category-numbering';
 import { formatDateTime } from '@/lib/utils';
 
 interface Props {
     documents: Document[];
-    templates: any[];
-    students: any[];
-    teachers: any[];
+    templates: Template[];
+    students: Student[];
+    teachers: Teacher[];
+    categoryNumberings: CategoryNumbering[];
 }
 
-export default function Documents({ documents = [], templates, students, teachers }: Props) {
+export default function Documents({ documents = [], templates, students, teachers, categoryNumberings = [] }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -215,9 +219,9 @@ export default function Documents({ documents = [], templates, students, teacher
                             </SelectContent>
                         </Select>
                         {(searchTerm || recipientFilter !== 'ALL' || statusFilter !== 'ALL') && (
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => {
                                     setSearchTerm('');
                                     setRecipientFilter('ALL');
@@ -365,6 +369,7 @@ export default function Documents({ documents = [], templates, students, teacher
                 templates={templates}
                 students={students}
                 teachers={teachers}
+                categoryNumberings={categoryNumberings}
             />
 
             <DocumentHistoryModal
@@ -380,14 +385,15 @@ export default function Documents({ documents = [], templates, students, teacher
                 templates={templates}
                 students={students}
                 teachers={teachers}
+                categoryNumberings={categoryNumberings}
             />
 
-            <IncomingMailModal 
+            <IncomingMailModal
                 open={isIncomingModalOpen}
                 onOpenChange={setIsIncomingModalOpen}
             />
 
-            <UploadSignedModal 
+            <UploadSignedModal
                 open={isUploadSignedOpen}
                 onOpenChange={setIsUploadSignedOpen}
                 document={documentForUpload}

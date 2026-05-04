@@ -9,20 +9,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
-/**
- * CategoryNumberingController
- *
- * Mengelola CRUD untuk jenis/kategori surat beserta format nomor suratnya.
- */
 class CategoryNumberingController extends Controller
 {
     public function __construct(
         protected DocumentNumberingService $numberingService
     ) {}
 
-    /**
-     * Tampilkan daftar semua kategori surat.
-     */
     public function index()
     {
         $categories = CategoryNumbering::orderBy('letter_code')
@@ -34,9 +26,6 @@ class CategoryNumberingController extends Controller
         ]);
     }
 
-    /**
-     * Simpan kategori surat baru ke database.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -70,9 +59,6 @@ class CategoryNumberingController extends Controller
         }
     }
 
-    /**
-     * Perbarui data kategori surat yang sudah ada.
-     */
     public function update(Request $request, CategoryNumbering $categoryNumbering)
     {
         $request->validate([
@@ -106,17 +92,10 @@ class CategoryNumberingController extends Controller
         }
     }
 
-    /**
-     * Hapus kategori surat dari database.
-     *
-     * Kategori yang sudah memiliki riwayat penomoran tidak dapat dihapus
-     * untuk menjaga integritas data historis.
-     */
     public function destroy(CategoryNumbering $categoryNumbering)
     {
         try {
             return DB::transaction(function () use ($categoryNumbering) {
-                // Cegah penghapusan jika sudah ada nomor surat yang menggunakan kategori ini
                 if ($categoryNumbering->sequences()->exists()) {
                     return back()->withErrors([
                         'error' => "Kategori '{$categoryNumbering->name_numbering_document}' tidak dapat dihapus " .
@@ -126,10 +105,6 @@ class CategoryNumberingController extends Controller
 
                 $namaKategori = $categoryNumbering->name_numbering_document;
                 $categoryNumbering->delete();
-
-                Log::info('CategoryNumberingController@destroy: Kategori surat dihapus', [
-                    'nama' => $namaKategori,
-                ]);
 
                 return back()->with('success', "Kategori surat '{$namaKategori}' berhasil dihapus!");
             });

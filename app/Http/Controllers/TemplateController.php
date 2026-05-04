@@ -53,7 +53,6 @@ class TemplateController extends Controller
         ]);
 
         try {
-            // 1. Decode Base64 and Save to Temp File
             if (!str_contains($request->document, 'base64,')) {
                 return back()->withErrors(['document' => 'Format Base64 tidak valid']);
             }
@@ -70,7 +69,6 @@ class TemplateController extends Controller
                 mkdir($tempDir, 0755, true);
             }
 
-            // Get extension from mime if possible, else default to docx
             $extension = 'docx';
             if (preg_match('/data:(.*?);base64/', $meta, $matches)) {
                 $mime = $matches[1];
@@ -87,7 +85,6 @@ class TemplateController extends Controller
             
             file_put_contents($tempFilePath, $binary);
 
-            // 2. Dispatch Job
             ProcessTemplateUploadJob::dispatch(
                 $tempFilePath,
                 $request->title,
@@ -126,10 +123,8 @@ class TemplateController extends Controller
     public function destroy(Template $template)
     {
         try {
-            // Hapus file dari S3
             $this->storageService->delete($template->url);
 
-            // Hapus dari database
             $template->delete();
 
             return back()->with('success', 'Template berhasil dihapus!');
@@ -181,7 +176,6 @@ class TemplateController extends Controller
                 mkdir($tempDir, 0755, true);
             }
 
-            // Get extension
             $extension = 'docx';
             if (preg_match('/data:(.*?);base64/', $meta, $matches)) {
                 $mime = $matches[1];
@@ -203,7 +197,6 @@ class TemplateController extends Controller
 
             $variables = $templateService->extractVariables($tempFilePath);
 
-            // Clean up temp file
             if (file_exists($tempFilePath)) {
                 unlink($tempFilePath);
             }

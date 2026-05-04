@@ -22,7 +22,6 @@ interface Props {
     editing: CategoryNumbering | null;
 }
 
-// ── Format Preview ──────────────────────────────────────────────────────────
 function FormatPreview({ pattern }: { pattern: string }) {
     const now = new Date();
     const monthRomawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
@@ -47,7 +46,6 @@ function FormatPreview({ pattern }: { pattern: string }) {
     );
 }
 
-// ── Main Modal ───────────────────────────────────────────────────────────────
 export default function CategoryNumberingModal({ isOpen, onClose, editing }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -76,7 +74,6 @@ export default function CategoryNumberingModal({ isOpen, onClose, editing }: Pro
         }
     }, [isOpen, editing]);
 
-    // Sisipkan token ke posisi kursor di dalam input format
     const insertToken = (token: string) => {
         const el = inputRef.current;
         if (!el) {
@@ -90,7 +87,6 @@ export default function CategoryNumberingModal({ isOpen, onClose, editing }: Pro
             token +
             data.format_pattern.substring(end);
         setData('format_pattern', newVal);
-        // Kembalikan fokus & posisi kursor setelah token
         setTimeout(() => {
             el.focus();
             el.setSelectionRange(start + token.length, start + token.length);
@@ -208,10 +204,7 @@ export default function CategoryNumberingModal({ isOpen, onClose, editing }: Pro
                             />
                         </div>
                     </div>
-
-                    {/* ── Pembatas ── */}
                     <div className="border-t" />
-
                     {/* ── Format Penomoran Surat ── */}
                     <div className="space-y-3">
                         <div>

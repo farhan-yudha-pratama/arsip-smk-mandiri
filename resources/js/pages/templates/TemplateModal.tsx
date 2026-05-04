@@ -16,14 +16,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import templateRoutes from '@/routes/templates';
+import { Template } from '@/types/template';
 
-interface Template {
-    id: number;
-    name: string;
-    url: string;
-    meta_data: any;
-    created_at: string;
-}
 
 interface TemplateModalProps {
     isOpen: boolean;

@@ -31,9 +31,7 @@ interface Props {
     categories: CategoryNumbering[];
 }
 
-// ── Render format dengan token berwarna ────────────────────────────────────
 function FormatDisplay({ pattern }: { pattern: string }) {
-    // Split pattern berdasarkan token, pertahankan separator
     const parts: { text: string; isToken: boolean; color?: string }[] = [];
     let remaining = pattern;
 
@@ -80,7 +78,6 @@ function FormatDisplay({ pattern }: { pattern: string }) {
     );
 }
 
-// ── Contoh nomor surat ─────────────────────────────────────────────────────
 function NomorContoh({ pattern, kode }: { pattern: string; kode: string }) {
     const now = new Date();
     const romawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
@@ -92,7 +89,6 @@ function NomorContoh({ pattern, kode }: { pattern: string; kode: string }) {
         .replace('{tahun}', now.getFullYear().toString());
 }
 
-// ── Main Page ──────────────────────────────────────────────────────────────
 export default function CategoryNumberingIndex({ categories }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editing, setEditing] = useState<CategoryNumbering | null>(null);

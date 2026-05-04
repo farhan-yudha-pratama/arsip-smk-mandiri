@@ -15,12 +15,10 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Roles
         foreach (RoleType::cases() as $role) {
             Role::firstOrCreate(['name' => $role->value]);
         }
 
-        // Create Superadmin
         $superadmin = User::create([
             'email' => 'superadmin@example.com',
             'name' => 'Super Administrator',
@@ -29,7 +27,6 @@ class UserSeeder extends Seeder
         );
         $superadmin->assignRole(RoleType::SUPERADMIN->value);
 
-        // Create Admin
         $admin = User::create([
             'email' => 'admin@example.com',
             'name' => 'Administrator',
@@ -37,8 +34,6 @@ class UserSeeder extends Seeder
             ],
         );
         $admin->assignRole(RoleType::ADMIN->value);
-
-        // Create Operator
 
         $operator = User::create([
             'email' => 'operator@example.com',

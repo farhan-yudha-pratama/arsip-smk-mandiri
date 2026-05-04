@@ -32,8 +32,6 @@ class CategoryNumbering extends Model
         'format_pattern',
     ];
 
-    // ── Relasi ────────────────────────────────────────────────────────────────
-
     /**
      * Semua nomor surat yang pernah diterbitkan untuk kategori ini.
      */

@@ -27,10 +27,6 @@ class GenerateDocumentJob implements ShouldQueue
     protected $document;
     protected $metaDataValues;
 
-    /**
-     * ID kategori surat (dari category_numbering.id).
-     * Nullable — jika null, nomor surat tidak di-generate.
-     */
     protected ?int $categoryNumberingId;
 
     /**
@@ -64,39 +60,24 @@ class GenerateDocumentJob implements ShouldQueue
         $tempPdfPath = '';
 
         try {
-            // ── Generate nomor surat SEBELUM proses template ─────────────────
-            // Agar nomor surat yang sudah di-increment otomatis langsung masuk
-            // ke dalam template sebagai nilai {{nomor-surat}}.
             $nomorSurat = null;
             if ($this->categoryNumberingId) {
                 try {
-                    /** @var DocumentNumberingService $numberingService */
                     $numberingService = app(DocumentNumberingService::class);
                     $kategori         = $numberingService->ambilKategori(
                         \App\Models\CategoryNumbering::findOrFail($this->categoryNumberingId)->letter_code
                     );
                     $nomorSurat = $numberingService->generateNomorSurat($this->document, $kategori);
 
-                    // Inject nomor surat ke meta_data_values agar placeholder
-                    // {{nomor-surat}} di template diganti dengan nilai nyata.
                     $this->metaDataValues['nomor-surat'] = $nomorSurat;
 
-                    Log::info('GenerateDocumentJob: Nomor surat berhasil digenerate', [
-                        'document_id' => $this->document->id,
-                        'nomor_surat' => $nomorSurat,
-                    ]);
                 } catch (RuntimeException $e) {
-                    // Penomoran gagal tidak menghentikan proses generate dokumen,
-                    // hanya dicatat di log sebagai peringatan.
                     Log::warning('GenerateDocumentJob: Penomoran surat gagal — ' . $e->getMessage(), [
                         'document_id'          => $this->document->id,
                         'category_numbering_id' => $this->categoryNumberingId,
                     ]);
                 }
             }
-
-
-            Log:info("Nomor surat: ". $nomorSurat);
 
             $templateContent = Storage::disk('s3')->get($template->url);
             $tempTemplatePath = tempnam(sys_get_temp_dir(), 'tpl');
@@ -112,18 +93,15 @@ class GenerateDocumentJob implements ShouldQueue
 
             $templateProcessor->setMacroChars('${', '}');
 
-            // Save docx file with explicit .docx extension for LibreOffice
             $tempDocxPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('doc_') . '.docx';
             $templateProcessor->saveAs($tempDocxPath);
 
-            // Convert to PDF using LibreOffice
             $tempPdfDir = sys_get_temp_dir();
             
             $sofficePath = env('LIBREOFFICE_PATH');
 
             if (!$sofficePath) {
                 if (app()->environment('local')) {
-                    // Local development on Windows
                     $standardPaths = [
                         'C:\Program Files\LibreOffice\program\soffice.exe',
                         'C:\Program Files (x86)\LibreOffice\program\soffice.exe',
@@ -135,22 +113,18 @@ class GenerateDocumentJob implements ShouldQueue
                         }
                     }
                 } elseif (app()->environment('staging')) {
-                    // Staging environment (Docker)
                     $sofficePath = 'soffice';
                 }
                 
-                // Fallback jika tidak ditemukan atau environment lain
                 if (!$sofficePath) {
                     $sofficePath = 'soffice';
                 }
             }
 
-            // Memastikan path dibungkus kutip jika mengandung spasi dan belum dibungkus
             $executable = (strpos($sofficePath, ' ') !== false && strpos($sofficePath, '"') === false) 
                 ? '"' . $sofficePath . '"' 
                 : $sofficePath;
             
-            // Tambahkan flag untuk mencegah LibreOffice hang (menunggu input user di background)
             $command = "{$executable} --headless --nologo --nofirststartwizard --norestore --convert-to pdf --outdir " . escapeshellarg($tempPdfDir) . " " . escapeshellarg($tempDocxPath) . " 2>&1";
             exec($command, $output, $returnVar);
 
@@ -232,7 +206,6 @@ class GenerateDocumentJob implements ShouldQueue
             'created_at' => now(),
         ]);
 
-        // Notify the user
         $this->document->creator->notify(new DocumentGenerationFailedNotification($this->document, $exception->getMessage()));
     }
 }

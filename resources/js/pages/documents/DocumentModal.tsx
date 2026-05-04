@@ -14,31 +14,9 @@ import {
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { X } from 'lucide-react';
 import documentRoutes from '@/routes/documents';
-
-interface Template {
-    id: string;
-    name: string;
-    meta_data: string[];
-}
-
-interface CategoryNumbering {
-    id: number;
-    name_numbering_document: string;
-    letter_code: string;
-    format_pattern: string;
-}
-
-interface Student {
-    id: string;
-    name: string;
-    nis: string;
-}
-
-interface Teacher {
-    id: string;
-    name: string;
-    nip: string;
-}
+import { Template } from '@/types/template';
+import { CategoryNumbering } from '@/types/category-numbering';
+import { Student, Teacher } from '@/types/user';
 
 interface Props {
     open: boolean;
@@ -69,10 +47,10 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
             const template = templates.find((t) => t.id === data.template_id);
             setSelectedTemplate(template || null);
 
-            // Initialize meta_data_values with empty strings for each placeholder
             if (template) {
                 const initialValues: Record<string, string> = {};
-                (template.meta_data || []).forEach((key) => {
+                const metaData = Array.isArray(template.meta_data) ? template.meta_data : [];
+                metaData.forEach((key: string) => {
                     initialValues[key] = '';
                 });
                 setData('meta_data_values', initialValues);
@@ -109,7 +87,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div 
+            <div
                 className="bg-background w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border animate-in zoom-in-95 duration-200"
                 style={{ height: 'auto', maxHeight: '90vh' }}
             >
@@ -141,7 +119,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                     </SelectTrigger>
                                     <SelectContent>
                                         {templates.map((t) => (
-                                            <SelectItem key={t.id} value={t.id}>
+                                            <SelectItem key={t.id.toString()} value={t.id.toString()}>
                                                 {t.name}
                                             </SelectItem>
                                         ))}
@@ -217,14 +195,12 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                     Variabel Template
                                 </h3>
                                 <div className="grid gap-6 sm:grid-cols-2">
-                                    {(selectedTemplate.meta_data || []).map((key) => {
+                                    {(Array.isArray(selectedTemplate.meta_data) ? selectedTemplate.meta_data : []).map((key: string) => {
                                         const cleanKey = key.replace(/[{}]/g, '');
 
-                                        // Match nama-siswa[number] or nama-murid[number]
                                         const studentMatch = cleanKey.match(/^(nama-siswa|nama-murid)(\d*)$/);
                                         const isStudentKey = !!studentMatch;
 
-                                        // Match nama-guru[number]
                                         const teacherMatch = cleanKey.match(/^nama-guru(\d*)$/);
                                         const isTeacherKey = !!teacherMatch;
 
@@ -249,9 +225,9 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                     />
                                                 ) : cleanKey === 'nomor-surat' ? (
                                                     <SearchableSelect
-                                                        options={categoryNumberings.map(c => ({ 
-                                                            label: `${c.name_numbering_document} (${c.letter_code})`, 
-                                                            value: c.id.toString() 
+                                                        options={categoryNumberings.map(c => ({
+                                                            label: `${c.name_numbering_document} (${c.letter_code})`,
+                                                            value: c.id.toString()
                                                         }))}
                                                         value={data.category_numbering_id.toString()}
                                                         onChange={(value) => {
@@ -262,7 +238,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                     category_numbering_id: category.id,
                                                                     meta_data_values: {
                                                                         ...prev.meta_data_values,
-                                                                        [key]: (function() {
+                                                                        [key]: (function () {
                                                                             const now = new Date();
                                                                             const monthRomawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
                                                                             return category.format_pattern

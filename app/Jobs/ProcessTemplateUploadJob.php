@@ -36,26 +36,21 @@ class ProcessTemplateUploadJob implements ShouldQueue
     public function handle(S3StorageService $storageService): void
     {
         try {
-            // 1. Upload to S3
             $filePath = $storageService->uploadFile(
                 $this->tempFilePath,
                 'templates',
                 'document'
             );
 
-            // 2. Save to Database
             Template::create([
                 'name' => $this->title,
                 'url'  => $filePath,
                 'meta_data' => $this->metadata
             ]);
 
-            // 3. Clean up temp file
             if (file_exists($this->tempFilePath)) {
                 unlink($this->tempFilePath);
             }
-
-            Log::info('Template processed successfully', ['title' => $this->title]);
 
         } catch (Throwable $e) {
             Log::error('Template processing failed', [
@@ -63,7 +58,6 @@ class ProcessTemplateUploadJob implements ShouldQueue
                 'error' => $e->getMessage()
             ]);
             
-            // Clean up temp file on failure too
             if (file_exists($this->tempFilePath)) {
                 unlink($this->tempFilePath);
             }

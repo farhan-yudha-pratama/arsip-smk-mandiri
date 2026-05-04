@@ -42,15 +42,18 @@ import { DocumentHistoryModal } from './DocumentHistoryModal';
 import { IncomingMailModal } from './IncomingMailModal';
 import { UploadSignedModal } from './UploadSignedModal';
 import { Document } from '@/types/document';
+import { Template } from '@/types/template';
+import { Student, Teacher } from '@/types/user';
+import { CategoryNumbering } from '@/types/category-numbering';
 import { formatDateTime } from '@/lib/utils';
 import { Pagination } from '@/components/Pagination';
 
 interface Props {
     documents: { data: Document[]; links: any[] };
-    templates: any[];
-    students: any[];
-    teachers: any[];
-    categoryNumbering: any[];
+    templates: Template[];
+    students: Student[];
+    teachers: Teacher[];
+    categoryNumbering: CategoryNumbering[];
     filters: any;
 }
 

@@ -95,7 +95,6 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
-        Log::info('DocumentController@store hit', $request->all());
 
         $request->validate([
             'template_id'           => 'required|exists:templates,id',
@@ -115,7 +114,6 @@ class DocumentController extends Controller
                 $isDraft = $request->boolean('is_draft');
                 $status = $isDraft ? StatusDocument::DRAFT : StatusDocument::PROCESSING;
 
-                // 1. Create Document record with status
                 $document = Document::create([
                     'template_id' => $template->id,
                     'title' => $request->title,
@@ -124,11 +122,10 @@ class DocumentController extends Controller
                     'student_id' => $request->student_id,
                     'teacher_id' => $request->teacher_id,
                     'meta_data_values' => $request->meta_data_values ?? [],
-                    'current_url' => '', // Will be filled by job
+                    'current_url' => '',
                     'created_by' => Auth::id(),
                 ]);
 
-                // 2. Create History record
                 DocumentHistory::create([
                     'document_id' => $document->id,
                     'file_path' => '',
@@ -138,11 +135,8 @@ class DocumentController extends Controller
                     'created_at' => now(),
                 ]);
 
-                Log::info('Document record created', ['id' => $document->id]);
-                Log::info('Using Template', ['id' => $template->id, 'name' => $template->name]);
 
                 if (!$isDraft) {
-                    // 3. Dispatch Job dengan category_numbering_id untuk penomoran surat
                     GenerateDocumentJob::dispatch(
                         $document,
                         $request->meta_data_values ?? [],
@@ -240,12 +234,10 @@ class DocumentController extends Controller
     {
         try {
             return DB::transaction(function () use ($document) {
-                // Delete all files associated with history
                 foreach ($document->history as $history) {
                     $this->storageService->delete($history->file_path);
                 }
 
-                // Delete current file if not in history (redundant but safe)
                 $this->storageService->delete($document->current_url);
 
                 $document->delete();

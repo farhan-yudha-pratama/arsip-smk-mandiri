@@ -31,7 +31,7 @@ class Template extends Model
     protected function casts(): array
     {
         return [
-            'meta_data' => 'array', // Mengonversi JSON di DB menjadi array PHP secara otomatis
+            'meta_data' => 'array',
             'id' => 'string',
         ];
     }

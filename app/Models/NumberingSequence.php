@@ -39,8 +39,6 @@ class NumberingSequence extends Model
         'year'            => 'integer',
     ];
 
-    // ── Relasi ────────────────────────────────────────────────────────────────
-
     /**
      * Kategori surat yang menghasilkan nomor ini.
      */

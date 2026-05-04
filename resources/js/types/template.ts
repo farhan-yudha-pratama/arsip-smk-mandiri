@@ -1,7 +1,7 @@
 export interface Template {
-    id: number;
+    id: number | string;
     name: string;
-    url: string;
-    meta_data: { [key: string]: any; };
-    created_at: string;
+    url?: string;
+    meta_data: string[] | { [key: string]: any; };
+    created_at?: string;
 }
