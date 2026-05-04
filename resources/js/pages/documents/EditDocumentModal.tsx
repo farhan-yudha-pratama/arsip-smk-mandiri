@@ -1,17 +1,11 @@
 import { useForm } from '@inertiajs/react';
 import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SearchableSelect } from '@/components/SearchableSelect';
+import { X } from 'lucide-react';
 import documentRoutes from '@/routes/documents';
 import { Document } from '@/types/document';
 
@@ -21,14 +15,28 @@ interface Template {
     meta_data: string[];
 }
 
+interface Student {
+    id: string;
+    name: string;
+    nis: string;
+}
+
+interface Teacher {
+    id: string;
+    name: string;
+    nip: string;
+}
+
 interface Props {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     document: Document | null;
     templates: Template[];
+    students: Student[];
+    teachers: Teacher[];
 }
 
-export function EditDocumentModal({ open, onOpenChange, document, templates }: Props) {
+export function EditDocumentModal({ open, onOpenChange, document, templates, students, teachers }: Props) {
     const { data, setData, put, processing, errors, reset, clearErrors, transform } = useForm({
         title: '',
         meta_data_values: {} as Record<string, string>,
@@ -82,70 +90,124 @@ export function EditDocumentModal({ open, onOpenChange, document, templates }: P
         });
     };
 
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Edit Draft Document</DialogTitle>
-                    <DialogDescription>
-                        Modify the document name and metadata. Only draft documents can be edited.
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-6 py-4">
-                    <div className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-title">Document Title</Label>
-                            <Input
-                                id="edit-title"
-                                value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
-                                placeholder="e.g. Surat Keterangan Lulus - John Doe"
-                            />
-                            {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
-                        </div>
-                    </div>
+    if (!open) return null;
 
-                    {selectedTemplate && (
-                        <div className="space-y-4 rounded-lg border p-4 bg-muted/20">
-                            <h3 className="font-medium text-sm">Template Variables ({selectedTemplate.name})</h3>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                {(selectedTemplate.meta_data || []).map((key) => (
-                                    <div key={key} className="grid gap-2">
-                                        <Label htmlFor={`edit-meta-${key}`} className="capitalize">{key.replace(/_/g, ' ')}</Label>
-                                        <Input
-                                            id={`edit-meta-${key}`}
-                                            value={data.meta_data_values[key] || ''}
-                                            onChange={(e) => handleMetaDataChange(key, e.target.value)}
-                                            placeholder={`Enter ${key}`}
-                                        />
-                                    </div>
-                                ))}
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div 
+                className="bg-background w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border animate-in zoom-in-95 duration-200"
+                style={{ height: 'auto', maxHeight: '90vh' }}
+            >
+                {/* Header */}
+                <div className="px-6 py-4 border-b flex items-center justify-between bg-muted/30">
+                    <div>
+                        <h2 className="text-xl font-bold tracking-tight">Edit Draft Document</h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                            Modify the document name and metadata. Only draft documents can be edited.
+                        </p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full">
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                    <form onSubmit={handleSubmit} id="edit-document-form" className="space-y-8">
+                        <div className="grid gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-title" className="text-sm font-semibold">Document Title</Label>
+                                <Input
+                                    id="edit-title"
+                                    className="h-11"
+                                    value={data.title}
+                                    onChange={(e) => setData('title', e.target.value)}
+                                    placeholder="e.g. Surat Keterangan Lulus - John Doe"
+                                />
+                                {errors.title && <p className="text-xs font-medium text-destructive">{errors.title}</p>}
                             </div>
                         </div>
-                    )}
 
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="secondary"
-                            onClick={() => { isDraftRef.current = true; }}
-                            disabled={processing}
-                        >
-                            {processing && isDraftRef.current ? 'Saving...' : 'Save as Draft'}
-                        </Button>
-                        <Button
-                            type="submit"
-                            onClick={() => { isDraftRef.current = false; }}
-                            disabled={processing}
-                        >
-                            {processing && !isDraftRef.current ? 'Generating...' : 'Generate Document'}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                        {selectedTemplate && (
+                            <div className="space-y-4 rounded-xl border bg-muted/20 p-5">
+                                <h3 className="font-bold text-sm flex items-center gap-2">
+                                    <span className="w-1.5 h-4 bg-primary rounded-full"></span>
+                                    Template Variables ({selectedTemplate.name})
+                                </h3>
+                                <div className="grid gap-6 sm:grid-cols-2">
+                                    {(selectedTemplate.meta_data || []).map((key) => {
+                                        const cleanKey = key.replace(/[{}]/g, '');
+
+                                        // Match nama-siswa[number] or nama-murid[number]
+                                        const studentMatch = cleanKey.match(/^(nama-siswa|nama-murid)(\d*)$/);
+                                        const isStudentKey = !!studentMatch;
+
+                                        // Match nama-guru[number]
+                                        const teacherMatch = cleanKey.match(/^nama-guru(\d*)$/);
+                                        const isTeacherKey = !!teacherMatch;
+
+                                        return (
+                                            <div key={key} className="space-y-2">
+                                                <Label htmlFor={`edit-meta-${key}`} className="capitalize text-sm font-medium">
+                                                    {key.replace(/_/g, ' ')}
+                                                </Label>
+                                                {isStudentKey ? (
+                                                    <SearchableSelect
+                                                        options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.name }))}
+                                                        value={data.meta_data_values[key] || ''}
+                                                        onChange={(value) => handleMetaDataChange(key, value)}
+                                                        placeholder="Select student"
+                                                    />
+                                                ) : isTeacherKey ? (
+                                                    <SearchableSelect
+                                                        options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.name }))}
+                                                        value={data.meta_data_values[key] || ''}
+                                                        onChange={(value) => handleMetaDataChange(key, value)}
+                                                        placeholder="Select teacher"
+                                                    />
+                                                ) : (
+                                                    <Input
+                                                        id={`edit-meta-${key}`}
+                                                        className="h-10"
+                                                        value={data.meta_data_values[key] || ''}
+                                                        onChange={(e) => handleMetaDataChange(key, e.target.value)}
+                                                        placeholder={`Enter ${key}`}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </form>
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t bg-muted/30 flex items-center justify-end gap-3">
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        form="edit-document-form"
+                        variant="secondary"
+                        onClick={() => { isDraftRef.current = true; }}
+                        disabled={processing}
+                    >
+                        {processing && isDraftRef.current ? 'Saving...' : 'Save as Draft'}
+                    </Button>
+                    <Button
+                        type="submit"
+                        form="edit-document-form"
+                        onClick={() => { isDraftRef.current = false; }}
+                        disabled={processing}
+                        className="min-w-[140px]"
+                    >
+                        {processing && !isDraftRef.current ? 'Generating...' : 'Generate Document'}
+                    </Button>
+                </div>
+            </div>
+        </div>
     );
 }

@@ -14,8 +14,9 @@ import {
     CheckCircle,
     Upload,
     MailOpen,
+    Filter,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import documentRoutes from '@/routes/documents';
 import { CreateDocumentModal } from './DocumentModal';
 import { EditDocumentModal } from './EditDocumentModal';
@@ -48,6 +56,8 @@ export default function Documents({ documents = [], templates, students, teacher
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('ALL');
+    const [recipientFilter, setRecipientFilter] = useState<string>('ALL');
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [documentForHistory, setDocumentForHistory] = useState<Document | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -101,9 +111,14 @@ export default function Documents({ documents = [], templates, students, teacher
         });
     };
 
-    const filteredDocuments = documents.filter((doc) =>
-        doc.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredDocuments = useMemo(() => {
+        return documents.filter((doc) => {
+            const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'ALL' || doc.status === statusFilter;
+            const matchesRecipient = recipientFilter === 'ALL' || doc.recipient_type === recipientFilter;
+            return matchesSearch && matchesStatus && matchesRecipient;
+        });
+    }, [documents, searchTerm, statusFilter, recipientFilter]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -158,15 +173,62 @@ export default function Documents({ documents = [], templates, students, teacher
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 shadow-sm">
-                    <Search className="h-4 w-4 text-muted-foreground" />
-                    <input
-                        type="text"
-                        placeholder="Search documents..."
-                        className="flex-1 bg-transparent text-sm outline-none"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="flex flex-1 items-center gap-2 rounded-lg border bg-background px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-primary">
+                        <Search className="h-4 w-4 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder="Search documents by title..."
+                            className="flex-1 bg-transparent text-sm outline-none"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2 px-2 py-1 bg-muted/50 rounded-md border border-dashed">
+                            <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">Filters:</span>
+                        </div>
+                        <Select value={recipientFilter} onValueChange={setRecipientFilter}>
+                            <SelectTrigger className="w-[140px] h-9 text-xs">
+                                <SelectValue placeholder="Recipient Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All Recipients</SelectItem>
+                                <SelectItem value="STUDENT">Students</SelectItem>
+                                <SelectItem value="TEACHER">Teachers</SelectItem>
+                                <SelectItem value="EXTERNAL">External</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-[140px] h-9 text-xs">
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All Status</SelectItem>
+                                <SelectItem value="DRAFT">Draft</SelectItem>
+                                <SelectItem value="PROCESSING">Processing</SelectItem>
+                                <SelectItem value="GENERATED">Generated</SelectItem>
+                                <SelectItem value="SIGNED">Signed</SelectItem>
+                                <SelectItem value="ARCHIVED">Archived</SelectItem>
+                                <SelectItem value="FAILED">Failed</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {(searchTerm || recipientFilter !== 'ALL' || statusFilter !== 'ALL') && (
+                            <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setRecipientFilter('ALL');
+                                    setStatusFilter('ALL');
+                                }}
+                                className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+                            >
+                                Reset
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
@@ -316,6 +378,8 @@ export default function Documents({ documents = [], templates, students, teacher
                 onOpenChange={setIsEditModalOpen}
                 document={documentToEdit}
                 templates={templates}
+                students={students}
+                teachers={teachers}
             />
 
             <IncomingMailModal 
