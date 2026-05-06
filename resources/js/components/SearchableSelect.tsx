@@ -48,12 +48,7 @@ export function SearchableSelect({
 
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Node;
-            if (
-                containerRef.current && 
-                !containerRef.current.contains(target) &&
-                (!dropdownRef.current || !dropdownRef.current.contains(target))
-            ) {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
                 setOpen(false)
             }
         }
@@ -76,7 +71,6 @@ export function SearchableSelect({
 
     const dropdown = (
         <div 
-            ref={dropdownRef}
             className={cn(
                 "mt-1 max-h-60 overflow-auto rounded-md border bg-popover p-1 text-popover-foreground outline-none",
                 inline 
