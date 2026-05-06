@@ -159,61 +159,6 @@ class GenerateDocumentJob implements ShouldQueue
             $tempDocxPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('doc_') . '.docx';
             $templateProcessor->saveAs($tempDocxPath);
 
-            // POST-PROCESS DOCX FOR VMERGE
-            $zip = new \ZipArchive();
-            if ($zip->open($tempDocxPath) === true) {
-                $xmlString = $zip->getFromName('word/document.xml');
-                if ($xmlString !== false) {
-                    libxml_use_internal_errors(true);
-                    $dom = new \DOMDocument();
-                    $dom->preserveWhiteSpace = true;
-                    if ($dom->loadXML($xmlString)) {
-                        $xpath = new \DOMXPath($dom);
-                        $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
-                        
-                        $cells = $xpath->query('//w:tc');
-                        if ($cells !== false) {
-                            foreach ($cells as $cell) {
-                                $texts = $xpath->query('.//w:t', $cell);
-                                $vMergeVal = null;
-                                
-                                if ($texts !== false) {
-                                    foreach ($texts as $t) {
-                                        if (strpos($t->nodeValue, '@@VRESTART@@') !== false) {
-                                            $vMergeVal = 'restart';
-                                            $t->nodeValue = str_replace('@@VRESTART@@', '', $t->nodeValue);
-                                        } elseif (strpos($t->nodeValue, '@@VCONTINUE@@') !== false) {
-                                            $vMergeVal = 'continue';
-                                            $t->nodeValue = str_replace('@@VCONTINUE@@', '', $t->nodeValue);
-                                        }
-                                    }
-                                }
-                                
-                                if ($vMergeVal) {
-                                    $tcPr = $xpath->query('./w:tcPr', $cell)->item(0);
-                                    if (!$tcPr) {
-                                        $tcPr = $dom->createElement('w:tcPr');
-                                        $cell->insertBefore($tcPr, $cell->firstChild);
-                                    }
-                                    
-                                    $existingVMerge = $xpath->query('./w:vMerge', $tcPr)->item(0);
-                                    if ($existingVMerge) {
-                                        $tcPr->removeChild($existingVMerge);
-                                    }
-                                    
-                                    $vMerge = $dom->createElement('w:vMerge');
-                                    $vMerge->setAttribute('w:val', $vMergeVal);
-                                    $tcPr->appendChild($vMerge);
-                                }
-                            }
-                        }
-                        $zip->addFromString('word/document.xml', $dom->saveXML());
-                    }
-                    libxml_clear_errors();
-                }
-                $zip->close();
-            }
-
             $tempPdfDir = sys_get_temp_dir();
             $sofficePath = env('LIBREOFFICE_PATH');
 
