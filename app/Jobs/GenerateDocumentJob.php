@@ -84,11 +84,97 @@ class GenerateDocumentJob implements ShouldQueue
             file_put_contents($tempTemplatePath, $templateContent);
 
             $templateProcessor = new TemplateProcessor($tempTemplatePath);
-            
             $templateProcessor->setMacroChars('{{', '}}');
             
+            // Separate scalar values and table data
+            $scalarData = [];
+            $tableData = [];
+            $tableKey = null;
+
             foreach ($this->metaDataValues as $key => $value) {
+                if (is_array($value)) {
+                    $tableData = $value;
+                    $tableKey = $key; // Typically 'T_table_data'
+                } else {
+                    $scalarData[$key] = $value;
+                }
+            }
+
+            // Fill global/scalar variables
+            foreach ($scalarData as $key => $value) {
                 $templateProcessor->setValue($key, $value);
+            }
+
+            // Handle Dynamic Table if exists
+            if (!empty($tableData)) {
+                // Determine the first placeholder in the row to use for cloning
+                $firstRow = $tableData[0];
+                $cloneKey = null;
+                
+                // Prioritize T_nama-siswa or T_nama or first T_ key
+                $priorities = ['T_nama-siswa', 'T_nama', 'T_no'];
+                foreach ($priorities as $p) {
+                    if (array_key_exists($p, $firstRow)) {
+                        $cloneKey = $p;
+                        break;
+                    }
+                }
+
+                if (!$cloneKey) {
+                    foreach ($firstRow as $key => $val) {
+                        if (strpos($key, 'T_') === 0) {
+                            $cloneKey = $key;
+                            break;
+                        }
+                    }
+                }
+
+                if ($cloneKey) {
+                    // 1. URUTKAN DATA: Kelas (Kecil ke Besar), lalu Jurusan (A ke Z)
+                    usort($tableData, function ($a, $b) {
+                        // Ambil angka saja dari string kelas (misal "Kelas 10" -> 10)
+                        $kelasA = (int) preg_replace('/[^0-9]/', '', $a['T_kelas'] ?? '0');
+                        $kelasB = (int) preg_replace('/[^0-9]/', '', $b['T_kelas'] ?? '0');
+                        
+                        if ($kelasA !== $kelasB) {
+                            return $kelasA <=> $kelasB;
+                        }
+                        
+                        // Urutkan berdasarkan Jurusan (Abjad)
+                        return strcasecmp($a['T_jurusan'] ?? '', $b['T_jurusan'] ?? '');
+                    });
+
+                    // 2. Re-sequence T_no setelah pengurutan
+                    foreach ($tableData as $index => &$row) {
+                        $row['T_no'] = $index + 1;
+                    }
+                    unset($row);
+
+                    // 3. Logika Rowspan Otomatis: Kosongkan nilai jika sama dengan baris sebelumnya
+                    $processedTableData = [];
+                    $prevKelas = null;
+                    $prevJurusan = null;
+
+                    foreach ($tableData as $row) {
+                        $currentRow = $row;
+                        
+                        $currentKelas = $row['T_kelas'] ?? null;
+                        $currentJurusan = $row['T_jurusan'] ?? null;
+
+                        // Visual merging: hanya tampilkan jika berubah
+                        if ($currentKelas === $prevKelas && $currentJurusan === $prevJurusan) {
+                            $currentRow['T_kelas'] = '';
+                            $currentRow['T_jurusan'] = '';
+                        } else {
+                            $prevKelas = $currentKelas;
+                            $prevJurusan = $currentJurusan;
+                        }
+                        
+                        $processedTableData[] = $currentRow;
+                    }
+
+                    $templateProcessor->cloneRowAndSetValues($cloneKey, $processedTableData);
+                }
             }
 
             $templateProcessor->setMacroChars('${', '}');
@@ -97,7 +183,6 @@ class GenerateDocumentJob implements ShouldQueue
             $templateProcessor->saveAs($tempDocxPath);
 
             $tempPdfDir = sys_get_temp_dir();
-            
             $sofficePath = env('LIBREOFFICE_PATH');
 
             if (!$sofficePath) {
@@ -175,18 +260,12 @@ class GenerateDocumentJob implements ShouldQueue
             Log::error("Document Generation Job failed: " . $e->getMessage(), ['exception' => $e]);
             throw $e;
         } finally {
-            // Ensure all temporary files are properly deleted
-            if ($tempTemplatePath && file_exists($tempTemplatePath)) {
-                @unlink($tempTemplatePath);
-            }
-            if ($tempDocxPath && file_exists($tempDocxPath)) {
-                @unlink($tempDocxPath);
-            }
-            if ($tempPdfPath && file_exists($tempPdfPath)) {
-                @unlink($tempPdfPath);
-            }
+            if ($tempTemplatePath && file_exists($tempTemplatePath)) @unlink($tempTemplatePath);
+            if ($tempDocxPath && file_exists($tempDocxPath)) @unlink($tempDocxPath);
+            if ($tempPdfPath && file_exists($tempPdfPath)) @unlink($tempPdfPath);
         }
     }
+
 
     /**
      * Handle a job failure.

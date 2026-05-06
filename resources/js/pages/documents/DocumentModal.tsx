@@ -12,7 +12,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/SearchableSelect';
-import { X } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import documentRoutes from '@/routes/documents';
 import { Template } from '@/types/template';
 import { CategoryNumbering } from '@/types/category-numbering';
@@ -34,13 +35,14 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
         recipient_type: 'STUDENT',
         student_id: '',
         teacher_id: '',
-        meta_data_values: {} as Record<string, string>,
+        meta_data_values: {} as Record<string, any>,
         category_numbering_id: '' as string | number,
         is_draft: false,
     });
 
     const isDraftRef = useRef(false);
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+    const [dynamicRows, setDynamicRows] = useState<any[]>([]);
 
     useEffect(() => {
         if (data.template_id) {
@@ -48,11 +50,30 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
             setSelectedTemplate(template || null);
 
             if (template) {
-                const initialValues: Record<string, string> = {};
+                const initialValues: Record<string, any> = {};
                 const metaData = Array.isArray(template.meta_data) ? template.meta_data : [];
+
+                // Initialize scalar values
                 metaData.forEach((key: string) => {
-                    initialValues[key] = '';
+                    if (!key.startsWith('T_')) {
+                        initialValues[key] = '';
+                    }
                 });
+
+                // Check for table variables (prefix T_)
+                const tableKeys = metaData.filter((key: string) => key.startsWith('T_'));
+                if (tableKeys.length > 0) {
+                    // Create dynamic first row based on keys found in template
+                    const firstRow: Record<string, any> = { T_no: 1 };
+                    tableKeys.forEach(key => {
+                        if (key !== 'T_no') firstRow[key] = '';
+                    });
+                    setDynamicRows([firstRow]);
+                    initialValues['T_table_data'] = [firstRow];
+                } else {
+                    setDynamicRows([]);
+                }
+
                 setData('meta_data_values', initialValues);
             }
         }
@@ -63,6 +84,66 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
             ...data.meta_data_values,
             [key]: value,
         });
+    };
+
+    const addRow = () => {
+        const templateKeys = (selectedTemplate?.meta_data || []).filter((k: string) => k.startsWith('T_'));
+        const newRow: Record<string, any> = { T_no: dynamicRows.length + 1 };
+        templateKeys.forEach(key => {
+            if (key !== 'T_no') newRow[key] = '';
+        });
+
+        const updatedRows = [...dynamicRows, newRow];
+        setDynamicRows(updatedRows);
+        setData('meta_data_values', {
+            ...data.meta_data_values,
+            T_table_data: updatedRows
+        });
+    };
+
+    const removeRow = (index: number) => {
+        const updatedRows = dynamicRows.filter((_, i) => i !== index).map((row, i) => ({
+            ...row,
+            T_no: i + 1
+        }));
+        setDynamicRows(updatedRows);
+        setData('meta_data_values', {
+            ...data.meta_data_values,
+            T_table_data: updatedRows
+        });
+    };
+
+    const handleRowChange = (index: number, key: string, value: any) => {
+        const updatedRows = [...dynamicRows];
+        updatedRows[index] = { ...updatedRows[index], [key]: value };
+        setDynamicRows(updatedRows);
+        setData('meta_data_values', {
+            ...data.meta_data_values,
+            T_table_data: updatedRows
+        });
+    };
+
+    const handleStudentSelectInRow = (index: number, studentId: string) => {
+        const student = students.find(s => s.id === studentId);
+        if (student) {
+            const updatedRows = [...dynamicRows];
+            const currentRow = { ...updatedRows[index], student_id: student.id };
+
+            // Map student data to any matching T_ keys
+            Object.keys(currentRow).forEach(key => {
+                if (key.includes('nama')) currentRow[key] = student.name;
+                if (key.includes('nis')) currentRow[key] = (student as any).nis || (student as any).nisn || '';
+                if (key.includes('kelas')) currentRow[key] = (student as any).kelas || '';
+                if (key.includes('jurusan')) currentRow[key] = (student as any).jurusan || (student as any).major || '';
+            });
+
+            updatedRows[index] = currentRow;
+            setDynamicRows(updatedRows);
+            setData('meta_data_values', {
+                ...data.meta_data_values,
+                T_table_data: updatedRows
+            });
+        }
     };
 
     const handleSubmit = (e: FormEvent) => {
@@ -83,20 +164,23 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
         });
     };
 
+    const scalarKeys = (selectedTemplate?.meta_data || []).filter((key: string) => !key.startsWith('T_'));
+    const tableKeys = (selectedTemplate?.meta_data || []).filter((key: string) => key.startsWith('T_'));
+    const hasTable = tableKeys.length > 0;
+
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
             <div
-                className="bg-background w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border animate-in zoom-in-95 duration-200"
-                style={{ height: 'auto', maxHeight: '90vh' }}
+                className="bg-background w-full max-w-5xl h-auto my-auto rounded-2xl shadow-2xl flex flex-col border animate-in zoom-in-95 duration-200"
             >
                 {/* Header */}
                 <div className="px-6 py-4 border-b flex items-center justify-between bg-muted/30">
                     <div>
                         <h2 className="text-xl font-bold tracking-tight">Buat Dokumen</h2>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                            Pilih template dan lengkapi informasi yang dibutuhkan untuk membuat dokumen.
+                            Lengkapi informasi untuk men-generate dokumen baru.
                         </p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full">
@@ -105,11 +189,11 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="p-6 space-y-8">
                     <form onSubmit={handleSubmit} id="create-document-form" className="space-y-8">
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="template" className="text-sm font-semibold">Template</Label>
+                                <Label className="text-sm font-semibold">Template</Label>
                                 <Select
                                     value={data.template_id}
                                     onValueChange={(value) => setData('template_id', value)}
@@ -125,25 +209,22 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {errors.template_id && <p className="text-xs font-medium text-destructive">{errors.template_id}</p>}
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="title" className="text-sm font-semibold">Judul Dokumen</Label>
+                                <Label className="text-sm font-semibold">Judul Dokumen</Label>
                                 <Input
-                                    id="title"
                                     className="h-11"
                                     value={data.title}
                                     onChange={(e) => setData('title', e.target.value)}
                                     placeholder="contoh: Surat Keterangan Lulus - John Doe"
                                 />
-                                {errors.title && <p className="text-xs font-medium text-destructive">{errors.title}</p>}
                             </div>
                         </div>
 
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="recipient_type" className="text-sm font-semibold">Tipe Penerima</Label>
+                                <Label className="text-sm font-semibold">Tipe Penerima</Label>
                                 <Select
                                     value={data.recipient_type}
                                     onValueChange={(value) => setData('recipient_type', value)}
@@ -156,117 +237,194 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                         <SelectItem value="TEACHER">Guru</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                {errors.recipient_type && <p className="text-xs font-medium text-destructive">{errors.recipient_type}</p>}
                             </div>
 
                             {data.recipient_type === 'STUDENT' && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="student" className="text-sm font-semibold">Siswa</Label>
+                                    <Label className="text-sm font-semibold">Siswa Utama (Penerima)</Label>
                                     <SearchableSelect
                                         options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.id }))}
                                         value={data.student_id}
                                         onChange={(value) => setData('student_id', value)}
                                         placeholder="Pilih Siswa"
                                         className="h-11"
+                                        inline
                                     />
-                                    {errors.student_id && <p className="text-xs font-medium text-destructive">{errors.student_id}</p>}
                                 </div>
                             )}
 
                             {data.recipient_type === 'TEACHER' && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="teacher" className="text-sm font-semibold">Guru</Label>
+                                    <Label className="text-sm font-semibold">Guru Utama (Penerima)</Label>
                                     <SearchableSelect
                                         options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.id }))}
                                         value={data.teacher_id}
                                         onChange={(value) => setData('teacher_id', value)}
                                         placeholder="Pilih Guru"
                                         className="h-11"
+                                        inline
                                     />
-                                    {errors.teacher_id && <p className="text-xs font-medium text-destructive">{errors.teacher_id}</p>}
                                 </div>
                             )}
                         </div>
 
                         {selectedTemplate && (
-                            <div className="space-y-4 rounded-xl border bg-muted/20 p-5">
-                                <h3 className="font-bold text-sm flex items-center gap-2">
-                                    <span className="w-1.5 h-4 bg-primary rounded-full"></span>
-                                    Variabel Template
-                                </h3>
-                                <div className="grid gap-6 sm:grid-cols-2">
-                                    {(Array.isArray(selectedTemplate.meta_data) ? selectedTemplate.meta_data : []).map((key: string) => {
-                                        const cleanKey = key.replace(/[{}]/g, '');
+                            <div className="space-y-6">
+                                {/* Scalar Variables */}
+                                {scalarKeys.length > 0 && (
+                                    <div className="space-y-4 rounded-xl border bg-muted/20 p-5">
+                                        <h3 className="font-bold text-sm flex items-center gap-2">
+                                            <span className="w-1.5 h-4 bg-primary rounded-full"></span>
+                                            Informasi Dokumen
+                                        </h3>
+                                        <div className="grid gap-6 sm:grid-cols-2">
+                                            {scalarKeys.map((key: string) => {
+                                                const cleanKey = key.replace(/[{}]/g, '');
+                                                const isStudentKey = /^(nama-siswa|nama-murid)(\d*)$/.test(cleanKey);
+                                                const isTeacherKey = /^nama-guru(\d*)$/.test(cleanKey);
 
-                                        const studentMatch = cleanKey.match(/^(nama-siswa|nama-murid)(\d*)$/);
-                                        const isStudentKey = !!studentMatch;
-
-                                        const teacherMatch = cleanKey.match(/^nama-guru(\d*)$/);
-                                        const isTeacherKey = !!teacherMatch;
-
-                                        return (
-                                            <div key={key} className="space-y-2">
-                                                <Label htmlFor={`meta-${key}`} className="capitalize text-sm font-medium">
-                                                    {key.replace(/_/g, ' ')}
-                                                </Label>
-                                                {isStudentKey ? (
-                                                    <SearchableSelect
-                                                        options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.name }))}
-                                                        value={data.meta_data_values[key] || ''}
-                                                        onChange={(value) => handleMetaDataChange(key, value)}
-                                                        placeholder="Pilih Siswa"
-                                                    />
-                                                ) : isTeacherKey ? (
-                                                    <SearchableSelect
-                                                        options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.name }))}
-                                                        value={data.meta_data_values[key] || ''}
-                                                        onChange={(value) => handleMetaDataChange(key, value)}
-                                                        placeholder="Pilih Guru"
-                                                    />
-                                                ) : cleanKey === 'nomor-surat' ? (
-                                                    <SearchableSelect
-                                                        options={categoryNumberings.map(c => ({
-                                                            label: `${c.name_numbering_document} (${c.letter_code})`,
-                                                            value: c.id.toString()
-                                                        }))}
-                                                        value={data.category_numbering_id.toString()}
-                                                        onChange={(value) => {
-                                                            const category = categoryNumberings.find(c => c.id.toString() === value);
-                                                            if (category) {
-                                                                setData(prev => ({
-                                                                    ...prev,
-                                                                    category_numbering_id: category.id,
-                                                                    meta_data_values: {
-                                                                        ...prev.meta_data_values,
-                                                                        [key]: (function () {
-                                                                            const now = new Date();
-                                                                            const monthRomawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-                                                                            return category.format_pattern
-                                                                                .replace('{nomor_urut}', '[AUTO]')
-                                                                                .replace('{kode}', category.letter_code)
-                                                                                .replace('{instansi}', 'SMK-M')
-                                                                                .replace('{bulan_romawi}', monthRomawi[now.getMonth()])
-                                                                                .replace('{tahun}', now.getFullYear().toString());
-                                                                        })()
+                                                return (
+                                                    <div key={key} className="space-y-2">
+                                                        <Label className="capitalize text-xs font-semibold text-muted-foreground">
+                                                            {key.replace(/_/g, ' ')}
+                                                        </Label>
+                                                        {isStudentKey ? (
+                                                            <SearchableSelect
+                                                                options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.name }))}
+                                                                value={data.meta_data_values[key] || ''}
+                                                                onChange={(value) => handleMetaDataChange(key, value)}
+                                                                placeholder="Pilih Siswa"
+                                                                inline
+                                                            />
+                                                        ) : isTeacherKey ? (
+                                                            <SearchableSelect
+                                                                options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.name }))}
+                                                                value={data.meta_data_values[key] || ''}
+                                                                onChange={(value) => handleMetaDataChange(key, value)}
+                                                                placeholder="Pilih Guru"
+                                                                inline
+                                                            />
+                                                        ) : cleanKey === 'nomor-surat' ? (
+                                                            <SearchableSelect
+                                                                options={categoryNumberings.map(c => ({
+                                                                    label: `${c.name_numbering_document} (${c.letter_code})`,
+                                                                    value: c.id.toString()
+                                                                }))}
+                                                                value={data.category_numbering_id.toString()}
+                                                                onChange={(value) => {
+                                                                    const category = categoryNumberings.find(c => c.id.toString() === value);
+                                                                    if (category) {
+                                                                        setData(prev => ({
+                                                                            ...prev,
+                                                                            category_numbering_id: category.id,
+                                                                            meta_data_values: {
+                                                                                ...prev.meta_data_values,
+                                                                                [key]: "[AUTO]" // Akan di-generate backend
+                                                                            }
+                                                                        }));
                                                                     }
-                                                                }));
-                                                            }
-                                                        }}
-                                                        placeholder="Pilih Kategori Penomoran"
-                                                    />
-                                                ) : (
-                                                    <Input
-                                                        id={`meta-${key}`}
-                                                        className="h-10"
-                                                        value={data.meta_data_values[key] || ''}
-                                                        onChange={(e) => handleMetaDataChange(key, e.target.value)}
-                                                        placeholder={`Masukkan ${key}`}
-                                                    />
-                                                )}
+                                                                }}
+                                                                placeholder="Pilih Kategori Penomoran"
+                                                                inline
+                                                            />
+                                                        ) : (
+                                                            <Input
+                                                                className="h-10"
+                                                                value={data.meta_data_values[key] || ''}
+                                                                onChange={(e) => handleMetaDataChange(key, e.target.value)}
+                                                                placeholder={`Masukkan ${key}`}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Dynamic Table Builder */}
+                                {hasTable && (
+                                    <div className="space-y-4 rounded-xl border bg-primary/5 p-5 border-primary/20">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-sm flex items-center gap-2">
+                                                <span className="w-1.5 h-4 bg-primary rounded-full"></span>
+                                                Dynamic Row Builder (Tabel Siswa)
+                                            </h3>
+                                            <Button type="button" size="sm" onClick={addRow} className="gap-2 h-8">
+                                                <Plus className="h-3.5 w-3.5" /> Tambah Baris
+                                            </Button>
+                                        </div>
+
+                                        <div className="border rounded-lg bg-background">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-xs">
+                                                    <thead className="bg-muted border-b">
+                                                        <tr>
+                                                            {tableKeys.map(key => (
+                                                                <th key={key} className={cn(
+                                                                    "px-3 py-2 text-left font-bold text-muted-foreground uppercase tracking-wider",
+                                                                    key === 'T_no' ? "w-12" : ""
+                                                                )}>
+                                                                    {key.replace('T_', '').replace(/-/g, ' ')}
+                                                                </th>
+                                                            ))}
+                                                            <th className="px-3 py-2 text-center w-10"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y">
+                                                        {dynamicRows.map((row, index) => (
+                                                            <tr key={index} className="group">
+                                                                {tableKeys.map(key => {
+                                                                    const isNameKey = key.includes('nama');
+                                                                    return (
+                                                                        <td key={key} className="px-3 py-2">
+                                                                            {isNameKey ? (
+                                                                                <SearchableSelect
+                                                                                    options={students.map(s => ({ label: s.name, value: s.id }))}
+                                                                                    value={row.student_id || ''}
+                                                                                    onChange={(val) => handleStudentSelectInRow(index, val)}
+                                                                                    placeholder="Cari..."
+                                                                                    className="h-8 text-xs min-w-[150px]"
+                                                                                    inline
+                                                                                />
+                                                                            ) : (
+                                                                                <Input
+                                                                                    value={row[key]}
+                                                                                    onChange={(e) => handleRowChange(index, key, e.target.value)}
+                                                                                    className={cn(
+                                                                                        "h-8 text-xs",
+                                                                                        key === 'T_no' ? "text-center p-1" : ""
+                                                                                    )}
+                                                                                    readOnly={key === 'T_no'}
+                                                                                />
+                                                                            )}
+                                                                        </td>
+                                                                    );
+                                                                })}
+                                                                <td className="px-3 py-2 text-center">
+                                                                    {dynamicRows.length > 1 && (
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            onClick={() => removeRow(index)}
+                                                                            className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                                                                        >
+                                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                                        </Button>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                        );
-                                    })}
-                                </div>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground italic">
+                                            * Data akan otomatis diurutkan berdasarkan Kelas dan Jurusan. Kolom Kelas & Jurusan yang sama akan digabungkan secara visual.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </form>
@@ -300,3 +458,5 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
         </div>
     );
 }
+
+
