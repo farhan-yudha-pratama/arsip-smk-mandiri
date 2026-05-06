@@ -26,6 +26,7 @@ export function SearchableSelect({
     const [open, setOpen] = React.useState(false)
     const [searchTerm, setSearchTerm] = React.useState("")
     const containerRef = React.useRef<HTMLDivElement>(null)
+    const dropdownRef = React.useRef<HTMLDivElement>(null)
     const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 })
 
     const filteredOptions = options.filter((option) =>
@@ -47,7 +48,12 @@ export function SearchableSelect({
 
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(target) &&
+                (!dropdownRef.current || !dropdownRef.current.contains(target))
+            ) {
                 setOpen(false)
             }
         }
@@ -69,17 +75,18 @@ export function SearchableSelect({
     }, [open, inline])
 
     const dropdown = (
-        <div 
+        <div
+            ref={dropdownRef}
             className={cn(
                 "mt-1 max-h-60 overflow-auto rounded-md border bg-popover p-1 text-popover-foreground outline-none",
-                inline 
-                    ? "relative w-full z-0 shadow-none border-t-0 rounded-t-none" 
+                inline
+                    ? "relative w-full z-0 shadow-none border-t-0 rounded-t-none"
                     : "fixed z-[9999] shadow-xl animate-in fade-in zoom-in-95 duration-100"
             )}
-            style={!inline ? { 
-                top: coords.top, 
-                left: coords.left, 
-                width: coords.width 
+            style={!inline ? {
+                top: coords.top,
+                left: coords.left,
+                width: coords.width
             } : {}}
         >
             <div className="flex items-center border-b px-3 py-2 sticky top-0 bg-popover z-10">
@@ -145,12 +152,11 @@ export function SearchableSelect({
             </Button>
 
             {open && (
-                inline 
-                ? dropdown 
-                : (typeof document !== 'undefined' && createPortal(dropdown, document.body))
+                inline
+                    ? dropdown
+                    : (typeof document !== 'undefined' && createPortal(dropdown, document.body))
             )}
         </div>
     )
 }
-
 
