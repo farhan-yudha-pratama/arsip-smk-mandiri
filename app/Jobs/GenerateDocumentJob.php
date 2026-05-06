@@ -150,30 +150,7 @@ class GenerateDocumentJob implements ShouldQueue
                     }
                     unset($row);
 
-                    // 3. Logika Rowspan Otomatis: Kosongkan nilai jika sama dengan baris sebelumnya
-                    $processedTableData = [];
-                    $prevKelas = null;
-                    $prevJurusan = null;
-
-                    foreach ($tableData as $row) {
-                        $currentRow = $row;
-                        
-                        $currentKelas = $row['T_kelas'] ?? null;
-                        $currentJurusan = $row['T_jurusan'] ?? null;
-
-                        // Visual merging: hanya tampilkan jika berubah
-                        if ($currentKelas === $prevKelas && $currentJurusan === $prevJurusan) {
-                            $currentRow['T_kelas'] = '';
-                            $currentRow['T_jurusan'] = '';
-                        } else {
-                            $prevKelas = $currentKelas;
-                            $prevJurusan = $currentJurusan;
-                        }
-                        
-                        $processedTableData[] = $currentRow;
-                    }
-
-                    $templateProcessor->cloneRowAndSetValues($cloneKey, $processedTableData);
+                    $templateProcessor->cloneRowAndSetValues($cloneKey, $tableData);
                 }
             }
 

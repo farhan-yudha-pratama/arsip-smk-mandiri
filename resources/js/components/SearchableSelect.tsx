@@ -26,6 +26,7 @@ export function SearchableSelect({
     const [open, setOpen] = React.useState(false)
     const [searchTerm, setSearchTerm] = React.useState("")
     const containerRef = React.useRef<HTMLDivElement>(null)
+    const dropdownRef = React.useRef<HTMLDivElement>(null)
     const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 })
 
     const filteredOptions = options.filter((option) =>
@@ -47,7 +48,12 @@ export function SearchableSelect({
 
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (
+                containerRef.current && 
+                !containerRef.current.contains(target) &&
+                (!dropdownRef.current || !dropdownRef.current.contains(target))
+            ) {
                 setOpen(false)
             }
         }
@@ -70,6 +76,7 @@ export function SearchableSelect({
 
     const dropdown = (
         <div 
+            ref={dropdownRef}
             className={cn(
                 "mt-1 max-h-60 overflow-auto rounded-md border bg-popover p-1 text-popover-foreground outline-none",
                 inline 
