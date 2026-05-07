@@ -13,6 +13,7 @@ class Document extends Model
     use HasFactory, HasUuids;
 
     protected $guarded = [];
+    protected $with = ['students', 'teachers'];
 
     protected $casts = [
         'status' => StatusDocument::class,
@@ -26,14 +27,14 @@ class Document extends Model
         return $this->belongsTo(Template::class);
     }
 
-    public function student()
+    public function students()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsToMany(Student::class, 'document_students');
     }
 
-    public function teacher()
+    public function teachers()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsToMany(Teacher::class, 'document_teachers');
     }
 
     public function creator()

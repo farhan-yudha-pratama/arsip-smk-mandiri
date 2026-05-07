@@ -11,4 +11,9 @@ class Student extends Model
     use HasFactory, HasUuids;
 
     protected $guarded = [];
+
+    public function documents()
+    {
+        return $this->belongsToMany(Document::class, 'document_students');
+    }
 }

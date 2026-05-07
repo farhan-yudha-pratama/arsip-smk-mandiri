@@ -1,3 +1,5 @@
+import { Student, Teacher } from './user';
+
 export interface Document {
     id: string;
     template_id: string;
@@ -5,10 +7,13 @@ export interface Document {
     title: string;
     status: string;
     recipient_type: string;
-    student?: { name: string };
-    teacher?: { name: string };
+    student?: Student;
+    teacher?: Teacher;
+    students: Student[];
+    teachers: Teacher[];
     meta_data_values: Record<string, string>;
     category_numbering_id?: string | number;
     created_at: string;
     creator?: { name: string };
+    is_batch: boolean;
 }
