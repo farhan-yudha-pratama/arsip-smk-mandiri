@@ -14,6 +14,7 @@ class Document extends Model
 
     protected $guarded = [];
     protected $with = ['students', 'teachers'];
+    protected $withCount = ['students', 'teachers'];
 
     protected $casts = [
         'status' => StatusDocument::class,
@@ -21,6 +22,27 @@ class Document extends Model
         'meta_data_values' => 'array',
         'is_batch' => 'boolean',
     ];
+
+    public function getRecipientNameAttribute(): string
+    {
+        $firstRecipient = $this->recipient_type === 'STUDENT'
+            ? $this->students->first()
+            : $this->teachers->first();
+
+        $name = $firstRecipient?->name ?? 'External';
+
+        if ($this->is_batch) {
+            $count = $this->recipient_type === 'STUDENT'
+                ? ($this->students_count ?? $this->students->count())
+                : ($this->teachers_count ?? $this->teachers->count());
+
+            if ($count > 1) {
+                $name .= ' & ' . ($count - 1) . ' lainnya';
+            }
+        }
+
+        return $name;
+    }
 
     public function template()
     {

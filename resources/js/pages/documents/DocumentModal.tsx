@@ -35,9 +35,12 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
         recipient_type: 'STUDENT',
         student_id: '',
         teacher_id: '',
+        student_ids: [] as string[],
+        teacher_ids: [] as string[],
         meta_data_values: {} as Record<string, any>,
         category_numbering_id: '' as string | number,
         is_draft: false,
+        is_batch: false,
     });
 
     const isDraftRef = useRef(false);
@@ -147,28 +150,58 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
         }));
     };
 
-    const handleStudentSelectInRow = (index: number, studentId: string) => {
-        const student = students.find(s => s.id.toString() === studentId);
-        if (student) {
-            const updatedRows = [...dynamicRows];
-            const currentRow = { ...updatedRows[index], student_id: student.id.toString() };
+    const handleUserSelectInRow = (index: number, userId: string, type: 'STUDENT' | 'TEACHER') => {
+        const updatedRows = [...dynamicRows];
+        if (type === 'STUDENT') {
+            const student = students.find(s => s.id.toString() === userId);
+            if (student) {
+                const currentRow = { ...updatedRows[index], student_id: student.id.toString() };
+                Object.keys(currentRow).forEach(key => {
+                    if (key.includes('nama-siswa') || key.includes('nama-murid')) currentRow[key] = student.name;
+                    if (key.includes('nis')) currentRow[key] = (student as any).nis || (student as any).nisn || '';
+                    if (key.includes('kelas')) currentRow[key] = (student as any).kelas || '';
+                    if (key.includes('jurusan')) currentRow[key] = (student as any).jurusan || (student as any).major || '';
+                });
+                updatedRows[index] = currentRow;
+            }
+        } else {
+            const teacher = teachers.find(t => t.id.toString() === userId);
+            if (teacher) {
+                const currentRow = { ...updatedRows[index], teacher_id: teacher.id.toString() };
+                Object.keys(currentRow).forEach(key => {
+                    if (key.includes('nama-guru')) currentRow[key] = teacher.name;
+                    if (key.includes('nip')) currentRow[key] = (teacher as any).nip || '';
+                });
+                updatedRows[index] = currentRow;
+            }
+        }
+        setDynamicRows(updatedRows);
+        setData(prev => ({
+            ...prev,
+            meta_data_values: {
+                ...prev.meta_data_values,
+                T_table_data: updatedRows
+            }
+        }));
+    };
 
-            Object.keys(currentRow).forEach(key => {
-                if (key.includes('nama')) currentRow[key] = student.name;
-                if (key.includes('nis')) currentRow[key] = (student as any).nis || (student as any).nisn || '';
-                if (key.includes('kelas')) currentRow[key] = (student as any).kelas || '';
-                if (key.includes('jurusan')) currentRow[key] = (student as any).jurusan || (student as any).major || '';
-            });
+    const copyRecipientsFromTable = () => {
+        const tableKeys = (selectedTemplate?.meta_data || []).filter((key: string) => key.startsWith('T_'));
+        const hasStudent = tableKeys.some(k => k.includes('nama-siswa') || k.includes('nama-murid'));
+        const hasTeacher = tableKeys.some(k => k.includes('nama-guru'));
 
-            updatedRows[index] = currentRow;
-            setDynamicRows(updatedRows);
-            setData(prev => ({
-                ...prev,
-                meta_data_values: {
-                    ...prev.meta_data_values,
-                    T_table_data: updatedRows
-                }
-            }));
+        if (hasStudent) {
+            const sIds = dynamicRows.map(r => r.student_id).filter(Boolean);
+            const uniqueIds = Array.from(new Set(sIds)) as string[];
+            setData(prev => ({ ...prev, recipient_type: 'STUDENT', is_batch: true, student_ids: uniqueIds }));
+            toast.success(`${uniqueIds.length} siswa berhasil disalin dari tabel.`);
+        } else if (hasTeacher) {
+            const tIds = dynamicRows.map(r => r.teacher_id).filter(Boolean);
+            const uniqueIds = Array.from(new Set(tIds)) as string[];
+            setData(prev => ({ ...prev, recipient_type: 'TEACHER', is_batch: true, teacher_ids: uniqueIds }));
+            toast.success(`${uniqueIds.length} guru berhasil disalin dari tabel.`);
+        } else {
+            toast.error("Tidak ditemukan kolom nama-siswa atau nama-guru di tabel.");
         }
     };
 
@@ -200,6 +233,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
     const steps = [
         { id: 1, title: 'Konfigurasi Dasar', icon: Settings },
         { id: 2, title: 'Isi Data Dokumen', icon: FileText },
+        { id: 3, title: 'Penerima Dokumen', icon: Users },
     ];
 
     const canGoToStep2 = data.template_id && data.title;
@@ -326,57 +360,9 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className="space-y-4 pt-4">
-                                            <h3 className="text-lg font-bold flex items-center gap-3">
-                                                <div className="h-8 w-1.5 bg-primary rounded-full" />
-                                                Penerima Utama
-                                            </h3>
-                                            <div className="grid gap-6 sm:grid-cols-2">
-                                                <div className="space-y-2">
-                                                    <Label className="text-sm font-bold text-muted-foreground ml-1">Tipe Penerima</Label>
-                                                    <Select
-                                                        value={data.recipient_type}
-                                                        onValueChange={(value) => setData('recipient_type', value)}
-                                                    >
-                                                        <SelectTrigger className="h-14 rounded-2xl border-2 bg-muted/10 focus:ring-primary/20 transition-all hover:bg-muted/20">
-                                                            <SelectValue placeholder="Pilih tipe" />
-                                                        </SelectTrigger>
-                                                        <SelectContent className="rounded-2xl shadow-xl">
-                                                            <SelectItem value="STUDENT" className="rounded-xl">Siswa</SelectItem>
-                                                            <SelectItem value="TEACHER" className="rounded-xl">Guru</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-
-                                                {data.recipient_type === 'STUDENT' ? (
-                                                    <div className="space-y-2">
-                                                        <Label className="text-sm font-bold text-muted-foreground ml-1">Nama Siswa</Label>
-                                                        <SearchableSelect
-                                                            options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.id.toString() }))}
-                                                            value={data.student_id?.toString() || ''}
-                                                            onChange={(value) => setData('student_id', value)}
-                                                            placeholder="Cari siswa..."
-                                                            className="h-14"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-2">
-                                                        <Label className="text-sm font-bold text-muted-foreground ml-1">Nama Guru</Label>
-                                                        <SearchableSelect
-                                                            options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.id.toString() }))}
-                                                            value={data.teacher_id?.toString() || ''}
-                                                            onChange={(value) => setData('teacher_id', value)}
-                                                            placeholder="Cari guru..."
-                                                            className="h-14"
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
-                            ) : (
+                            ) : currentStep === 2 ? (
                                 <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                                     {selectedTemplate && (
                                         <div className="space-y-10">
@@ -496,18 +482,27 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                 <div className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                                                                     {tableKeys.map(key => {
                                                                         if (key === 'T_no') return null;
-                                                                        const isNameKey = key.includes('nama');
+                                                                        const isStudentNameKey = key.includes('nama-siswa') || key.includes('nama-murid');
+                                                                        const isTeacherNameKey = key.includes('nama-guru');
                                                                         return (
                                                                             <div key={key} className="space-y-1.5">
                                                                                 <Label className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground/60 ml-1">
                                                                                     {key.replace('T_', '').replace(/-/g, ' ')}
                                                                                 </Label>
-                                                                                {isNameKey ? (
+                                                                                {isStudentNameKey ? (
                                                                                     <SearchableSelect
                                                                                         options={students.map(s => ({ label: s.name, value: s.id.toString() }))}
                                                                                         value={row.student_id?.toString() || ''}
-                                                                                        onChange={(val) => handleStudentSelectInRow(index, val)}
+                                                                                        onChange={(val) => handleUserSelectInRow(index, val, 'STUDENT')}
                                                                                         placeholder="Cari Siswa..."
+                                                                                        className="h-11"
+                                                                                    />
+                                                                                ) : isTeacherNameKey ? (
+                                                                                    <SearchableSelect
+                                                                                        options={teachers.map(t => ({ label: t.name, value: t.id.toString() }))}
+                                                                                        value={row.teacher_id?.toString() || ''}
+                                                                                        onChange={(val) => handleUserSelectInRow(index, val, 'TEACHER')}
+                                                                                        placeholder="Cari Guru..."
                                                                                         className="h-11"
                                                                                     />
                                                                                 ) : (
@@ -534,13 +529,125 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                         </div>
                                     )}
                                 </div>
-                            )}
+                            ) : currentStep === 3 ? (
+                                <div className="max-w-3xl mx-auto space-y-8 animate-in slide-in-from-right-4 duration-500">
+                                    <div className="space-y-6">
+                                        <div className="space-y-4">
+                                            <h3 className="text-lg font-bold flex items-center gap-3">
+                                                <div className="h-8 w-1.5 bg-primary rounded-full" />
+                                                Penerima Dokumen
+                                            </h3>
+
+                                            <div className="grid gap-6 sm:grid-cols-2">
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-bold text-muted-foreground ml-1">Mode Dokumen</Label>
+                                                    <Select
+                                                        value={data.is_batch ? 'BATCH' : 'SINGLE'}
+                                                        onValueChange={(val) => setData('is_batch', val === 'BATCH')}
+                                                    >
+                                                        <SelectTrigger className="h-14 rounded-2xl border-2 bg-muted/10 focus:ring-primary/20 transition-all hover:bg-muted/20">
+                                                            <SelectValue placeholder="Pilih mode" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-2xl shadow-xl">
+                                                            <SelectItem value="SINGLE" className="rounded-xl">Satu Tujuan (Single)</SelectItem>
+                                                            <SelectItem value="BATCH" className="rounded-xl">Banyak Tujuan (Batch)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-bold text-muted-foreground ml-1">Tipe Penerima</Label>
+                                                    <Select
+                                                        value={data.recipient_type}
+                                                        onValueChange={(value) => setData('recipient_type', value)}
+                                                    >
+                                                        <SelectTrigger className="h-14 rounded-2xl border-2 bg-muted/10 focus:ring-primary/20 transition-all hover:bg-muted/20">
+                                                            <SelectValue placeholder="Pilih tipe" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-2xl shadow-xl">
+                                                            <SelectItem value="STUDENT" className="rounded-xl">Siswa</SelectItem>
+                                                            <SelectItem value="TEACHER" className="rounded-xl">Guru</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+
+                                            {!data.is_batch ? (
+                                                <div className="space-y-2 mt-4">
+                                                    <Label className="text-sm font-bold text-muted-foreground ml-1">
+                                                        {data.recipient_type === 'STUDENT' ? 'Nama Siswa' : 'Nama Guru'}
+                                                    </Label>
+                                                    {data.recipient_type === 'STUDENT' ? (
+                                                        <SearchableSelect
+                                                            options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.id.toString() }))}
+                                                            value={data.student_id?.toString() || ''}
+                                                            onChange={(value) => setData('student_id', value)}
+                                                            placeholder="Cari siswa..."
+                                                            className="h-14"
+                                                        />
+                                                    ) : (
+                                                        <SearchableSelect
+                                                            options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.id.toString() }))}
+                                                            value={data.teacher_id?.toString() || ''}
+                                                            onChange={(value) => setData('teacher_id', value)}
+                                                            placeholder="Cari guru..."
+                                                            className="h-14"
+                                                        />
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4 mt-6 p-6 rounded-3xl border-2 border-border/50 bg-card/40">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <Label className="text-sm font-bold text-muted-foreground">Daftar Penerima Batch</Label>
+                                                        <Button
+                                                            type="button"
+                                                            onClick={copyRecipientsFromTable}
+                                                            className="gap-2 rounded-xl shadow-md hover:shadow-lg transition-all"
+                                                            size="sm"
+                                                        >
+                                                            <Users className="h-4 w-4" /> Salin dari Tabel Tahap 2
+                                                        </Button>
+                                                    </div>
+
+                                                    <div className="bg-muted/30 rounded-2xl p-4 min-h-[100px] max-h-[300px] overflow-y-auto border border-dashed flex flex-col gap-2">
+                                                        {data.recipient_type === 'STUDENT' && data.student_ids.length > 0 ? (
+                                                            data.student_ids.map(id => {
+                                                                const s = students.find(x => x.id.toString() === id.toString());
+                                                                return s ? (
+                                                                    <div key={id} className="flex items-center justify-between bg-background p-3 rounded-xl border shadow-sm">
+                                                                        <span className="text-sm font-medium">{s.name} ({s.nis})</span>
+                                                                        <Button type="button" variant="ghost" size="sm" onClick={() => setData('student_ids', data.student_ids.filter(x => x !== id))} className="h-8 w-8 text-destructive hover:bg-destructive/10"><X className="h-4 w-4" /></Button>
+                                                                    </div>
+                                                                ) : null;
+                                                            })
+                                                        ) : data.recipient_type === 'TEACHER' && data.teacher_ids.length > 0 ? (
+                                                            data.teacher_ids.map(id => {
+                                                                const t = teachers.find(x => x.id.toString() === id.toString());
+                                                                return t ? (
+                                                                    <div key={id} className="flex items-center justify-between bg-background p-3 rounded-xl border shadow-sm">
+                                                                        <span className="text-sm font-medium">{t.name} ({t.nip})</span>
+                                                                        <Button type="button" variant="ghost" size="sm" onClick={() => setData('teacher_ids', data.teacher_ids.filter(x => x !== id))} className="h-8 w-8 text-destructive hover:bg-destructive/10"><X className="h-4 w-4" /></Button>
+                                                                    </div>
+                                                                ) : null;
+                                                            })
+                                                        ) : (
+                                                            <div className="flex items-center justify-center h-20 text-xs text-muted-foreground italic">
+                                                                Belum ada penerima disalin. Silahkan klik tombol di atas.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>
 
                 {/* Integrated Footer */}
-                <div className="px-8 py-5 border-t bg-card flex items-center justify-between shrink-0">
+                <div className="px-8 border-t bg-card flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-2">
                         {currentStep > 1 && (
                             <Button
@@ -563,11 +670,11 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                             Batal
                         </Button>
 
-                        {currentStep === 1 ? (
+                        {currentStep < 3 ? (
                             <Button
                                 type="button"
-                                disabled={!canGoToStep2}
-                                onClick={() => setCurrentStep(2)}
+                                disabled={currentStep === 1 && !canGoToStep2}
+                                onClick={() => setCurrentStep(currentStep + 1)}
                                 className="h-12 rounded-2xl px-8 gap-2 font-bold shadow-xl shadow-primary/20"
                             >
                                 Selanjutnya <ChevronRight className="h-4 w-4" />

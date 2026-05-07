@@ -15,6 +15,9 @@ import {
     Upload,
     MailOpen,
     Filter,
+    Users,
+    ChevronDown,
+    ChevronUp,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -56,6 +59,49 @@ interface Props {
     categoryNumbering: CategoryNumbering[];
     filters: any;
 }
+
+const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const recipients = doc.recipient_type === 'STUDENT' ? doc.students : doc.teachers;
+
+    if (!recipients || recipients.length === 0) {
+        return (
+            <span className="text-xs text-muted-foreground mt-1">
+                No Recipients
+            </span>
+        );
+    }
+
+    if (!doc.is_batch) {
+        return (
+            <span className="text-xs text-muted-foreground mt-1">
+                {recipients[0]?.name || 'N/A'}
+            </span>
+        );
+    }
+
+    return (
+        <div className="flex flex-col">
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center text-xs text-blue-600 hover:text-blue-700 transition-colors mt-1 font-medium"
+            >
+                <Users className="h-3 w-3 mr-1" />
+                {recipients.length} recipients
+                {isExpanded ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+            </button>
+            {isExpanded && (
+                <div className="mt-1.5 flex flex-col gap-1 pl-3 border-l-2 border-blue-200">
+                    {recipients.map((r, i) => (
+                        <span key={i} className="text-[11px] text-muted-foreground leading-tight">
+                            {r.name}
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -272,13 +318,18 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                             </td>
                                             <td className="p-4 align-middle">
                                                 <div className="flex flex-col">
-                                                    <div className="flex items-center text-xs font-medium">
-                                                        {getRecipientIcon(doc.recipient_type)}
-                                                        {doc.recipient_type}
+                                                    <div className="flex items-center gap-2 text-xs font-medium">
+                                                        <div className="flex items-center">
+                                                            {getRecipientIcon(doc.recipient_type)}
+                                                            {doc.recipient_type}
+                                                        </div>
+                                                        {doc.is_batch && (
+                                                            <Badge variant="secondary" className="px-1 h-4 text-[9px] uppercase bg-blue-50 text-blue-600 border-blue-100">
+                                                                Batch
+                                                             </Badge>
+                                                        )}
                                                     </div>
-                                                    <span className="text-xs text-muted-foreground mt-1">
-                                                        {doc.student?.name || doc.teacher?.name || 'External'}
-                                                    </span>
+                                                    <RecipientBatchInfo doc={doc} />
                                                 </div>
                                             </td>
                                             <td className="p-4 align-middle">

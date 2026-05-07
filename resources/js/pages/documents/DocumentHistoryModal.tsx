@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Download, X } from 'lucide-react';
+import { Loader2, Download, X, Users } from 'lucide-react';
+import { useState } from 'react';
 import { formatDateTime } from '@/lib/utils';
 
 interface DocumentHistoryModalProps {
@@ -14,6 +15,7 @@ export function DocumentHistoryModal({
     onOpenChange,
     document,
 }: DocumentHistoryModalProps) {
+    const [showRecipients, setShowRecipients] = useState(false);
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'DRAFT': return <Badge variant="outline">{status}</Badge>;
@@ -41,16 +43,57 @@ export function DocumentHistoryModal({
                 <div className="flex items-center justify-between border-b px-6 py-4">
                     <div>
                         <h2 className="text-lg font-semibold">Riwayat Dokumen</h2>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Jejak waktu perubahan status untuk dokumen: <span className="font-semibold text-foreground">{document.title}</span>
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                            <p className="text-sm text-muted-foreground">
+                                Jejak waktu perubahan status untuk dokumen: <span className="font-semibold text-foreground">{document.title}</span>
+                            </p>
+                            {document.is_batch && (
+                                <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-blue-100 text-[10px] uppercase font-bold px-1.5 h-5">Batch</Badge>
+                            )}
+                        </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full flex-shrink-0">
-                        <X className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-3">
+                        {document.is_batch && (
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-9 rounded-xl gap-2 font-bold border-2"
+                                onClick={() => setShowRecipients(!showRecipients)}
+                            >
+                                <Users className="h-4 w-4" />
+                                {showRecipients ? 'Sembunyikan Penerima' : 'Lihat Penerima Batch'}
+                            </Button>
+                        )}
+                        <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full flex-shrink-0">
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="p-6 overflow-auto">
+                    {showRecipients && document.is_batch && (
+                        <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="bg-muted/30 rounded-2xl p-6 border-2 border-dashed">
+                                <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
+                                    <div className="h-4 w-1 bg-primary rounded-full" />
+                                    Daftar Penerima ({document.recipient_type === 'STUDENT' ? document.students?.length : document.teachers?.length} Orang)
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    {(document.recipient_type === 'STUDENT' ? document.students : document.teachers)?.map((r: any) => (
+                                        <div key={r.id} className="bg-background p-3 rounded-xl border shadow-sm flex items-center gap-3">
+                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                                {r.name.charAt(0)}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold">{r.name}</span>
+                                                <span className="text-[10px] text-muted-foreground">{r.nis || r.nip || '-'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="overflow-x-auto rounded-md border">
                         <table className="w-full text-sm">
                             <thead>

@@ -65,7 +65,15 @@ const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
     if (!recipients || recipients.length === 0) {
         return (
             <span className="text-xs text-muted-foreground mt-1">
-                {doc.student?.name || doc.teacher?.name || 'External'}
+                No Recipients
+            </span>
+        );
+    }
+
+    if (!doc.is_batch) {
+        return (
+            <span className="text-xs text-muted-foreground mt-1">
+                {recipients[0]?.name || 'N/A'}
             </span>
         );
     }
@@ -330,13 +338,7 @@ export default function Documents({ documents = [], templates, students, teacher
                                                         )}
                                                     </div>
                                                     
-                                                    {doc.is_batch ? (
-                                                        <RecipientBatchInfo doc={doc} />
-                                                    ) : (
-                                                        <span className="text-xs text-muted-foreground mt-1">
-                                                            {doc.student?.name || doc.teacher?.name || 'External'}
-                                                        </span>
-                                                    )}
+                                                    <RecipientBatchInfo doc={doc} />
                                                 </div>
                                             </td>
                                             <td className="p-4 align-middle">

@@ -216,7 +216,7 @@ class GenerateDocumentJob implements ShouldQueue
 
             $this->document->update($updatePayload);
 
-            $recipientName = $this->document->student->name ?? $this->document->teacher->name ?? 'External';
+            $recipientName = $this->document->recipient_name;
 
             OutgoingMail::create([
                 'document_id' => $this->document->id,

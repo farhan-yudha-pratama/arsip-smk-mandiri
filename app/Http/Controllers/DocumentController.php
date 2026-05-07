@@ -63,7 +63,7 @@ class DocumentController extends Controller
         $recipientFilter = $request->query('recipient');
 
         $documents = Document::doesntHave('incomingMail')
-            ->with(['template', 'student', 'teacher', 'creator', 'history.creator'])
+            ->with(['template', 'students', 'teachers', 'creator', 'history.creator'])
             ->when($search, function ($query, $search) {
                 $query->where('title', 'like', '%' . $search . '%');
             })
@@ -102,8 +102,13 @@ class DocumentController extends Controller
             'recipient_type'        => 'required|string',
             'student_id'            => 'nullable|exists:students,id',
             'teacher_id'            => 'nullable|exists:teachers,id',
+            'student_ids'           => 'nullable|array',
+            'student_ids.*'         => 'exists:students,id',
+            'teacher_ids'           => 'nullable|array',
+            'teacher_ids.*'         => 'exists:teachers,id',
             'meta_data_values'      => 'nullable|array',
             'is_draft'              => 'nullable|boolean',
+            'is_batch'              => 'nullable|boolean',
             'category_numbering_id' => 'nullable|exists:category_numbering,id',
         ]);
 
@@ -112,6 +117,7 @@ class DocumentController extends Controller
                 $template = Template::findOrFail($request->template_id);
 
                 $isDraft = $request->boolean('is_draft');
+                $isBatch = $request->boolean('is_batch');
                 $status = $isDraft ? StatusDocument::DRAFT : StatusDocument::PROCESSING;
 
                 $document = Document::create([
@@ -119,12 +125,20 @@ class DocumentController extends Controller
                     'title' => $request->title,
                     'status' => $status,
                     'recipient_type' => $request->recipient_type,
-                    'student_id' => $request->student_id,
-                    'teacher_id' => $request->teacher_id,
                     'meta_data_values' => $request->meta_data_values ?? [],
                     'current_url' => '',
+                    'is_batch' => $isBatch,
                     'created_by' => Auth::id(),
                 ]);
+
+                // Handle recipients via pivot tables (since columns were dropped from documents table)
+                if ($request->recipient_type === 'STUDENT') {
+                    $ids = $isBatch ? ($request->student_ids ?? []) : (array)$request->student_id;
+                    $document->students()->sync(array_filter($ids));
+                } elseif ($request->recipient_type === 'TEACHER') {
+                    $ids = $isBatch ? ($request->teacher_ids ?? []) : (array)$request->teacher_id;
+                    $document->teachers()->sync(array_filter($ids));
+                }
 
                 DocumentHistory::create([
                     'document_id' => $document->id,
@@ -269,7 +283,7 @@ class DocumentController extends Controller
                     'current_url' => $path,
                 ]);
 
-                $recipientName = $document->student->name ?? $document->teacher->name ?? 'External';
+                $recipientName = $document->recipient_name;
 
                 DocumentHistory::create([
                     'document_id' => $document->id,
@@ -296,7 +310,7 @@ class DocumentController extends Controller
                     'status' => StatusDocument::ARCHIVED,
                 ]);
 
-                $recipientName = $document->student->name ?? $document->teacher->name ?? 'External';
+                $recipientName = $document->recipient_name;
 
                 DocumentHistory::create([
                     'document_id' => $document->id,
