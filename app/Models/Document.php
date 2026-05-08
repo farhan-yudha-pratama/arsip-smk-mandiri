@@ -13,6 +13,20 @@ class Document extends Model
     use HasFactory, HasUuids;
 
     protected $guarded = [];
+    protected $fillable = [
+        'template_id',
+        'document_number',
+        'title',
+        'status',
+        'recipient_type',
+        'recipient_name',
+        'meta_data_values',
+        'current_url',
+        'is_batch',
+        'created_by'
+    ];
+    protected $with = ['students', 'teachers'];
+    protected $withCount = ['students', 'teachers'];
 
     protected $casts = [
         'status' => StatusDocument::class,
@@ -21,19 +35,44 @@ class Document extends Model
         'is_batch' => 'boolean',
     ];
 
+    public function getRecipientNameAttribute(): string
+    {
+        if ($this->recipient_type === RecipientType::EXTERNAL) {
+            return $this->attributes['recipient_name'] ?? 'External';
+        }
+
+        $firstRecipient = $this->recipient_type === RecipientType::STUDENT
+            ? $this->students->first()
+            : $this->teachers->first();
+
+        $name = $firstRecipient?->name ?? ($this->attributes['recipient_name'] ?? 'External');
+
+        if ($this->is_batch) {
+            $count = $this->recipient_type === 'STUDENT'
+                ? ($this->students_count ?? $this->students->count())
+                : ($this->teachers_count ?? $this->teachers->count());
+
+            if ($count > 1) {
+                $name .= ' & ' . ($count - 1) . ' lainnya';
+            }
+        }
+
+        return $name;
+    }
+
     public function template()
     {
         return $this->belongsTo(Template::class);
     }
 
-    public function student()
+    public function students()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsToMany(Student::class, 'document_students');
     }
 
-    public function teacher()
+    public function teachers()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsToMany(Teacher::class, 'document_teachers');
     }
 
     public function creator()
@@ -44,5 +83,15 @@ class Document extends Model
     public function history()
     {
         return $this->hasMany(DocumentHistory::class);
+    }
+
+    public function incomingMail()
+    {
+        return $this->hasOne(IncomingMail::class);
+    }
+
+    public function outgoingMail()
+    {
+        return $this->hasOne(OutgoingMail::class);
     }
 }

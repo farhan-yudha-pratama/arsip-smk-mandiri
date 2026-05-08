@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignUuid('document_id')->constrained('documents')->cascadeOnDelete();
             $table->string('file_path');
-            $table->enum('version_name', ['DRAFT', 'GENERATED', 'SIGNED', 'ARCHIVED']);
+            $table->enum('version_name', ['DRAFT', 'PROCESSING', 'GENERATED', 'SIGNED', 'ARCHIVED', 'FAILED']);
             $table->text('note');
             $table->foreignUuid('created_by')->constrained('users')->cascadeOnDelete();
             $table->timestamp('created_at')->nullable();
