@@ -83,7 +83,11 @@ class GenerateDocumentJob implements ShouldQueue
             $tempTemplatePath = tempnam(sys_get_temp_dir(), 'tpl');
             file_put_contents($tempTemplatePath, $templateContent);
 
+            // Clean internal XML tags within placeholders
+            app(\App\Services\DocumentTemplateService::class)->cleanTemplateMarkup($tempTemplatePath);
+
             $templateProcessor = new TemplateProcessor($tempTemplatePath);
+
             $templateProcessor->setMacroChars('{{', '}}');
             
             // Separate scalar values and table data

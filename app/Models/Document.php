@@ -13,6 +13,18 @@ class Document extends Model
     use HasFactory, HasUuids;
 
     protected $guarded = [];
+    protected $fillable = [
+        'template_id',
+        'document_number',
+        'title',
+        'status',
+        'recipient_type',
+        'recipient_name',
+        'meta_data_values',
+        'current_url',
+        'is_batch',
+        'created_by'
+    ];
     protected $with = ['students', 'teachers'];
     protected $withCount = ['students', 'teachers'];
 
@@ -25,11 +37,15 @@ class Document extends Model
 
     public function getRecipientNameAttribute(): string
     {
-        $firstRecipient = $this->recipient_type === 'STUDENT'
+        if ($this->recipient_type === RecipientType::EXTERNAL) {
+            return $this->attributes['recipient_name'] ?? 'External';
+        }
+
+        $firstRecipient = $this->recipient_type === RecipientType::STUDENT
             ? $this->students->first()
             : $this->teachers->first();
 
-        $name = $firstRecipient?->name ?? 'External';
+        $name = $firstRecipient?->name ?? ($this->attributes['recipient_name'] ?? 'External');
 
         if ($this->is_batch) {
             $count = $this->recipient_type === 'STUDENT'

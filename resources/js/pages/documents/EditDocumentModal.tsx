@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { X } from 'lucide-react';
+import { cn, formatIndonesianDate, formatIndonesianDateTime, formatIndonesianTime, parseIndonesianDate, parseIndonesianDateTime } from '@/lib/utils';
 import documentRoutes from '@/routes/documents';
 import { Document } from '@/types/document';
 import { Template } from '@/types/template';
@@ -28,6 +29,7 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
         meta_data_values: {} as Record<string, string>,
         category_numbering_id: '' as string | number,
         is_draft: false,
+        recipient_name: '',
     });
 
     const isDraftRef = useRef(false);
@@ -40,6 +42,7 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                 meta_data_values: document.meta_data_values || {},
                 category_numbering_id: document.category_numbering_id || '',
                 is_draft: false,
+                recipient_name: document.recipient_type || '',
             });
 
             const template = templates.find((t) => t.id === document.template_id);
@@ -114,6 +117,20 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                                 />
                                 {errors.title && <p className="text-xs font-medium text-destructive">{errors.title}</p>}
                             </div>
+
+                            {document?.recipient_type === 'EXTERNAL' && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-recipient-name" className="text-sm font-semibold">Recipient Name (External)</Label>
+                                    <Input
+                                        id="edit-recipient-name"
+                                        className="h-11"
+                                        value={data.recipient_name}
+                                        onChange={(e) => setData('recipient_name', e.target.value)}
+                                        placeholder="e.g. PT. Contoh Indonesia"
+                                    />
+                                    {errors.recipient_name && <p className="text-xs font-medium text-destructive">{errors.recipient_name}</p>}
+                                </div>
+                            )}
                         </div>
 
                         {selectedTemplate && (
@@ -182,7 +199,84 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                                                         }}
                                                         placeholder="Pilih Kategori Penomoran"
                                                     />
+                                                ) : key.includes('T_jadwal_start_end_waktu') ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        <Input
+                                                            type="datetime-local"
+                                                            className="h-10 rounded-lg"
+                                                            value={parseIndonesianDateTime((data.meta_data_values[key] || '').split(' s/d ')[0])}
+                                                            onChange={(e) => {
+                                                                const end = (data.meta_data_values[key] || '').split(' s/d ')[1] || '';
+                                                                handleMetaDataChange(key, `${formatIndonesianDateTime(e.target.value)}${end ? ` s/d ${end}` : ''}`);
+                                                            }}
+                                                        />
+                                                        <div className="text-[10px] text-center text-muted-foreground font-bold">s/d</div>
+                                                        <Input
+                                                            type="datetime-local"
+                                                            className="h-10 rounded-lg"
+                                                            value={parseIndonesianDateTime((data.meta_data_values[key] || '').split(' s/d ')[1])}
+                                                            onChange={(e) => {
+                                                                const start = (data.meta_data_values[key] || '').split(' s/d ')[0] || '';
+                                                                handleMetaDataChange(key, `${start}${start ? ` s/d ` : ''}${formatIndonesianDateTime(e.target.value)}`);
+                                                            }}
+                                                        />
+                                                        <p className="text-[10px] font-medium text-primary mt-1 truncate">{data.meta_data_values[key]}</p>
+                                                    </div>
+                                                ) : key.includes('T_jadwal_start_end_date') ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        <Input
+                                                            type="date"
+                                                            className="h-10 rounded-lg"
+                                                            value={parseIndonesianDate((data.meta_data_values[key] || '').split(' s/d ')[0])}
+                                                            onChange={(e) => {
+                                                                const end = (data.meta_data_values[key] || '').split(' s/d ')[1] || '';
+                                                                handleMetaDataChange(key, `${formatIndonesianDate(e.target.value)}${end ? ` s/d ${end}` : ''}`);
+                                                            }}
+                                                        />
+                                                        <div className="text-[10px] text-center text-muted-foreground font-bold">s/d</div>
+                                                        <Input
+                                                            type="date"
+                                                            className="h-10 rounded-lg"
+                                                            value={parseIndonesianDate((data.meta_data_values[key] || '').split(' s/d ')[1])}
+                                                            onChange={(e) => {
+                                                                const start = (data.meta_data_values[key] || '').split(' s/d ')[0] || '';
+                                                                handleMetaDataChange(key, `${start}${start ? ` s/d ` : ''}${formatIndonesianDate(e.target.value)}`);
+                                                            }}
+                                                        />
+                                                        <p className="text-[10px] font-medium text-primary mt-1 truncate">{data.meta_data_values[key]}</p>
+                                                    </div>
+                                                ) : key.includes('T_jadwal_waktu') ? (
+                                                    <div className="space-y-1">
+                                                        <Input
+                                                            type="datetime-local"
+                                                            className="h-10 rounded-lg"
+                                                            value={parseIndonesianDateTime(data.meta_data_values[key] || '')}
+                                                            onChange={(e) => handleMetaDataChange(key, formatIndonesianDateTime(e.target.value))}
+                                                        />
+                                                        <p className="text-[10px] font-medium text-primary truncate">{data.meta_data_values[key]}</p>
+                                                    </div>
+                                                ) : key.includes('T_jadwal_date') || key.includes('tanggal') ? (
+                                                    <div className="space-y-1">
+                                                        <Input
+                                                            type="date"
+                                                            className="h-10 rounded-lg"
+                                                            value={parseIndonesianDate(data.meta_data_values[key] || '')}
+                                                            onChange={(e) => handleMetaDataChange(key, formatIndonesianDate(e.target.value))}
+                                                        />
+                                                        <p className="text-[10px] font-medium text-primary truncate">{data.meta_data_values[key]}</p>
+                                                    </div>
+                                                ) : key.includes('waktu') ? (
+                                                    <div className="space-y-1">
+                                                        <Input
+                                                            type="time"
+                                                            className="h-10 rounded-lg"
+                                                            value={data.meta_data_values[key] || ''}
+                                                            onChange={(e) => handleMetaDataChange(key, formatIndonesianTime(`2000-01-01T${e.target.value}`))}
+                                                        />
+                                                        <p className="text-[10px] font-medium text-primary truncate">{data.meta_data_values[key]}</p>
+                                                    </div>
                                                 ) : (
+
                                                     <Input
                                                         id={`edit-meta-${key}`}
                                                         className="h-10"
@@ -191,6 +285,7 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                                                         placeholder={`Enter ${key}`}
                                                     />
                                                 )}
+
                                             </div>
                                         );
                                     })}

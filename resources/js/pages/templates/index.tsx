@@ -22,6 +22,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import templateRoutes from '@/routes/templates';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import TemplateModal from './TemplateModal';
 import { Template } from '@/types/template';
 import { formatDateTime } from '@/lib/utils';
@@ -120,7 +125,7 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                                         Nama
                                     </th>
-                                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground w-[300px]">
                                         Variabel
                                     </th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
@@ -144,26 +149,44 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                                                     {template.name}
                                                 </div>
                                             </td>
-                                            <td className="p-4 align-middle">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {(Array.isArray(template.meta_data)
-                                                        ? template.meta_data
-                                                        : []
-                                                    ).map((p: string) => (
-                                                        <Badge
-                                                            key={p}
-                                                            variant="outline"
-                                                            className="px-1 py-0 text-[10px] uppercase"
-                                                        >
-                                                            {p}
-                                                        </Badge>
-                                                    ),
-                                                    ) || (
-                                                            <span className="text-xs text-muted-foreground">
-                                                                Tidak ada variabel
-                                                            </span>
-                                                        )}
-                                                </div>
+                                            <td className="p-4 align-middle w-[300px]">
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex gap-1 overflow-hidden whitespace-nowrap max-w-[280px]">
+                                                            {(Array.isArray(template.meta_data)
+                                                                ? template.meta_data
+                                                                : []
+                                                            ).length > 0 ? (
+                                                                (template.meta_data as string[]).map((p: string) => (
+                                                                    <Badge
+                                                                        key={p}
+                                                                        variant="outline"
+                                                                        className="px-1 py-0 text-[10px] uppercase flex-shrink-0"
+                                                                    >
+                                                                        {p}
+                                                                    </Badge>
+                                                                ))
+                                                            ) : (
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    Tidak ada variabel
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    {(Array.isArray(template.meta_data) && template.meta_data.length > 0) && (
+                                                        <TooltipContent className="flex flex-wrap gap-1 max-w-[300px]">
+                                                            {(template.meta_data as string[]).map((p: string) => (
+                                                                <Badge
+                                                                    key={p}
+                                                                    variant="outline"
+                                                                    className="px-1 py-0 text-[10px] uppercase"
+                                                                >
+                                                                    {p}
+                                                                </Badge>
+                                                            ))}
+                                                        </TooltipContent>
+                                                    )}
+                                                </Tooltip>
                                             </td>
                                             <td className="p-4 align-middle text-muted-foreground">
                                                 {formatDateTime(template.created_at)}
@@ -228,7 +251,7 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                         </table>
                     </div>
                     <div className="p-4 border-t flex justify-end">
-                         <Pagination links={templates.links} />
+                        <Pagination links={templates.links} />
                     </div>
                 </div>
             </div>

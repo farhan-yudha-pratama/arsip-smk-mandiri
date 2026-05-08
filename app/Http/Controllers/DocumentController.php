@@ -110,6 +110,7 @@ class DocumentController extends Controller
             'is_draft'              => 'nullable|boolean',
             'is_batch'              => 'nullable|boolean',
             'category_numbering_id' => 'nullable|exists:category_numbering,id',
+            'recipient_name'        => 'nullable|string|max:255',
         ]);
 
         try {
@@ -125,6 +126,7 @@ class DocumentController extends Controller
                     'title' => $request->title,
                     'status' => $status,
                     'recipient_type' => $request->recipient_type,
+                    'recipient_name' => $request->recipient_name,
                     'meta_data_values' => $request->meta_data_values ?? [],
                     'current_url' => '',
                     'is_batch' => $isBatch,
@@ -178,6 +180,7 @@ class DocumentController extends Controller
             'meta_data_values'      => 'nullable|array',
             'is_draft'              => 'nullable|boolean',
             'category_numbering_id' => 'nullable|exists:category_numbering,id',
+            'recipient_name'        => 'nullable|string|max:255',
         ]);
 
         try {
@@ -189,6 +192,7 @@ class DocumentController extends Controller
                     'title' => $request->title,
                     'meta_data_values' => $request->meta_data_values ?? [],
                     'status' => $status,
+                    'recipient_name' => $request->recipient_name,
                 ]);
 
                 DocumentHistory::create([

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { X, Plus, Trash2, FileText, Users, Table as TableIcon, CheckCircle2, ChevronRight, ChevronLeft, Info, Settings } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatIndonesianDate, formatIndonesianDateTime, formatIndonesianTime, parseIndonesianDate, parseIndonesianDateTime } from '@/lib/utils';
 import documentRoutes from '@/routes/documents';
 import { Template } from '@/types/template';
 import { CategoryNumbering } from '@/types/category-numbering';
@@ -41,6 +41,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
         category_numbering_id: '' as string | number,
         is_draft: false,
         is_batch: false,
+        recipient_name: '',
     });
 
     const isDraftRef = useRef(false);
@@ -429,7 +430,84 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                             }}
                                                                             placeholder="Pilih Kategori"
                                                                         />
+                                                                    ) : key.includes('T_jadwal_start_end_waktu') ? (
+                                                                        <div className="flex flex-col gap-2">
+                                                                            <Input
+                                                                                type="datetime-local"
+                                                                                className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                value={parseIndonesianDateTime((data.meta_data_values[key] || '').split(' s/d ')[0])}
+                                                                                onChange={(e) => {
+                                                                                    const end = (data.meta_data_values[key] || '').split(' s/d ')[1] || '';
+                                                                                    handleMetaDataChange(key, `${formatIndonesianDateTime(e.target.value)}${end ? ` s/d ${end}` : ''}`);
+                                                                                }}
+                                                                            />
+                                                                            <div className="text-[10px] text-center text-muted-foreground font-bold">s/d</div>
+                                                                            <Input
+                                                                                type="datetime-local"
+                                                                                className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                value={parseIndonesianDateTime((data.meta_data_values[key] || '').split(' s/d ')[1])}
+                                                                                onChange={(e) => {
+                                                                                    const start = (data.meta_data_values[key] || '').split(' s/d ')[0] || '';
+                                                                                    handleMetaDataChange(key, `${start}${start ? ` s/d ` : ''}${formatIndonesianDateTime(e.target.value)}`);
+                                                                                }}
+                                                                            />
+                                                                            <p className="text-[10px] font-medium text-primary mt-1 truncate">{data.meta_data_values[key]}</p>
+                                                                        </div>
+                                                                    ) : key.includes('T_jadwal_start_end_date') ? (
+                                                                        <div className="flex flex-col gap-2">
+                                                                            <Input
+                                                                                type="date"
+                                                                                className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                value={parseIndonesianDate((data.meta_data_values[key] || '').split(' s/d ')[0])}
+                                                                                onChange={(e) => {
+                                                                                    const end = (data.meta_data_values[key] || '').split(' s/d ')[1] || '';
+                                                                                    handleMetaDataChange(key, `${formatIndonesianDate(e.target.value)}${end ? ` s/d ${end}` : ''}`);
+                                                                                }}
+                                                                            />
+                                                                            <div className="text-[10px] text-center text-muted-foreground font-bold">s/d</div>
+                                                                            <Input
+                                                                                type="date"
+                                                                                className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                value={parseIndonesianDate((data.meta_data_values[key] || '').split(' s/d ')[1])}
+                                                                                onChange={(e) => {
+                                                                                    const start = (data.meta_data_values[key] || '').split(' s/d ')[0] || '';
+                                                                                    handleMetaDataChange(key, `${start}${start ? ` s/d ` : ''}${formatIndonesianDate(e.target.value)}`);
+                                                                                }}
+                                                                            />
+                                                                            <p className="text-[10px] font-medium text-primary mt-1 truncate">{data.meta_data_values[key]}</p>
+                                                                        </div>
+                                                                    ) : key.includes('T_jadwal_waktu') ? (
+                                                                        <div className="space-y-1">
+                                                                            <Input
+                                                                                type="datetime-local"
+                                                                                className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                value={parseIndonesianDateTime(data.meta_data_values[key] || '')}
+                                                                                onChange={(e) => handleMetaDataChange(key, formatIndonesianDateTime(e.target.value))}
+                                                                            />
+                                                                            <p className="text-[10px] font-medium text-primary truncate">{data.meta_data_values[key]}</p>
+                                                                        </div>
+                                                                    ) : key.includes('T_jadwal_date') || key.includes('tanggal') ? (
+                                                                        <div className="space-y-1">
+                                                                            <Input
+                                                                                type="date"
+                                                                                className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                value={parseIndonesianDate(data.meta_data_values[key] || '')}
+                                                                                onChange={(e) => handleMetaDataChange(key, formatIndonesianDate(e.target.value))}
+                                                                            />
+                                                                            <p className="text-[10px] font-medium text-primary truncate">{data.meta_data_values[key]}</p>
+                                                                        </div>
+                                                                    ) : key.includes('waktu') ? (
+                                                                        <div className="space-y-1">
+                                                                            <Input
+                                                                                type="time"
+                                                                                className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                value={data.meta_data_values[key] || ''}
+                                                                                onChange={(e) => handleMetaDataChange(key, formatIndonesianTime(`2000-01-01T${e.target.value}`))}
+                                                                            />
+                                                                            <p className="text-[10px] font-medium text-primary truncate">{data.meta_data_values[key]}</p>
+                                                                        </div>
                                                                     ) : (
+
                                                                         <Input
                                                                             className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
                                                                             value={data.meta_data_values[key] || ''}
@@ -437,6 +515,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                             placeholder="Input nilai..."
                                                                         />
                                                                     )}
+
                                                                 </div>
                                                             );
                                                         })}
@@ -505,7 +584,84 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                                         placeholder="Cari Guru..."
                                                                                         className="h-11"
                                                                                     />
+                                                                                ) : key.includes('T_jadwal_start_end_waktu') ? (
+                                                                                    <div className="flex flex-col gap-2">
+                                                                                        <Input
+                                                                                            type="datetime-local"
+                                                                                            className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                            value={parseIndonesianDateTime((row[key] || '').split(' s/d ')[0])}
+                                                                                            onChange={(e) => {
+                                                                                                const end = (row[key] || '').split(' s/d ')[1] || '';
+                                                                                                handleRowChange(index, key, `${formatIndonesianDateTime(e.target.value)}${end ? ` s/d ${end}` : ''}`);
+                                                                                            }}
+                                                                                        />
+                                                                                        <div className="text-[10px] text-center text-muted-foreground font-bold">s/d</div>
+                                                                                        <Input
+                                                                                            type="datetime-local"
+                                                                                            className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                            value={parseIndonesianDateTime((row[key] || '').split(' s/d ')[1])}
+                                                                                            onChange={(e) => {
+                                                                                                const start = (row[key] || '').split(' s/d ')[0] || '';
+                                                                                                handleRowChange(index, key, `${start}${start ? ` s/d ` : ''}${formatIndonesianDateTime(e.target.value)}`);
+                                                                                            }}
+                                                                                        />
+                                                                                        <p className="text-[10px] font-medium text-primary mt-1 truncate">{row[key]}</p>
+                                                                                    </div>
+                                                                                ) : key.includes('T_jadwal_start_end_date') ? (
+                                                                                    <div className="flex flex-col gap-2">
+                                                                                        <Input
+                                                                                            type="date"
+                                                                                            className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                            value={parseIndonesianDate((row[key] || '').split(' s/d ')[0])}
+                                                                                            onChange={(e) => {
+                                                                                                const end = (row[key] || '').split(' s/d ')[1] || '';
+                                                                                                handleRowChange(index, key, `${formatIndonesianDate(e.target.value)}${end ? ` s/d ${end}` : ''}`);
+                                                                                            }}
+                                                                                        />
+                                                                                        <div className="text-[10px] text-center text-muted-foreground font-bold">s/d</div>
+                                                                                        <Input
+                                                                                            type="date"
+                                                                                            className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                            value={parseIndonesianDate((row[key] || '').split(' s/d ')[1])}
+                                                                                            onChange={(e) => {
+                                                                                                const start = (row[key] || '').split(' s/d ')[0] || '';
+                                                                                                handleRowChange(index, key, `${start}${start ? ` s/d ` : ''}${formatIndonesianDate(e.target.value)}`);
+                                                                                            }}
+                                                                                        />
+                                                                                        <p className="text-[10px] font-medium text-primary mt-1 truncate">{row[key]}</p>
+                                                                                    </div>
+                                                                                ) : key.includes('T_jadwal_waktu') ? (
+                                                                                    <div className="space-y-1">
+                                                                                        <Input
+                                                                                            type="datetime-local"
+                                                                                            className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                            value={parseIndonesianDateTime(row[key] || '')}
+                                                                                            onChange={(e) => handleRowChange(index, key, formatIndonesianDateTime(e.target.value))}
+                                                                                        />
+                                                                                        <p className="text-[10px] font-medium text-primary truncate">{row[key]}</p>
+                                                                                    </div>
+                                                                                ) : key.includes('T_jadwal_date') || key.includes('tanggal') ? (
+                                                                                    <div className="space-y-1">
+                                                                                        <Input
+                                                                                            type="date"
+                                                                                            className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                            value={parseIndonesianDate(row[key] || '')}
+                                                                                            onChange={(e) => handleRowChange(index, key, formatIndonesianDate(e.target.value))}
+                                                                                        />
+                                                                                        <p className="text-[10px] font-medium text-primary truncate">{row[key]}</p>
+                                                                                    </div>
+                                                                                ) : key.includes('waktu') ? (
+                                                                                    <div className="space-y-1">
+                                                                                        <Input
+                                                                                            type="time"
+                                                                                            className="h-11 rounded-xl border-border/50 bg-background/50 focus:bg-background transition-all"
+                                                                                            value={row[key] || ''}
+                                                                                            onChange={(e) => handleRowChange(index, key, formatIndonesianTime(`2000-01-01T${e.target.value}`))}
+                                                                                        />
+                                                                                        <p className="text-[10px] font-medium text-primary truncate">{row[key]}</p>
+                                                                                    </div>
                                                                                 ) : (
+
                                                                                     <Input
                                                                                         value={row[key]}
                                                                                         onChange={(e) => handleRowChange(index, key, e.target.value)}
@@ -513,6 +669,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                                         placeholder={`Isi ${key.replace('T_', '')}`}
                                                                                     />
                                                                                 )}
+
                                                                             </div>
                                                                         );
                                                                     })}
@@ -559,7 +716,12 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                     <Label className="text-sm font-bold text-muted-foreground ml-1">Tipe Penerima</Label>
                                                     <Select
                                                         value={data.recipient_type}
-                                                        onValueChange={(value) => setData('recipient_type', value)}
+                                                        onValueChange={(value) => {
+                                                            setData('recipient_type', value);
+                                                            if (value === 'EXTERNAL' && !data.recipient_name) {
+                                                                setData('recipient_name', 'External');
+                                                            }
+                                                        }}
                                                     >
                                                         <SelectTrigger className="h-14 rounded-2xl border-2 bg-muted/10 focus:ring-primary/20 transition-all hover:bg-muted/20">
                                                             <SelectValue placeholder="Pilih tipe" />
@@ -567,6 +729,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                         <SelectContent className="rounded-2xl shadow-xl">
                                                             <SelectItem value="STUDENT" className="rounded-xl">Siswa</SelectItem>
                                                             <SelectItem value="TEACHER" className="rounded-xl">Guru</SelectItem>
+                                                            <SelectItem value="EXTERNAL" className="rounded-xl">External</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -575,7 +738,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                             {!data.is_batch ? (
                                                 <div className="space-y-2 mt-4">
                                                     <Label className="text-sm font-bold text-muted-foreground ml-1">
-                                                        {data.recipient_type === 'STUDENT' ? 'Nama Siswa' : 'Nama Guru'}
+                                                        {data.recipient_type === 'STUDENT' ? 'Nama Siswa' : data.recipient_type === 'TEACHER' ? 'Nama Guru' : 'Nama Penerima External'}
                                                     </Label>
                                                     {data.recipient_type === 'STUDENT' ? (
                                                         <SearchableSelect
@@ -585,13 +748,20 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                             placeholder="Cari siswa..."
                                                             className="h-14"
                                                         />
-                                                    ) : (
+                                                    ) : data.recipient_type === 'TEACHER' ? (
                                                         <SearchableSelect
                                                             options={teachers.map(t => ({ label: `${t.name} (${t.nip})`, value: t.id.toString() }))}
                                                             value={data.teacher_id?.toString() || ''}
                                                             onChange={(value) => setData('teacher_id', value)}
                                                             placeholder="Cari guru..."
                                                             className="h-14"
+                                                        />
+                                                    ) : (
+                                                        <Input
+                                                            className="h-14 rounded-2xl border-2 bg-muted/10 focus:ring-primary/20 transition-all hover:bg-muted/20"
+                                                            value={data.recipient_name || ''}
+                                                            onChange={(e) => setData('recipient_name', e.target.value)}
+                                                            placeholder="Nama Penerima External..."
                                                         />
                                                     )}
                                                 </div>
