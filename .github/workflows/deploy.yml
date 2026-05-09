@@ -3,7 +3,7 @@ name: Deploy Laravel Inertia React
 on:
   push:
     branches:
-      - main # Jalankan otomatis saat push ke branch main
+      - staging # Jalankan otomatis saat push ke branch main
 
 jobs:
   build-and-deploy:
@@ -17,7 +17,7 @@ jobs:
     - name: 🐘 Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2' # Sesuaikan dengan versi PHP hosting Anda
+        php-version: '8.3' # Sesuaikan dengan versi PHP hosting Anda
 
     - name: 📦 Install Composer Dependencies
       run: composer install --no-dev --optimize-autoloader
