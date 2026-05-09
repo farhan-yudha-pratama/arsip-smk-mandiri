@@ -1,9 +1,10 @@
-name: Deploy Laravel Inertia React
+name: Deploy Arsip SMK Mandiri
 
 on:
   push:
     branches:
-      - staging # Jalankan otomatis saat push ke branch main
+      - staging
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -11,36 +12,36 @@ jobs:
 
     steps:
     - name: 🚚 Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    # --- SETUP PHP & COMPOSER ---
     - name: 🐘 Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.3' # Sesuaikan dengan versi PHP hosting Anda
+        php-version: '8.3'
 
     - name: 📦 Install Composer Dependencies
       run: composer install --no-dev --optimize-autoloader
 
-    # --- SETUP NODE & BUILD REACT (VITE) ---
     - name: ⚡ Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
+
+    - name: 🔍 Check Node Version
+      run: node -v
 
     - name: 🔨 Install NPM & Build Frontend
       run: |
+        rm -rf node_modules
         npm install
-        npm run build # Ini akan menghasilkan folder public/build
+        npm run build
 
-    # --- PROSES DEPLOY ---
     - name: 🚀 Sync Files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        # Kita mengecualikan folder yang tidak perlu agar upload cepat
         exclude: |
           **/.git*
           **/node_modules/**
@@ -50,4 +51,4 @@ jobs:
           phpunit.xml
           auth.json
         local-dir: ./
-        server-dir: ./public_html/ # Sesuaikan dengan folder tujuan di cPanel
+        server-dir: ./public_html/
