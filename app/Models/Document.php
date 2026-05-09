@@ -27,6 +27,7 @@ class Document extends Model
     ];
     protected $with = ['students', 'teachers'];
     protected $withCount = ['students', 'teachers'];
+    protected $appends = ['full_url'];
 
     protected $casts = [
         'status' => StatusDocument::class,
@@ -48,7 +49,7 @@ class Document extends Model
         $name = $firstRecipient?->name ?? ($this->attributes['recipient_name'] ?? 'External');
 
         if ($this->is_batch) {
-            $count = $this->recipient_type === 'STUDENT'
+            $count = $this->recipient_type === RecipientType::STUDENT
                 ? ($this->students_count ?? $this->students->count())
                 : ($this->teachers_count ?? $this->teachers->count());
 
@@ -58,6 +59,20 @@ class Document extends Model
         }
 
         return $name;
+    }
+
+    public function getFullUrlAttribute(): ?string
+    {
+        if (!$this->current_url) {
+            return null;
+        }
+
+        $diskName = env('FILESYSTEM_DISK', 's3');
+        if ($diskName === 'local') {
+            $diskName = 'public';
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk($diskName)->url($this->current_url);
     }
 
     public function template()

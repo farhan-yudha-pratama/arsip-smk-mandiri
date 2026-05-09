@@ -24,6 +24,8 @@ class Template extends Model
         'meta_data',
     ];
 
+    protected $appends = ['full_url'];
+
     /**
      * Mendefinisikan konversi tipe data (Casting).
      * Menggunakan method casts() memberikan fleksibilitas lebih pada Laravel 10/11+.
@@ -34,5 +36,19 @@ class Template extends Model
             'meta_data' => 'array',
             'id' => 'string',
         ];
+    }
+
+    public function getFullUrlAttribute(): ?string
+    {
+        if (!$this->url) {
+            return null;
+        }
+
+        $diskName = env('FILESYSTEM_DISK', 's3');
+        if ($diskName === 'local') {
+            $diskName = 'public';
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk($diskName)->url($this->url);
     }
 }

@@ -12,7 +12,6 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\OutgoingMail;
@@ -49,7 +48,7 @@ class GenerateDocumentJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(\App\Services\S3StorageService $storageService): void
     {
         ini_set('memory_limit', '512M');
 
@@ -79,7 +78,10 @@ class GenerateDocumentJob implements ShouldQueue
                 }
             }
 
-            $templateContent = Storage::disk('s3')->get($template->url);
+            $templateContent = $storageService->get($template->url);
+            if (!$templateContent) {
+                throw new \Exception("Template file not found: " . $template->url);
+            }
             $tempTemplatePath = tempnam(sys_get_temp_dir(), 'tpl');
             file_put_contents($tempTemplatePath, $templateContent);
 
@@ -204,10 +206,7 @@ class GenerateDocumentJob implements ShouldQueue
                 throw new \Exception("Generated PDF not found at {$tempPdfPath}.\nCommand Output: " . implode("\n", $output));
             }
 
-            $fileName = 'documents/' . Str::uuid() . '.pdf';
-            $stream = fopen($tempPdfPath, 'r');
-            Storage::disk('s3')->put($fileName, $stream);
-            fclose($stream);
+            $fileName = $storageService->uploadFile($tempPdfPath, 'documents', 'document');
 
             $updatePayload = [
                 'status'      => StatusDocument::GENERATED,
