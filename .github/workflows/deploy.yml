@@ -51,4 +51,4 @@ jobs:
           phpunit.xml
           auth.json
         local-dir: ./
-        server-dir: /home/smkmandi/arsip
+        server-dir: /home/smkmandi/arsip/
