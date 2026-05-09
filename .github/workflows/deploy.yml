@@ -46,6 +46,8 @@ jobs:
         log-level: verbose
         exclude: |
           **/.git*
+          **/.git*/**
+          **/.github/**
           **/node_modules/**
           **/storage/*.sqlite
           **/tests/**
