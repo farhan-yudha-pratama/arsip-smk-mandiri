@@ -1,0 +1,53 @@
+name: Deploy Laravel Inertia React
+
+on:
+  push:
+    branches:
+      - main # Jalankan otomatis saat push ke branch main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚚 Checkout Code
+      uses: actions/checkout@v3
+
+    # --- SETUP PHP & COMPOSER ---
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2' # Sesuaikan dengan versi PHP hosting Anda
+
+    - name: 📦 Install Composer Dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    # --- SETUP NODE & BUILD REACT (VITE) ---
+    - name: ⚡ Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: 🔨 Install NPM & Build Frontend
+      run: |
+        npm install
+        npm run build # Ini akan menghasilkan folder public/build
+
+    # --- PROSES DEPLOY ---
+    - name: 🚀 Sync Files via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        # Kita mengecualikan folder yang tidak perlu agar upload cepat
+        exclude: |
+          **/.git*
+          **/node_modules/**
+          **/storage/*.sqlite
+          **/tests/**
+          .env
+          phpunit.xml
+          auth.json
+        local-dir: ./
+        server-dir: ./public_html/ # Sesuaikan dengan folder tujuan di cPanel
