@@ -13,7 +13,34 @@ class S3StorageService
 
     public function __construct()
     {
-        $this->disk = Storage::disk('s3');
+        $this->disk = Storage::disk($this->getDiskName());
+    }
+
+    public function getDiskName(): string
+    {
+        $diskName = env('FILESYSTEM_DISK', 's3');
+        if ($diskName === 'local') {
+            return 'public';
+        }
+        return $diskName;
+    }
+
+    public function get(string $path): ?string
+    {
+        try {
+            if (!$this->disk->exists($path)) {
+                return null;
+            }
+            return $this->disk->get($path);
+        } catch (\Throwable $e) {
+            Log::error('S3 Get Failed', ['path' => $path, 'error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    public function exists(string $path): bool
+    {
+        return $this->disk->exists($path);
     }
     
     public function uploadBase64(string $base64, string $path, string $category = 'image'): string
@@ -71,11 +98,20 @@ class S3StorageService
         }
     }
 
+    public function getUrl(string $path): string
+    {
+        return $this->disk->url($path);
+    }
+
     public function getTemporaryUrl(string $path, int $minutes = 10, bool $download = false, ?string $filename = null): string
     {
         try {
             if (!$this->disk->exists($path)) {
-                throw new \Exception('File not found in S3');
+                throw new \Exception('File not found in storage: ' . $path);
+            }
+
+            if ($this->getDiskName() === 'public') {
+                return $this->getUrl($path);
             }
 
             if (!config('filesystems.disks.s3.bucket') || !config('filesystems.disks.s3.key')) {
