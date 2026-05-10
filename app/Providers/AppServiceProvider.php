@@ -15,7 +15,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(\App\Contracts\StorageServiceInterface::class, function ($app) {
+            if (env('DOCUMENT_GENERATION_SYNC', false)) {
+                return new \App\Services\LocalStorageService();
+            }
+            return new \App\Services\S3StorageService();
+        });
     }
 
     /**

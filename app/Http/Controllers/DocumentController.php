@@ -11,7 +11,7 @@ use App\Models\DocumentHistory;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Template;
-use App\Services\S3StorageService;
+use App\Contracts\StorageServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ class DocumentController extends Controller
 {
     protected $storageService;
 
-    public function __construct(S3StorageService $storageService)
+    public function __construct(StorageServiceInterface $storageService)
     {
         $this->storageService = $storageService;
     }
@@ -90,6 +90,7 @@ class DocumentController extends Controller
             'categoryNumbering' => $categoryNumbering,
             'recipientTypes'    => RecipientType::cases(),
             'filters'           => $request->only('search', 'status', 'recipient'),
+            'syncMode'          => env('DOCUMENT_GENERATION_SYNC', false),
         ]);
     }
 
@@ -153,6 +154,15 @@ class DocumentController extends Controller
 
 
                 if (!$isDraft) {
+                    if (env('DOCUMENT_GENERATION_SYNC', false)) {
+                        GenerateDocumentJob::dispatchSync(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null,
+                        );
+                        return back()->with('success', 'Dokumen berhasil dibuat!');
+                    }
+
                     GenerateDocumentJob::dispatch(
                         $document,
                         $request->meta_data_values ?? [],
@@ -205,6 +215,15 @@ class DocumentController extends Controller
                 ]);
 
                 if (!$isDraft) {
+                    if (env('DOCUMENT_GENERATION_SYNC', false)) {
+                        GenerateDocumentJob::dispatchSync(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null,
+                        );
+                        return back()->with('success', 'Dokumen berhasil dibuat!');
+                    }
+
                     GenerateDocumentJob::dispatch(
                         $document,
                         $request->meta_data_values ?? [],
@@ -224,6 +243,11 @@ class DocumentController extends Controller
     public function download(Document $document)
     {
         try {
+            if ($this->storageService->getDiskName() === 'local') {
+                $extension = pathinfo($document->current_url, PATHINFO_EXTENSION) ?: 'pdf';
+                return \Illuminate\Support\Facades\Storage::disk('local')->download($document->current_url, $document->title . '.' . $extension);
+            }
+
             $extension = pathinfo($document->current_url, PATHINFO_EXTENSION) ?: 'pdf';
             $url = $this->storageService->getTemporaryUrl($document->current_url, 10, true, $document->title . '.' . $extension);
             return Inertia::location($url);
@@ -239,6 +263,12 @@ class DocumentController extends Controller
         }
 
         try {
+            if ($this->storageService->getDiskName() === 'local') {
+                $versionName = $history->version_name->value ?? $history->version_name;
+                $extension = pathinfo($history->file_path, PATHINFO_EXTENSION) ?: 'pdf';
+                return \Illuminate\Support\Facades\Storage::disk('local')->download($history->file_path, $document->title . ' - ' . $versionName . '.' . $extension);
+            }
+
             $versionName = $history->version_name->value ?? $history->version_name;
             $extension = pathinfo($history->file_path, PATHINFO_EXTENSION) ?: 'pdf';
             $url = $this->storageService->getTemporaryUrl($history->file_path, 10, true, $document->title . ' - ' . $versionName . '.' . $extension);

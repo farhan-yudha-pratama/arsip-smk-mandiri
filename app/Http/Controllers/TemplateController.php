@@ -3,8 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Template;
-use App\Services\S3StorageService;
-use App\Services\DocumentTemplateService;
+use App\Contracts\StorageServiceInterface;
 use App\Jobs\ProcessTemplateUploadJob;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +12,7 @@ class TemplateController extends Controller
 {
     protected $storageService;
 
-    public function __construct(S3StorageService $storageService)
+    public function __construct(StorageServiceInterface $storageService)
     {
         $this->storageService = $storageService;
     }
@@ -40,7 +39,8 @@ class TemplateController extends Controller
 
         return Inertia::render('templates/index', [
             'templates' => $templates,
-            'filters' => $request->only('search')
+            'filters' => $request->only('search'),
+            'syncMode' => env('DOCUMENT_GENERATION_SYNC', false)
         ]);
     }
 
@@ -64,7 +64,7 @@ class TemplateController extends Controller
                 return back()->withErrors(['document' => 'Gagal mendekode data Base64']);
             }
 
-            $tempDir = storage_path('app/temp_uploads');
+            $tempDir = storage_path('app/private');
             if (!file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }
@@ -84,6 +84,15 @@ class TemplateController extends Controller
             $tempFilePath = $tempDir . DIRECTORY_SEPARATOR . $tempFileName;
             
             file_put_contents($tempFilePath, $binary);
+
+            if (env('DOCUMENT_GENERATION_SYNC', false)) {
+                ProcessTemplateUploadJob::dispatchSync(
+                    $tempFilePath,
+                    $request->title,
+                    $request->metadata ?? []
+                );
+                return back()->with('success', 'Template berhasil diproses!');
+            }
 
             ProcessTemplateUploadJob::dispatch(
                 $tempFilePath,
@@ -146,6 +155,10 @@ class TemplateController extends Controller
     public function download(Template $template)
     {
         try {
+            if ($this->storageService->getDiskName() === 'local') {
+                return \Illuminate\Support\Facades\Storage::disk('local')->download($template->url, $template->name . '.docx');
+            }
+
             $url = $this->storageService->getTemporaryUrl($template->url, 10, true, $template->name . '.docx');
             return Inertia::location($url);
         } catch (\Throwable $e) {
@@ -153,7 +166,7 @@ class TemplateController extends Controller
         }
     }
 
-    public function extractVariables(Request $request, DocumentTemplateService $templateService)
+    public function extractVariables(Request $request, \App\Services\DocumentTemplateService $templateService)
     {
         $request->validate([
             'document' => 'required|string',
@@ -171,7 +184,7 @@ class TemplateController extends Controller
                 return response()->json(['error' => 'Gagal mendekode data Base64'], 400);
             }
 
-            $tempDir = storage_path('app/temp_uploads');
+            $tempDir = storage_path('app/private');
             if (!file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }

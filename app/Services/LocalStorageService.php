@@ -2,25 +2,23 @@
 
 namespace App\Services;
 
+use App\Contracts\StorageServiceInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
-use App\Contracts\StorageServiceInterface;
-
-class S3StorageService implements StorageServiceInterface
+class LocalStorageService implements StorageServiceInterface
 {
     protected $disk;
 
     public function __construct()
     {
-        $this->disk = Storage::disk($this->getDiskName());
+        $this->disk = Storage::disk('local');
     }
 
     public function getDiskName(): string
     {
-        return env('FILESYSTEM_DISK', 's3');
+        return 'local';
     }
 
     public function get(string $path): ?string
@@ -31,7 +29,7 @@ class S3StorageService implements StorageServiceInterface
             }
             return $this->disk->get($path);
         } catch (\Throwable $e) {
-            Log::error('S3 Get Failed', ['path' => $path, 'error' => $e->getMessage()]);
+            Log::error('Local Storage Get Failed', ['path' => $path, 'error' => $e->getMessage()]);
             return null;
         }
     }
@@ -52,10 +50,10 @@ class S3StorageService implements StorageServiceInterface
 
             $this->disk->put($filename, $binary);
 
-            return $filename; //SIMPAN I NI KE DB
+            return $filename;
 
         } catch (\Throwable $e) {
-            Log::error('S3 Upload Failed', [
+            Log::error('Local Storage Upload Failed', [
                 'error_type' => get_class($e),
                 'message' => $e->getMessage(),
                 'category' => $category,
@@ -85,7 +83,7 @@ class S3StorageService implements StorageServiceInterface
             return $filename;
 
         } catch (\Throwable $e) {
-            Log::error('S3 File Upload Failed', [
+            Log::error('Local Storage File Upload Failed', [
                 'error_type' => get_class($e),
                 'message' => $e->getMessage(),
                 'category' => $category,
@@ -103,60 +101,8 @@ class S3StorageService implements StorageServiceInterface
 
     public function getTemporaryUrl(string $path, int $minutes = 10, bool $download = false, ?string $filename = null): string
     {
-        try {
-            if (!$this->disk->exists($path)) {
-                throw new \Exception('File not found in storage: ' . $path);
-            }
-
-            if ($this->getDiskName() === 'public') {
-                return $this->getUrl($path);
-            }
-
-            if (!config('filesystems.disks.s3.bucket') || !config('filesystems.disks.s3.key')) {
-                return $this->disk->url($path);
-            }
-
-            
-            $externalEndpoint = env('AWS_EXTERNAL_ENDPOINT', 'http://localhost:3900');
-            
-            $client = new \Aws\S3\S3Client([
-                'version'                 => 'latest',
-                'region'                  => config('filesystems.disks.s3.region', 'garage'),
-                'credentials'             => [
-                    'key'    => config('filesystems.disks.s3.key'),
-                    'secret' => config('filesystems.disks.s3.secret'),
-                ],
-                'endpoint'                => $externalEndpoint,
-                'use_path_style_endpoint' => config('filesystems.disks.s3.use_path_style_endpoint', true),
-            ]);
-
-            $params = [
-                'Bucket' => config('filesystems.disks.s3.bucket'),
-                'Key'    => $path,
-            ];
-
-            if ($download) {
-                $disposition = 'attachment';
-                if ($filename) {
-                    $disposition .= '; filename="' . $filename . '"';
-                }
-                $params['ResponseContentDisposition'] = $disposition;
-            }
-
-            $command = $client->getCommand('GetObject', $params);
-
-            $request = $client->createPresignedRequest($command, Carbon::now()->addMinutes($minutes));
-
-            return (string) $request->getUri();
-
-        } catch (\Throwable $e) {
-            Log::error('Generate Temporary URL Failed', [
-                'path' => $path,
-                'error' => $e->getMessage(),
-            ]);
-
-            throw $e;
-        }
+        // For local storage we don't use Temporary URL, the controllers should bypass this.
+        throw new \Exception('getTemporaryUrl is not supported for Local disk. Controllers should use direct download.');
     }
 
     public function delete(string $path): bool
@@ -164,7 +110,7 @@ class S3StorageService implements StorageServiceInterface
         try {
             return $this->disk->delete($path);
         } catch (\Throwable $e) {
-            Log::error('S3 Delete Failed', [
+            Log::error('Local Storage Delete Failed', [
                 'path' => $path,
                 'error' => $e->getMessage(),
             ]);
@@ -200,7 +146,6 @@ class S3StorageService implements StorageServiceInterface
 
     protected function validateSize(int $size, string $category): void
     {
-
         $limits = [
             'image' => 2 * 1024 * 1024,
             'document' => 100 * 1024 * 1024,
@@ -219,15 +164,15 @@ class S3StorageService implements StorageServiceInterface
     protected function mimeToExtension(string $mime): string
     {
         return match ($mime) {
-        'image/jpeg' => 'jpg',
-        'image/png'  => 'png',
-        'image/webp' => 'webp',
-        'application/pdf' => 'pdf',
-        '@file/pdf' => 'pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
-        '@file/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
-        'application/msword' => 'doc',
-        default => throw new \Exception('Unsupported MIME type: ' . $mime),
-    };
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/webp' => 'webp',
+            'application/pdf' => 'pdf',
+            '@file/pdf' => 'pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            '@file/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            'application/msword' => 'doc',
+            default => throw new \Exception('Unsupported MIME type: ' . $mime),
+        };
     }
 }

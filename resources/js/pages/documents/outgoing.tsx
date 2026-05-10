@@ -55,9 +55,9 @@ interface Props {
     documents: { data: Document[]; links: any[] };
     templates: Template[];
     students: Student[];
-    teachers: Teacher[];
     categoryNumbering: CategoryNumbering[];
     filters: any;
+    syncMode?: boolean;
 }
 
 const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
@@ -103,7 +103,7 @@ const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
     );
 };
 
-export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters }: Props) {
+export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters, syncMode = false }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -432,6 +432,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 students={students}
                 teachers={teachers}
                 categoryNumberings={categoryNumbering}
+                syncMode={syncMode}
             />
 
             <DocumentHistoryModal
@@ -448,6 +449,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 students={students}
                 teachers={teachers}
                 categoryNumberings={categoryNumbering}
+                syncMode={syncMode}
             />
 
             <IncomingMailModal 

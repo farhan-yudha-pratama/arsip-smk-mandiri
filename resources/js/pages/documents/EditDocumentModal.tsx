@@ -21,9 +21,10 @@ interface Props {
     students: Student[];
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
+    syncMode?: boolean;
 }
 
-export function EditDocumentModal({ open, onOpenChange, document, templates, students, teachers, categoryNumberings = [] }: Props) {
+export function EditDocumentModal({ open, onOpenChange, document, templates, students, teachers, categoryNumberings = [], syncMode = false }: Props) {
     const { data, setData, put, processing, errors, reset, clearErrors, transform } = useForm({
         title: '',
         meta_data_values: {} as Record<string, string>,
@@ -76,9 +77,13 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
             onSuccess: () => {
                 onOpenChange(false);
                 reset();
-                toast.success(isDraft ? 'Draft updated successfully' : 'Document generation started in background');
+                toast.success(isDraft ? 'Draft updated successfully' : (syncMode ? 'Dokumen berhasil diperbarui' : 'Document generation started in background'));
             },
         });
+        
+        if (!isDraft) {
+            toast.info(syncMode ? 'Sedang memproses dokumen, mohon tunggu...' : 'Dokumen sedang diproses di latar belakang...');
+        }
     };
 
     if (!open) return null;
@@ -316,7 +321,7 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                         disabled={processing}
                         className="min-w-[140px]"
                     >
-                        {processing && !isDraftRef.current ? 'Generating...' : 'Generate Document'}
+                        {processing && !isDraftRef.current ? (syncMode ? 'Sedang Memproses...' : 'Generating...') : 'Generate Document'}
                     </Button>
                 </div>
             </div>
