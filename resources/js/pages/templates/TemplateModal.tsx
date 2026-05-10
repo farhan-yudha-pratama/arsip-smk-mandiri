@@ -23,9 +23,10 @@ interface TemplateModalProps {
     isOpen: boolean;
     onClose: () => void;
     editingTemplate: Template | null;
+    syncMode?: boolean;
 }
 
-export default function TemplateModal({ isOpen, onClose, editingTemplate }: TemplateModalProps) {
+export default function TemplateModal({ isOpen, onClose, editingTemplate, syncMode = false }: TemplateModalProps) {
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm({
             title: '',
@@ -138,14 +139,14 @@ export default function TemplateModal({ isOpen, onClose, editingTemplate }: Temp
         } else {
             post(templateRoutes.store.url(), {
                 onSuccess: () => {
-                    toast.success('Template telah diunggah dan sedang dalam antrean untuk diproses');
+                    toast.success(syncMode ? 'Template berhasil dibuat' : 'Template telah diunggah dan sedang dalam antrean untuk diproses');
                 },
                 onError: () => {
                     toast.error('Gagal membuat template. Silakan periksa data yang dimasukkan.');
                 }
             });
             onClose();
-            toast.info('Template sedang diunggah dan diproses di latar belakang...');
+            toast.info(syncMode ? 'Sedang memproses template, mohon tunggu...' : 'Template sedang diunggah dan diproses di latar belakang...');
         }
     };
 
@@ -293,7 +294,9 @@ export default function TemplateModal({ isOpen, onClose, editingTemplate }: Temp
                         </Button>
                         <Button type="submit" disabled={processing}>
                             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {editingTemplate ? 'Ubah' : 'Buat'} Template
+                            {processing && syncMode ? 'Sedang Diproses...' : 
+                             processing ? 'Menyimpan...' : 
+                             editingTemplate ? 'Ubah Template' : 'Buat Template'}
                         </Button>
                     </DialogFooter>
                 </form>

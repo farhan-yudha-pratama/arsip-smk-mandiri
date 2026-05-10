@@ -26,9 +26,10 @@ interface Props {
     students: Student[];
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
+    syncMode?: boolean;
 }
 
-export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [] }: Props) {
+export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
@@ -220,9 +221,13 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                 onOpenChange(false);
                 reset();
                 setCurrentStep(1);
-                toast.success(isDraft ? 'Dokumen disimpan sebagai draf' : 'Pembuatan dokumen dimulai di latar belakang');
+                toast.success(isDraft ? 'Dokumen disimpan sebagai draf' : (syncMode ? 'Dokumen berhasil dibuat' : 'Pembuatan dokumen dimulai di latar belakang'));
             },
         });
+
+        if (!isDraft) {
+            toast.info(syncMode ? 'Sedang memproses dokumen, mohon tunggu...' : 'Dokumen sedang diproses di latar belakang...');
+        }
     };
 
     const scalarKeys = (selectedTemplate?.meta_data || []).filter((key: string) => !key.startsWith('T_'));
@@ -866,7 +871,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                     disabled={processing}
                                     className="h-12 rounded-2xl px-10 gap-2 font-black shadow-xl shadow-primary/30 min-w-[160px]"
                                 >
-                                    {processing && !isDraftRef.current ? 'Memproses...' : 'Generate Dokumen'}
+                                    {processing && !isDraftRef.current ? (syncMode ? 'Sedang Memproses...' : 'Menyimpan...') : 'Generate Dokumen'}
                                 </Button>
                             </>
                         )}

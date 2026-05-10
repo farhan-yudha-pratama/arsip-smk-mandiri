@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Template;
-use App\Services\S3StorageService;
+use App\Contracts\StorageServiceInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -33,7 +33,7 @@ class ProcessTemplateUploadJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(S3StorageService $storageService): void
+    public function handle(StorageServiceInterface $storageService): void
     {
         try {
             $filePath = $storageService->uploadFile(

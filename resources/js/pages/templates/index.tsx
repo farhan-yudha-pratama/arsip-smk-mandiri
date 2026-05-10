@@ -35,9 +35,10 @@ import { Pagination } from '@/components/Pagination';
 interface Props {
     templates: { data: Template[]; links: any[] };
     filters: any;
+    syncMode?: boolean;
 }
 
-export default function Templates({ templates = { data: [], links: [] }, filters }: Props) {
+export default function Templates({ templates = { data: [], links: [] }, filters, syncMode = false }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(
@@ -260,6 +261,7 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 editingTemplate={editingTemplate}
+                syncMode={syncMode}
             />
 
             <Dialog

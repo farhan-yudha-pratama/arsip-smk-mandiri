@@ -48,7 +48,7 @@ class GenerateDocumentJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(\App\Services\S3StorageService $storageService): void
+    public function handle(\App\Contracts\StorageServiceInterface $storageService): void
     {
         ini_set('memory_limit', '512M');
 
