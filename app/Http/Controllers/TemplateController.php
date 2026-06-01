@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Template;
-use App\Contracts\StorageServiceInterface;
-use App\Jobs\ProcessTemplateUploadJob;
+use App\Services\S3StorageService;
+use App\Services\DocumentTemplateService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,7 +12,7 @@ class TemplateController extends Controller
 {
     protected $storageService;
 
-    public function __construct(StorageServiceInterface $storageService)
+    public function __construct(S3StorageService $storageService)
     {
         $this->storageService = $storageService;
     }
@@ -39,8 +39,7 @@ class TemplateController extends Controller
 
         return Inertia::render('templates/index', [
             'templates' => $templates,
-            'filters' => $request->only('search'),
-            'syncMode' => env('DOCUMENT_GENERATION_SYNC', false)
+            'filters' => $request->only('search')
         ]);
     }
 
@@ -64,7 +63,7 @@ class TemplateController extends Controller
                 return back()->withErrors(['document' => 'Gagal mendekode data Base64']);
             }
 
-            $tempDir = storage_path('app/private');
+            $tempDir = storage_path('app/temp_uploads');
             if (!file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }
@@ -85,22 +84,23 @@ class TemplateController extends Controller
             
             file_put_contents($tempFilePath, $binary);
 
-            if (env('DOCUMENT_GENERATION_SYNC', false)) {
-                ProcessTemplateUploadJob::dispatchSync(
-                    $tempFilePath,
-                    $request->title,
-                    $request->metadata ?? []
-                );
-                return back()->with('success', 'Template berhasil diproses!');
-            }
-
-            ProcessTemplateUploadJob::dispatch(
+            $filePath = $this->storageService->uploadFile(
                 $tempFilePath,
-                $request->title,
-                $request->metadata ?? []
+                'templates',
+                'document'
             );
 
-            return back()->with('success', 'Template sedang diproses di latar belakang. Silakan tunggu beberapa saat.');
+            Template::create([
+                'name' => $request->title,
+                'url'  => $filePath,
+                'meta_data' => $request->metadata ?? []
+            ]);
+
+            if (file_exists($tempFilePath)) {
+                unlink($tempFilePath);
+            }
+
+            return back()->with('success', 'Template berhasil ditambahkan!');
 
         } catch (\Throwable $e) {
             return back()->withErrors(['document' => 'Gagal memproses data: ' . $e->getMessage()]);
@@ -155,8 +155,8 @@ class TemplateController extends Controller
     public function download(Template $template)
     {
         try {
-            if ($this->storageService->getDiskName() === 'local') {
-                return \Illuminate\Support\Facades\Storage::disk('local')->download($template->url, $template->name . '.docx');
+            if ($this->storageService->getDiskName() === 'public') {
+                return \Illuminate\Support\Facades\Storage::disk('public')->download($template->url, $template->name . '.docx');
             }
 
             $url = $this->storageService->getTemporaryUrl($template->url, 10, true, $template->name . '.docx');
@@ -166,7 +166,7 @@ class TemplateController extends Controller
         }
     }
 
-    public function extractVariables(Request $request, \App\Services\DocumentTemplateService $templateService)
+    public function extractVariables(Request $request, DocumentTemplateService $templateService)
     {
         $request->validate([
             'document' => 'required|string',
@@ -184,7 +184,7 @@ class TemplateController extends Controller
                 return response()->json(['error' => 'Gagal mendekode data Base64'], 400);
             }
 
-            $tempDir = storage_path('app/private');
+            $tempDir = storage_path('app/temp_uploads');
             if (!file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }

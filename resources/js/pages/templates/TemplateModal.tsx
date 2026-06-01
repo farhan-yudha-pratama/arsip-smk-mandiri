@@ -23,10 +23,9 @@ interface TemplateModalProps {
     isOpen: boolean;
     onClose: () => void;
     editingTemplate: Template | null;
-    syncMode?: boolean;
 }
 
-export default function TemplateModal({ isOpen, onClose, editingTemplate, syncMode = false }: TemplateModalProps) {
+export default function TemplateModal({ isOpen, onClose, editingTemplate }: TemplateModalProps) {
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm({
             title: '',
@@ -130,23 +129,22 @@ export default function TemplateModal({ isOpen, onClose, editingTemplate, syncMo
             post(templateRoutes.update.url(editingTemplate.id.toString()), {
                 onSuccess: () => {
                     toast.success('Template berhasil diupdate');
+                    onClose();
                 },
                 onError: () => {
                     toast.error('Gagal memperbarui templat. Silakan periksa data yang dimasukkan.');
                 }
             });
-            onClose();
         } else {
             post(templateRoutes.store.url(), {
                 onSuccess: () => {
-                    toast.success(syncMode ? 'Template berhasil dibuat' : 'Template telah diunggah dan sedang dalam antrean untuk diproses');
+                    toast.success('Template berhasil ditambahkan');
+                    onClose();
                 },
                 onError: () => {
                     toast.error('Gagal membuat template. Silakan periksa data yang dimasukkan.');
                 }
             });
-            onClose();
-            toast.info(syncMode ? 'Sedang memproses template, mohon tunggu...' : 'Template sedang diunggah dan diproses di latar belakang...');
         }
     };
 
@@ -214,7 +212,7 @@ export default function TemplateModal({ isOpen, onClose, editingTemplate, syncMo
                                     variant="secondary"
                                     className="flex items-center gap-1 px-2 py-1 max-w-full"
                                 >
-                                    <span 
+                                    <span
                                         className="cursor-pointer hover:text-primary transition-colors truncate max-w-[150px]"
                                         onClick={() => {
                                             const tag = `{{${key}}}`;
@@ -294,9 +292,7 @@ export default function TemplateModal({ isOpen, onClose, editingTemplate, syncMo
                         </Button>
                         <Button type="submit" disabled={processing}>
                             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {processing && syncMode ? 'Sedang Diproses...' : 
-                             processing ? 'Menyimpan...' : 
-                             editingTemplate ? 'Ubah Template' : 'Buat Template'}
+                            {editingTemplate ? 'Ubah' : 'Buat'} Template
                         </Button>
                     </DialogFooter>
                 </form>
