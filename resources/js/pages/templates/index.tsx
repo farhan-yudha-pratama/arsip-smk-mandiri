@@ -35,10 +35,9 @@ import { Pagination } from '@/components/Pagination';
 interface Props {
     templates: { data: Template[]; links: any[] };
     filters: any;
-    syncMode?: boolean;
 }
 
-export default function Templates({ templates = { data: [], links: [] }, filters, syncMode = false }: Props) {
+export default function Templates({ templates = { data: [], links: [] }, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(
@@ -200,21 +199,6 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                                                         asChild
                                                     >
                                                         <a
-                                                            href={templateRoutes.preview.url(
-                                                                template.id.toString(),
-                                                            )}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                        </a>
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        asChild
-                                                    >
-                                                        <a
                                                             href={templateRoutes.download.url(
                                                                 template.id.toString(),
                                                             )}
@@ -261,7 +245,6 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 editingTemplate={editingTemplate}
-                syncMode={syncMode}
             />
 
             <Dialog

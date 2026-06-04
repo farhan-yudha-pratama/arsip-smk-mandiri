@@ -13,12 +13,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
-import documents from '@/routes/documents';
-import templates from '@/routes/templates';
 import users from '@/routes/users';
 import categoryNumbering from '@/routes/category-numbering';
 import type { NavItem } from '@/types';
+import { dashboard } from '@/routes';
+import documents from '@/routes/documents';
+import templates from '@/routes/templates';
 
 const mainNavItems: NavItem[] = [
     {
@@ -62,19 +62,6 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
     const { auth } = usePage().props;
 
@@ -102,7 +89,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
