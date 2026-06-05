@@ -117,5 +117,4 @@ export default function Login({
 
 Login.layout = {
     title: 'Masuk ke Akun Anda',
-    description: 'Masukkan alamat email dan kata sandi di bawah ini untuk masuk',
 };
