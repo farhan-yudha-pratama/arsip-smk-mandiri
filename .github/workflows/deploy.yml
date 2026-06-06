@@ -31,6 +31,8 @@ jobs:
       run: node -v
 
     - name: 🔨 Install NPM & Build Frontend
+      env:
+        VITE_BINDUK_APP_URL: ${{ secrets.VITE_BINDUK_APP_URL }}
       run: |
         rm -rf node_modules
         npm install
