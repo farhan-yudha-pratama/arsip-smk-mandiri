@@ -26,10 +26,9 @@ interface Props {
     students: Student[];
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
-    syncMode?: boolean;
 }
 
-export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false }: Props) {
+export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [] }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
@@ -109,7 +108,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
     const addRow = () => {
         const templateKeys = (selectedTemplate?.meta_data || []).filter((k: string) => k.startsWith('T_'));
         const newRow: Record<string, any> = { T_no: dynamicRows.length + 1 };
-        templateKeys.forEach(key => {
+        templateKeys.forEach((key: string) => {
             if (key !== 'T_no') newRow[key] = '';
         });
 
@@ -189,8 +188,8 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
     const copyRecipientsFromTable = () => {
         const tableKeys = (selectedTemplate?.meta_data || []).filter((key: string) => key.startsWith('T_'));
-        const hasStudent = tableKeys.some(k => k.includes('nama-siswa') || k.includes('nama-murid'));
-        const hasTeacher = tableKeys.some(k => k.includes('nama-guru'));
+        const hasStudent = tableKeys.some((k: string) => k.includes('nama-siswa') || k.includes('nama-murid'));
+        const hasTeacher = tableKeys.some((k: string) => k.includes('nama-guru'));
 
         if (hasStudent) {
             const sIds = dynamicRows.map(r => r.student_id).filter(Boolean);
@@ -221,13 +220,9 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                 onOpenChange(false);
                 reset();
                 setCurrentStep(1);
-                toast.success(isDraft ? 'Dokumen disimpan sebagai draf' : (syncMode ? 'Dokumen berhasil dibuat' : 'Pembuatan dokumen dimulai di latar belakang'));
+                toast.success(isDraft ? 'Dokumen disimpan sebagai draf' : 'Dokumen berhasil dibuat');
             },
         });
-
-        if (!isDraft) {
-            toast.info(syncMode ? 'Sedang memproses dokumen, mohon tunggu...' : 'Dokumen sedang diproses di latar belakang...');
-        }
     };
 
     const scalarKeys = (selectedTemplate?.meta_data || []).filter((key: string) => !key.startsWith('T_'));
@@ -564,7 +559,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                     )}
                                                                 </div>
                                                                 <div className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                                                    {tableKeys.map(key => {
+                                                                    {tableKeys.map((key: string) => {
                                                                         if (key === 'T_no') return null;
                                                                         const isStudentNameKey = key.includes('nama-siswa') || key.includes('nama-murid');
                                                                         const isTeacherNameKey = key.includes('nama-guru');
@@ -871,7 +866,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                     disabled={processing}
                                     className="h-12 rounded-2xl px-10 gap-2 font-black shadow-xl shadow-primary/30 min-w-[160px]"
                                 >
-                                    {processing && !isDraftRef.current ? (syncMode ? 'Sedang Memproses...' : 'Menyimpan...') : 'Generate Dokumen'}
+                                    {processing && !isDraftRef.current ? 'Memproses...' : 'Generate Dokumen'}
                                 </Button>
                             </>
                         )}

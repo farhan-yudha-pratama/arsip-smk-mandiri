@@ -51,6 +51,7 @@ class GenerateDocumentJob implements ShouldQueue
     public function handle(\App\Contracts\StorageServiceInterface $storageService): void
     {
         ini_set('memory_limit', '512M');
+        set_time_limit(0);
 
         $template = $this->document->template;
         

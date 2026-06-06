@@ -21,4 +21,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
+    Route::inertia('settings/get-student', 'settings/get-student')->name('get-student.index');
+    Route::post('settings/get-student', [\App\Http\Controllers\Settings\StudentSyncController::class, 'store'])->name('get-student.store');
 });
