@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,8 +41,11 @@ export default function GetStudent() {
             }
             const data = await response.json();
             if (data.success && Array.isArray(data.data)) {
+                // Save to local database
+                await axios.post('/settings/get-student', { students: data.data });
+
                 setStudents(data.data);
-                setSuccessMsg(`Berhasil mengambil ${data.data.length} data siswa!`);
+                setSuccessMsg(`Berhasil mengambil dan menyimpan ${data.data.length} data siswa!`);
                 setToken(''); // Bersihkan token setelah berhasil
             } else {
                 throw new Error('Invalid response format');
@@ -82,7 +86,7 @@ export default function GetStudent() {
                                 className="max-w-md"
                                 required
                             />
-                            <Button type="submit" disabled={loading || !token}>
+                            <Button type="submit" disabled={loading || token.trim().length === 0}>
                                 {loading ? 'Fetching...' : 'Fetch Students'}
                             </Button>
                         </div>
