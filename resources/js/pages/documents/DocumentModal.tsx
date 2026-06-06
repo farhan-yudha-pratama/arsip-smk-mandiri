@@ -397,6 +397,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                                 if (student) handleMetaDataChange(key, student.name);
                                                                             }}
                                                                             placeholder="Pilih Siswa"
+                                                                            limit={10}
                                                                         />
                                                                     ) : isTeacherKey ? (
                                                                         <SearchableSelect
@@ -575,6 +576,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                                         onChange={(val) => handleUserSelectInRow(index, val, 'STUDENT')}
                                                                                         placeholder="Cari Siswa..."
                                                                                         className="h-11"
+                                                                                        limit={10}
                                                                                     />
                                                                                 ) : isTeacherNameKey ? (
                                                                                     <SearchableSelect

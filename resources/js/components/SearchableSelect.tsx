@@ -12,6 +12,7 @@ interface SearchableSelectProps {
     emptyMessage?: string
     className?: string
     inline?: boolean
+    limit?: number
 }
 
 export function SearchableSelect({
@@ -22,16 +23,48 @@ export function SearchableSelect({
     emptyMessage = "No option found.",
     className,
     inline = false,
+    limit,
 }: SearchableSelectProps) {
     const [open, setOpen] = React.useState(false)
     const [searchTerm, setSearchTerm] = React.useState("")
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState("")
     const containerRef = React.useRef<HTMLDivElement>(null)
     const dropdownRef = React.useRef<HTMLDivElement>(null)
     const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 })
 
-    const filteredOptions = options.filter((option) =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm)
+        }, 500)
+        return () => clearTimeout(timer)
+    }, [searchTerm])
+
+    const filteredOptions = React.useMemo(() => {
+        let filtered = options;
+        if (debouncedSearchTerm) {
+            filtered = options.filter((option) =>
+                option.label.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+            )
+        }
+        
+        if (!debouncedSearchTerm && limit) {
+            const initialList = filtered.slice(0, limit);
+            if (value && !initialList.find(opt => opt.value === value)) {
+                const selectedOpt = options.find(opt => opt.value === value);
+                if (selectedOpt) {
+                    initialList.unshift(selectedOpt);
+                }
+            }
+            return initialList;
+        }
+
+        // Optional: limit search results to 100 to avoid huge DOM rendering lag
+        if (debouncedSearchTerm && limit && filtered.length > 100) {
+            return filtered.slice(0, 100);
+        }
+
+        return filtered;
+    }, [options, debouncedSearchTerm, limit, value])
 
     const selectedOption = options.find((option) => option.value === value)
 
