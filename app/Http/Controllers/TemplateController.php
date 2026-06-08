@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Template;
-use App\Services\S3StorageService;
+use App\Contracts\StorageServiceInterface;
 use App\Services\DocumentTemplateService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,7 +12,7 @@ class TemplateController extends Controller
 {
     protected $storageService;
 
-    public function __construct(S3StorageService $storageService)
+    public function __construct(StorageServiceInterface $storageService)
     {
         $this->storageService = $storageService;
     }
@@ -145,6 +145,12 @@ class TemplateController extends Controller
     public function preview(Template $template)
     {
         try {
+            $diskName = $this->storageService->getDiskName();
+            if ($diskName === 'public' || $diskName === 'local') {
+                $url = $this->storageService->getUrl($template->url);
+                return Inertia::location($url);
+            }
+
             $url = $this->storageService->getTemporaryUrl($template->url);
             return Inertia::location($url);
         } catch (\Throwable $e) {
@@ -155,8 +161,9 @@ class TemplateController extends Controller
     public function download(Template $template)
     {
         try {
-            if ($this->storageService->getDiskName() === 'public') {
-                return \Illuminate\Support\Facades\Storage::disk('public')->download($template->url, $template->name . '.docx');
+            $diskName = $this->storageService->getDiskName();
+            if ($diskName === 'public' || $diskName === 'local') {
+                return \Illuminate\Support\Facades\Storage::disk($diskName)->download($template->url, $template->name . '.docx');
             }
 
             $url = $this->storageService->getTemporaryUrl($template->url, 10, true, $template->name . '.docx');

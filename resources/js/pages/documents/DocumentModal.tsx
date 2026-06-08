@@ -12,7 +12,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/SearchableSelect';
-import { X, Plus, Trash2, FileText, Users, Table as TableIcon, CheckCircle2, ChevronRight, ChevronLeft, Info, Settings } from 'lucide-react';
+import { X, Plus, Trash2, Copy, FileText, Users, Table as TableIcon, CheckCircle2, ChevronRight, ChevronLeft, Info, Settings } from 'lucide-react';
 import { cn, formatIndonesianDate, formatIndonesianDateTime, formatIndonesianTime, parseIndonesianDate, parseIndonesianDateTime } from '@/lib/utils';
 import documentRoutes from '@/routes/documents';
 import { Template } from '@/types/template';
@@ -48,6 +48,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [dynamicRows, setDynamicRows] = useState<any[]>([]);
+    const [kepalaSekolah, setKepalaSekolah] = useState('Farhan Yudha Pratama S.Kom');
 
     useEffect(() => {
         if (data.template_id) {
@@ -60,7 +61,11 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
                 metaData.forEach((key: string) => {
                     if (!key.startsWith('T_')) {
-                        initialValues[key] = '';
+                        if (key.toLowerCase().includes('kepala-sekolah') || key.toLowerCase().includes('kepala_sekolah')) {
+                            initialValues[key] = kepalaSekolah; // Ganti dengan nama asli
+                        } else {
+                            initialValues[key] = '';
+                        }
                     }
                 });
 
@@ -68,7 +73,13 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                 if (tableKeys.length > 0) {
                     const firstRow: Record<string, any> = { T_no: 1 };
                     tableKeys.forEach(key => {
-                        if (key !== 'T_no') firstRow[key] = '';
+                        if (key !== 'T_no') {
+                            if (key.toLowerCase().includes('kepala-sekolah') || key.toLowerCase().includes('kepala_sekolah')) {
+                                firstRow[key] = kepalaSekolah; // Ganti dengan nama asli
+                            } else {
+                                firstRow[key] = '';
+                            }
+                        }
                     });
                     setDynamicRows([firstRow]);
                     initialValues['T_table_data'] = [firstRow];
@@ -107,12 +118,21 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
     const addRow = () => {
         const templateKeys = (selectedTemplate?.meta_data || []).filter((k: string) => k.startsWith('T_'));
-        const newRow: Record<string, any> = { T_no: dynamicRows.length + 1 };
+        const newRow: Record<string, any> = {};
         templateKeys.forEach((key: string) => {
-            if (key !== 'T_no') newRow[key] = '';
+            if (key !== 'T_no') {
+                if (key.toLowerCase().includes('kepala-sekolah') || key.toLowerCase().includes('kepala_sekolah')) {
+                    newRow[key] = kepalaSekolah; // Ganti dengan nama asli
+                } else {
+                    newRow[key] = '';
+                }
+            }
         });
 
-        const updatedRows = [...dynamicRows, newRow];
+        const updatedRows = [newRow, ...dynamicRows].map((row, i, arr) => ({
+            ...row,
+            T_no: arr.length - i
+        }));
         setDynamicRows(updatedRows);
         setData(prev => ({
             ...prev,
@@ -124,10 +144,29 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
     };
 
     const removeRow = (index: number) => {
-        const updatedRows = dynamicRows.filter((_, i) => i !== index).map((row, i) => ({
+        const updatedRows = dynamicRows.filter((_, i) => i !== index).map((row, i, arr) => ({
             ...row,
-            T_no: i + 1
+            T_no: arr.length - i
         }));
+        setDynamicRows(updatedRows);
+        setData(prev => ({
+            ...prev,
+            meta_data_values: {
+                ...prev.meta_data_values,
+                T_table_data: updatedRows
+            }
+        }));
+    };
+
+    const copyRow = (index: number) => {
+        const rowToCopy = { ...dynamicRows[index] };
+
+        // Buat salinan di paling atas dan urutkan ulang T_no secara descending
+        const updatedRows = [rowToCopy, ...dynamicRows].map((row, i, arr) => ({
+            ...row,
+            T_no: arr.length - i
+        }));
+
         setDynamicRows(updatedRows);
         setData(prev => ({
             ...prev,
@@ -543,21 +582,34 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                 <div className="px-6 py-3 bg-muted/30 border-b flex items-center justify-between">
                                                                     <div className="flex items-center gap-3">
                                                                         <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black">
-                                                                            {index + 1}
+                                                                            {row.T_no || dynamicRows.length - index}
                                                                         </div>
                                                                         <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Penerima</span>
                                                                     </div>
-                                                                    {dynamicRows.length > 1 && (
+                                                                    <div className="flex gap-2">
                                                                         <Button
                                                                             type="button"
                                                                             variant="ghost"
                                                                             size="icon"
-                                                                            onClick={() => removeRow(index)}
-                                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-xl"
+                                                                            onClick={() => copyRow(index)}
+                                                                            className="h-8 w-8 text-primary hover:bg-primary/10 rounded-xl"
+                                                                            title="Salin Baris"
                                                                         >
-                                                                            <Trash2 className="h-4 w-4" />
+                                                                            <Copy className="h-4 w-4" />
                                                                         </Button>
-                                                                    )}
+                                                                        {dynamicRows.length > 1 && (
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                onClick={() => removeRow(index)}
+                                                                                className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-xl"
+                                                                                title="Hapus Baris"
+                                                                            >
+                                                                                <Trash2 className="h-4 w-4" />
+                                                                            </Button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                                 <div className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                                                                     {tableKeys.map((key: string) => {
