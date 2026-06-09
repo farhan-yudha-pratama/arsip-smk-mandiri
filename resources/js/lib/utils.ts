@@ -102,3 +102,22 @@ export function parseIndonesianDateTime(str: string) {
     return `${year}-${month}-${day}T${timePart}`;
 }
 
+export function formatRelativeTime(date?: string | Date | number | null) {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    const now = new Date();
+    const diffInMs = now.getTime() - d.getTime();
+    const diffInSeconds = Math.floor(diffInMs / 1000);
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInMonths = Math.floor(diffInDays / 30);
+    const diffInYears = Math.floor(diffInDays / 365);
+
+    if (diffInYears > 0) return `${diffInYears} tahun lalu`;
+    if (diffInMonths > 0) return `${diffInMonths} bulan lalu`;
+    if (diffInDays > 0) return `${diffInDays} hari lalu`;
+    if (diffInHours > 0) return `${diffInHours} jam lalu`;
+    if (diffInMinutes > 0) return `${diffInMinutes} menit lalu`;
+    return 'baru saja';
+}
