@@ -1,17 +1,13 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Services;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Enums\StatusDocument;
 use App\Models\Document;
 use App\Models\DocumentHistory;
 use App\Notifications\DocumentGenerationFailedNotification;
 use App\Services\DocumentNumberingService;
-use Illuminate\Bus\Queueable;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use App\Contracts\StorageServiceInterface;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\OutgoingMail;
@@ -19,41 +15,33 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
-class GenerateDocumentJob implements ShouldQueue
+class DocumentGenerationService
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    protected $storageService;
 
-    protected $document;
-    protected $metaDataValues;
-
-    protected ?int $categoryNumberingId;
+    public function __construct(StorageServiceInterface $storageService)
+    {
+        $this->storageService = $storageService;
+    }
 
     /**
-     * Buat instance job baru.
+     * Generate document synchronously.
      *
      * @param Document   $document           Dokumen yang akan di-generate.
      * @param array      $metaDataValues     Nilai placeholder template.
      * @param int|null   $categoryNumberingId ID kategori surat untuk penomoran.
+     * @return void
+     * @throws Throwable
      */
-    public function __construct(
+    public function generate(
         Document $document,
         array $metaDataValues,
-        ?int $categoryNumberingId = null,
-    ) {
-        $this->document            = $document;
-        $this->metaDataValues      = $metaDataValues;
-        $this->categoryNumberingId = $categoryNumberingId;
-    }
-
-    /**
-     * Execute the job.
-     */
-    public function handle(\App\Contracts\StorageServiceInterface $storageService): void
-    {
+        ?int $categoryNumberingId = null
+    ): void {
         ini_set('memory_limit', '512M');
         set_time_limit(0);
 
-        $template = $this->document->template;
+        $template = $document->template;
         
         $tempTemplatePath = '';
         $tempDocxPath = '';
@@ -61,25 +49,25 @@ class GenerateDocumentJob implements ShouldQueue
 
         try {
             $nomorSurat = null;
-            if ($this->categoryNumberingId) {
+            if ($categoryNumberingId) {
                 try {
                     $numberingService = app(DocumentNumberingService::class);
                     $kategori         = $numberingService->ambilKategori(
-                        \App\Models\CategoryNumbering::findOrFail($this->categoryNumberingId)->letter_code
+                        \App\Models\CategoryNumbering::findOrFail($categoryNumberingId)->letter_code
                     );
-                    $nomorSurat = $numberingService->generateNomorSurat($this->document, $kategori);
+                    $nomorSurat = $numberingService->generateNomorSurat($document, $kategori);
 
-                    $this->metaDataValues['nomor-surat'] = $nomorSurat;
+                    $metaDataValues['nomor-surat'] = $nomorSurat;
 
                 } catch (RuntimeException $e) {
-                    Log::warning('GenerateDocumentJob: Penomoran surat gagal — ' . $e->getMessage(), [
-                        'document_id'          => $this->document->id,
-                        'category_numbering_id' => $this->categoryNumberingId,
+                    Log::warning('DocumentGenerationService: Penomoran surat gagal — ' . $e->getMessage(), [
+                        'document_id'          => $document->id,
+                        'category_numbering_id' => $categoryNumberingId,
                     ]);
                 }
             }
 
-            $templateContent = $storageService->get($template->url);
+            $templateContent = $this->storageService->get($template->url);
             if (!$templateContent) {
                 throw new \Exception("Template file not found: " . $template->url);
             }
@@ -98,7 +86,7 @@ class GenerateDocumentJob implements ShouldQueue
             $tableData = [];
             $tableKey = null;
 
-            foreach ($this->metaDataValues as $key => $value) {
+            foreach ($metaDataValues as $key => $value) {
                 if (is_array($value)) {
                     $tableData = $value;
                     $tableKey = $key; // Typically 'T_table_data'
@@ -207,7 +195,7 @@ class GenerateDocumentJob implements ShouldQueue
                 throw new \Exception("Generated PDF not found at {$tempPdfPath}.\nCommand Output: " . implode("\n", $output));
             }
 
-            $fileName = $storageService->uploadFile($tempPdfPath, 'documents', 'document');
+            $fileName = $this->storageService->uploadFile($tempPdfPath, 'documents', 'document');
 
             $updatePayload = [
                 'status'      => StatusDocument::GENERATED,
@@ -218,27 +206,28 @@ class GenerateDocumentJob implements ShouldQueue
                 $updatePayload['document_number'] = $nomorSurat;
             }
 
-            $this->document->update($updatePayload);
+            $document->update($updatePayload);
 
-            $recipientName = $this->document->recipient_name;
+            $recipientName = $document->recipient_name;
 
             OutgoingMail::create([
-                'document_id' => $this->document->id,
+                'document_id' => $document->id,
                 'recipient_name' => $recipientName,
                 'sent_at' => now(),
             ]);
 
             DocumentHistory::create([
-                'document_id' => $this->document->id,
+                'document_id' => $document->id,
                 'file_path' => $fileName,
                 'version_name' => StatusDocument::GENERATED,
                 'note' => "Generated successfully as PDF for {$recipientName}. Template: " . $template->name,
-                'created_by' => $this->document->created_by,
+                'created_by' => $document->created_by,
                 'created_at' => now(),
             ]);
 
         } catch (Throwable $e) {
-            Log::error("Document Generation Job failed: " . $e->getMessage(), ['exception' => $e]);
+            Log::error("Document Generation Service failed: " . $e->getMessage(), ['exception' => $e]);
+            $this->handleFailure($document, $e);
             throw $e;
         } finally {
             if ($tempTemplatePath && file_exists($tempTemplatePath)) @unlink($tempTemplatePath);
@@ -247,25 +236,23 @@ class GenerateDocumentJob implements ShouldQueue
         }
     }
 
-
-    /**
-     * Handle a job failure.
-     */
-    public function failed(Throwable $exception): void
+    protected function handleFailure(Document $document, Throwable $exception): void
     {
-        $this->document->update([
+        $document->update([
             'status' => StatusDocument::FAILED,
         ]);
 
         DocumentHistory::create([
-            'document_id' => $this->document->id,
+            'document_id' => $document->id,
             'file_path' => '',
             'version_name' => StatusDocument::FAILED,
             'note' => 'Generation failed: ' . $exception->getMessage(),
-            'created_by' => $this->document->created_by,
+            'created_by' => $document->created_by,
             'created_at' => now(),
         ]);
 
-        $this->document->creator->notify(new DocumentGenerationFailedNotification($this->document, $exception->getMessage()));
+        if ($document->creator) {
+            $document->creator->notify(new DocumentGenerationFailedNotification($document, $exception->getMessage()));
+        }
     }
 }
