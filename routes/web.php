@@ -23,6 +23,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/documents/{document}/archive', [DocumentController::class, 'archive'])->name('documents.archive');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+
+    // Laporan
+    Route::get('/laporan-arsip', [\App\Http\Controllers\ArchiveReportController::class, 'index'])->name('reports.archive.index');
+    Route::get('/laporan-arsip/export', [\App\Http\Controllers\ArchiveReportController::class, 'export'])->name('reports.archive.export');
 });
 
 Route::middleware(['auth', 'role:SUPERADMIN'])->group(function () {
