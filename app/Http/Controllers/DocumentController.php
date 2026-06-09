@@ -11,7 +11,7 @@ use App\Models\DocumentHistory;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Template;
-use App\Services\S3StorageService;
+use App\Services\LocalStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ class DocumentController extends Controller
 {
     protected $storageService;
 
-    public function __construct(S3StorageService $storageService)
+    public function __construct(LocalStorageService $storageService)
     {
         $this->storageService = $storageService;
     }
@@ -225,8 +225,8 @@ class DocumentController extends Controller
     {
         try {
             $extension = pathinfo($document->current_url, PATHINFO_EXTENSION) ?: 'pdf';
-            $url = $this->storageService->getTemporaryUrl($document->current_url, 10, true, $document->title . '.' . $extension);
-            return Inertia::location($url);
+            $filename = $document->title . '.' . $extension;
+            return Storage::disk('local')->download($document->current_url, $filename);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Gagal membuat tautan unduhan: ' . $e->getMessage()]);
         }
@@ -241,8 +241,8 @@ class DocumentController extends Controller
         try {
             $versionName = $history->version_name->value ?? $history->version_name;
             $extension = pathinfo($history->file_path, PATHINFO_EXTENSION) ?: 'pdf';
-            $url = $this->storageService->getTemporaryUrl($history->file_path, 10, true, $document->title . ' - ' . $versionName . '.' . $extension);
-            return Inertia::location($url);
+            $filename = $document->title . ' - ' . $versionName . '.' . $extension;
+            return Storage::disk('local')->download($history->file_path, $filename);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Gagal membuat tautan unduhan: ' . $e->getMessage()]);
         }

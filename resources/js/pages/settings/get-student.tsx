@@ -35,11 +35,12 @@ export default function GetStudent() {
         setSuccessMsg(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BINDUK_APP_URL}/api/students?token=${token}`);
+            const response = await fetch(`https://binduk.smkmandiri.sch.id/api/students?token=${token}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch students. Invalid token or server error.');
             }
             const data = await response.json();
+            console.log(data)
             if (data.success && Array.isArray(data.data)) {
                 // Save to local database
                 await axios.post('/settings/get-student', { students: data.data });
