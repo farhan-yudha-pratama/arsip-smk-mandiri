@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Str;
-use App\Jobs\GenerateDocumentJob;
+use App\Services\DocumentGenerationService;
 use App\Models\IncomingMail;
 use App\Models\OutgoingMail;
 
@@ -153,7 +153,7 @@ class DocumentController extends Controller
 
 
                 if (!$isDraft) {
-                    GenerateDocumentJob::dispatchSync(
+                    app(DocumentGenerationService::class)->generate(
                         $document,
                         $request->meta_data_values ?? [],
                         $request->integer('category_numbering_id') ?: null,
@@ -205,7 +205,7 @@ class DocumentController extends Controller
                 ]);
 
                 if (!$isDraft) {
-                    GenerateDocumentJob::dispatchSync(
+                    app(DocumentGenerationService::class)->generate(
                         $document,
                         $request->meta_data_values ?? [],
                         $request->integer('category_numbering_id') ?: null,
