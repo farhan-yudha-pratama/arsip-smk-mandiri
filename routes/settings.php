@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Http\Controllers\Settings\StudentSyncController;
+use App\Http\Controllers\Settings\TeacherSyncController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -22,5 +24,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
     Route::inertia('settings/get-student', 'settings/get-student')->name('get-student.index');
-    Route::post('settings/get-student', [\App\Http\Controllers\Settings\StudentSyncController::class, 'store'])->name('get-student.store');
+    Route::post('settings/get-student', [StudentSyncController::class, 'store'])->name('get-student.store');
+
+    Route::inertia('settings/get-teacher', 'settings/get-teacher')->name('get-teacher.index');
+    Route::post('settings/get-teacher', [TeacherSyncController::class, 'store'])->name('get-teacher.store');
 });
