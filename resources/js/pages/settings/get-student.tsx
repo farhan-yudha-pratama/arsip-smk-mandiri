@@ -22,7 +22,7 @@ export default function GetStudent() {
         setSuccessMsg(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BINDUK_APP_URL}/api/students?token=${token}`);
+            const response = await fetch(`${import.meta.env.VITE_BINDUK_APP_URL}/api/students/active?token=${token}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch students. Invalid token or server error.');
             }
