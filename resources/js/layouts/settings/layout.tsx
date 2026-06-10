@@ -31,6 +31,11 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/get-student',
         icon: null,
     },
+    {
+        title: 'Get Teacher',
+        href: '/settings/get-teacher',
+        icon: null,
+    }
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
