@@ -4,38 +4,52 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.staging
+      dockerfile: Dockerfile.production
       args:
+        # Mengirim env URL dari github actions/VPS ke Vite build arg
         - VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL:-http://localhost}
-    container_name: arsip-smk-mandiri-staging-app
+    container_name: arsip-smk-mandiri-app
     restart: always
     environment:
       DB_CONNECTION: pgsql
+      # ─── PERBAIKAN DATABASE TERPUSAT ───────────────────────────────
+      # Menembak nama container database PostgreSQL global yang menyala di luar proyek
       DB_HOST: global-postgres-db
       DB_PORT: 5432
-      DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_staging}
+      DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_prod}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-root}
+      # ───────────────────────────────────────────────────────────────
     volumes:
-      - public_data_staging:/var/www/public_shared
-      - storage_data_staging:/var/www/storage
+      # Menggunakan trik shared folder terisolasi untuk aset Nginx
+      - public_data:/var/www/public_shared
+      # Volume untuk storage agar symlink dan file upload persisten dan bisa dibaca Nginx
+      - storage_data:/var/www/storage
+    # ─── ATURAN SAKTI ASSET SYNC ─────────────────────────────────────
+    # Memaksa container menyalin seluruh aset Vite dan file static (termasuk index.php)
+    # ke shared volume sesaat sebelum menyalakan proses PHP-FPM utama.
     command: >
       sh -c "cp -a /var/www/public/. /var/www/public_shared/ && 
              chown -R www-data:www-data /var/www/public_shared && 
              chmod -R 755 /var/www/public_shared && 
              php-fpm"
+    # ─────────────────────────────────────────────────────────────────
     networks:
       - global-vps-network
 
   webserver:
     image: nginx:alpine
-    container_name: arsip-smk-mandiri-staging-nginx
+    container_name: arsip-smk-mandiri-nginx
     restart: always
     ports:
-      - '8081:80'
+      # Buka port 8080 untuk aaPanel Reverse Proxy
+      - '8080:80'
     volumes:
-      - public_data_staging:/var/www/public
-      - storage_data_staging:/var/www/storage
+      # Mount volume public_data agar Nginx menyajikan aset statis yang selalu sinkron
+      - public_data:/var/www/public
+      # Mount volume storage agar Nginx bisa baca file symlink storage/app/public
+      - storage_data:/var/www/storage
+      # Mount konfigurasi Nginx
       - ./docker-config/app.conf:/etc/nginx/conf.d/default.conf
     networks:
       - global-vps-network
@@ -43,8 +57,12 @@ services:
       - app
 
 volumes:
-  public_data_staging:
-  storage_data_staging:
+  # Volume lokal proyek khusus untuk menjembatani aset statis Vite/Laravel ke Nginx
+  public_data: # Volume untuk menyimpan data storage persisten
+
+  storage_data:
 networks:
+  # External ditandai TRUE karena jaringan ini adalah jalan tol bersama di VPS 
+  # yang juga akan dilewati oleh proyek Tixia, Prestige, dsb.
   global-vps-network:
     external: true
