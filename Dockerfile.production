@@ -1,7 +1,7 @@
 # =================================================================
 # STAGE 1: Backend Dependencies (Composer Builder)
 # =================================================================
-FROM composer:latest AS composer-builder
+FROM composer:latest as composer-builder
 
 WORKDIR /app
 
@@ -20,30 +20,45 @@ RUN composer install \
 
 
 # =================================================================
-# STAGE 2: Frontend Build (Node.js Builder) — Ringan & Bersih
+# STAGE 2: Frontend Build (Node.js Builder)
 # =================================================================
-# Catatan Arsitektur: Stage ini sengaja TIDAK menginstal PHP.
-# Plugin @laravel/vite-plugin-wayfinder telah dikondisikan di vite.config.ts
-# untuk hanya aktif saat `command === 'serve'` (npm run dev).
-# Saat `npm run build`, plugin tersebut di-bypass total sehingga tidak ada
-# pemanggilan `php artisan` di lingkungan isolasi Docker build-time ini.
-FROM node:22-alpine AS node-builder
+FROM node:22-alpine as node-builder
 
 WORKDIR /app
 
-# Install Node dependencies (memanfaatkan Docker layer cache)
-COPY package*.json ./
-RUN npm ci --ignore-scripts
+# Pasang PHP & ekstensi dasar di Alpine Node agar Laravel Artisan bisa bootstrap ringan
+RUN apk add --no-cache \
+    php83 \
+    php83-cli \
+    php83-common \
+    php83-openssl \
+    php83-mbstring \
+    php83-tokenizer \
+    php83-xml \
+    php83-dom \
+    php83-curl \
+    php83-fileinfo
 
-# Copy seluruh source code aplikasi
+# Buat symlink agar perintah 'php' global bisa dibaca sistem Alpine
+RUN ln -sf /usr/bin/php83 /usr/bin/php
+
+# Copy berkas manajemen dependensi Node.js
+COPY package*.json ./
+RUN npm install
+
+# Copy seluruh source code aplikasi ke Stage Node
 COPY . .
 
-# Terima build argument untuk environment Vite yang akan di-embed ke dalam bundle JS
+# SAKTI: Ambil folder vendor dari STAGE 1 agar 'php artisan wayfinder' tidak error
+COPY --from=composer-builder /app/vendor ./vendor
+
+RUN echo "APP_KEY=base64:d2ZidWlsZHRpbWVyYW5kb21kZXlmb3J2aXRld2F5ZmluZGVyCg==" > .env
+
+# Terima build argument untuk environment Vite
 ARG VITE_BINDUK_APP_URL
 ENV VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL}
 
-# Build production assets — Wayfinder sudah di-bypass di vite.config.ts
-# sehingga perintah ini murni hanya mengkompilasi JS/CSS, tanpa koneksi database
+# Build production assets (Sekarah Wayfinder dijamin lulus kompilasi!)
 RUN npm run build
 
 
@@ -54,7 +69,7 @@ FROM php:8.3-fpm
 
 WORKDIR /var/www
 
-# Install dependencies sistem OS (PostgreSQL, Imagick, LibreOffice, Fonts, dsb)
+# Install dependencies internal OS (PostgreSQL, Imagick, LibreOffice, Fonts, dsb)
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
@@ -74,34 +89,34 @@ RUN apt-get update && apt-get install -y \
     fontconfig \
     --no-install-recommends
 
-# Install Imagick via PECL
+# Install Imagick
 RUN pecl install imagick \
     && docker-php-ext-enable imagick
 
-# Install PHP extensions yang dibutuhkan aplikasi
+# Install PHP extensions
 RUN docker-php-ext-install pdo_pgsql pgsql zip exif pcntl
 
 # Configure & Install GD
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd
 
-# Bersihkan apt cache untuk mengurangi ukuran image akhir
+# Clean up apt cache untuk mengurangi ukuran image akhir
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy Composer binary untuk kebutuhan Artisan commands di runtime VPS
+# Copy Composer binary (opsional, untuk kebutuhan internal runtime vps jika diperlukan)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy seluruh source code Laravel
+# Copy seluruh source code Laravel asli ke dalam container
 COPY . /var/www
 
-# Ambil aset frontend yang sudah ter-build dari STAGE 2
+# Ambil aset frontend yang sudah matang di-build dari STAGE 2
 COPY --from=node-builder /app/public/build /var/www/public/build
 
-# Ambil vendor PHP yang sudah ter-install dari STAGE 1
-# (Lebih cepat daripada menjalankan ulang composer install di sini)
+# Ambil folder vendor yang sudah matang di-download dari STAGE 1
+# (Taktik ini jauh lebih cepat daripada menjalankan ulang composer install di dalam stage ini)
 COPY --from=composer-builder /app/vendor /var/www/vendor
 
-# Set permissions agar Nginx/PHP-FPM bisa baca & tulis
+# Set permissions untuk storage, cache, dan public Laravel agar bisa dibaca Nginx/PHP-FPM
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/public
 
 EXPOSE 9000
