@@ -1,71 +1,62 @@
 version: '3.8'
 
 services:
-    app:
-        build:
-            context: .
-            dockerfile: Dockerfile.production
-            args:
-                # Mengirim env URL dari github actions/VPS ke Vite build arg
-                - VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL:-http://localhost}
-        container_name: arsip-smk-mandiri-app
-        restart: always
-        environment:
-            DB_CONNECTION: pgsql
-            DB_HOST: db
-            DB_PORT: 5432
-            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_prod}
-            DB_USERNAME: ${DB_USERNAME:-postgres}
-            DB_PASSWORD: ${DB_PASSWORD:-root}
-        volumes:
-            # Kita bagikan folder public container ke volume bernama 'public_data'
-            # Ini memungkinkan service webserver (Nginx) dapat membaca file statis & build Vite.
-            - public_data:/var/www/public
-        networks:
-            - global-vps-network
-        depends_on:
-            - db
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      args:
+        # Mengirim env URL dari github actions/VPS ke Vite build arg
+        - VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL:-http://localhost}
+    container_name: arsip-smk-mandiri-app
+    restart: always
+    environment:
+      DB_CONNECTION: pgsql
+      # ─── PERBAIKAN DATABASE TERPUSAT ───────────────────────────────
+      # Menembak nama container database PostgreSQL global yang menyala di luar proyek
+      DB_HOST: global-postgres-db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_prod}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      # ───────────────────────────────────────────────────────────────
+    volumes:
+      # Menggunakan trik shared folder terisolasi untuk aset Nginx
+      - public_data:/var/www/public_shared
+    # ─── ATURAN SAKTI ASSET SYNC ─────────────────────────────────────
+    # Memaksa container menyalin aset kompilasi Vite terbaru milik image ke shared volume 
+    # sesaat sebelum menyalakan proses PHP-FPM utama.
+    command: >
+      sh -c "mkdir -p /var/www/public_shared/build && 
+             cp -rp /var/www/public/build/. /var/www/public_shared/build/ && 
+             php-fpm"
+    # ─────────────────────────────────────────────────────────────────
+    networks:
+      - global-vps-network
 
-    webserver:
-        image: nginx:alpine
-        container_name: arsip-smk-mandiri-nginx
-        restart: always
-        ports:
-            # Buka port 8080 untuk aaPanel Reverse Proxy
-            - '8080:80'
-        volumes:
-            # Mount volume public_data agar Nginx bisa menyajikan aset statis
-            - public_data:/var/www/public
-            # Mount konfigurasi Nginx
-            - ./docker-config/app.conf:/etc/nginx/conf.d/default.conf
-        networks:
-            - global-vps-network
-        depends_on:
-            - app
-
-    db:
-        image: postgres:18
-        container_name: arsip-smk-mandiri-db
-        restart: always
-        environment:
-            POSTGRES_USER: ${DB_USERNAME:-postgres}
-            POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
-            POSTGRES_DB: ${DB_DATABASE:-arsip_smk_mandiri_prod}
-        volumes:
-            # Gunakan external named volume (standar Linux) untuk persistensi data yang aman
-            - postgres_production_data:/var/lib/postgresql/data
-        networks:
-            - global-vps-network
-        # Port 5432 TIDAK di-ekspos ke luar (host) untuk alasan keamanan.
-        # Hanya bisa diakses secara internal melalui network 'global-vps-network'.
+  webserver:
+    image: nginx:alpine
+    container_name: arsip-smk-mandiri-nginx
+    restart: always
+    ports:
+      # Buka port 8080 untuk aaPanel Reverse Proxy
+      - '8080:80'
+    volumes:
+      # Mount volume public_data agar Nginx menyajikan aset statis yang selalu sinkron
+      - public_data:/var/www/public
+      # Mount konfigurasi Nginx
+      - ./docker-config/app.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - global-vps-network
+    depends_on:
+      - app
 
 volumes:
-    # Volume untuk menampung database production
-    postgres_production_data:
-    # Volume untuk membagikan aset frontend statis ke Nginx
-    public_data:
+  # Volume lokal proyek khusus untuk menjembatani aset statis Vite/Laravel ke Nginx
+  public_data:
 
 networks:
-    # External network agar bisa terhubung dengan container dari project lain (API Python, dsb)
-    global-vps-network:
-        external: true
+  # External ditandai TRUE karena jaringan ini adalah jalan tol bersama di VPS 
+  # yang juga akan dilewati oleh proyek Tixia, Prestige, dsb.
+  global-vps-network:
+    external: true

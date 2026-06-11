@@ -52,6 +52,8 @@ COPY . .
 # SAKTI: Ambil folder vendor dari STAGE 1 agar 'php artisan wayfinder' tidak error
 COPY --from=composer-builder /app/vendor ./vendor
 
+RUN echo "APP_KEY=base64:d2ZidWlsZHRpbWVyYW5kb21kZXlmb3J2aXRld2F5ZmluZGVyCg==" > .env
+
 # Terima build argument untuk environment Vite
 ARG VITE_BINDUK_APP_URL
 ENV VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL}
