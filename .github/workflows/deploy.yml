@@ -1,9 +1,9 @@
-name: Deploy Arsip SMK Mandiri Production
+name: Deploy Arsip SMK Mandiri Staging
 
 on:
   push:
     branches:
-      - main
+      - staging
   workflow_dispatch:
 
 jobs:
@@ -14,28 +14,23 @@ jobs:
     - name: 🚀 Deploy to aaPanel VPS via SSH
       uses: appleboy/ssh-action@master
       env:
-        ENV_PROD: ${{ secrets.ENV_PROD }}
+        ENV_STAG: ${{ secrets.ENV_STAG }}
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         key: ${{ secrets.VPS_SSH_KEY }}
         port: 2234
-        envs: ENV_PROD
+        envs: ENV_STAG
         script: |
           cd /www/wwwroot/arsip-laravel
-          git pull origin main
+          git pull origin staging
           
-          # Menyuntikkan Github Secrets ENV_PROD ke file .env di VPS
-          echo "$ENV_PROD" > .env
+          echo "$ENV_STAG" > .env
           
-          # Build ulang dan jalankan container production
-          # Menambahkan -V untuk membersihkan volume anonim/public_data lama jika ada update aset Vite
-          docker-compose --env-file .env -f docker-compose.production.yml up -d --build --force-recreate -V
+          docker-compose --env-file .env -f docker-compose.staging.yml up -d --build --force-recreate -V
           
-          # Jalankan optimasi Laravel di dalam container (Asumsi nama service adalah 'app')
-          docker-compose -f docker-compose.production.yml exec -T app php artisan config:cache
-          docker-compose -f docker-compose.production.yml exec -T app php artisan route:cache
-          docker-compose -f docker-compose.production.yml exec -T app php artisan view:cache
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan config:cache
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan route:cache
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan view:cache
           
-          # Jalankan database migration otomatis
-          docker-compose -f docker-compose.production.yml exec -T app php artisan migrate --force
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
