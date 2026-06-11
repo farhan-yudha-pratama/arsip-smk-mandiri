@@ -10,6 +10,12 @@ RUN npm install
 # Copy seluruh source code
 COPY . .
 
+# Pasang PHP & ekstensi dasar di Alpine Node agar Vite-Wayfinder bisa berjalan
+RUN apk add --no-cache php83 php83-cli php83-common php83-openssl php83-mbstring
+
+# Buat symlink agar perintah 'php' global bisa dibaca sistem
+RUN ln -sf /usr/bin/php83 /usr/bin/php
+
 # Terima build argument untuk environment Vite
 ARG VITE_BINDUK_APP_URL
 ENV VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL}
