@@ -22,7 +22,7 @@ jobs:
         envs: ENV_PROD
         script: |
           cd /www/wwwroot/arsip-laravel
-          git pull origin staging
+          git pull origin main
           
           # Menyuntikkan Github Secrets ENV_PROD ke file .env di VPS
           echo "$ENV_PROD" > .env
