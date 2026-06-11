@@ -25,7 +25,6 @@ jobs:
           cd /www/wwwroot/arsip-laravel
           git pull origin main
           
-          # Menyuntikkan Github Secrets ENV_PROD ke file .env di VPS
           echo "$ENV_PROD" > .env
           
           # Build ulang dan jalankan container production
