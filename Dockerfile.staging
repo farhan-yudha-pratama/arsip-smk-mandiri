@@ -5,17 +5,14 @@ FROM composer:latest as composer-builder
 
 WORKDIR /app
 
-# Copy berkas manajemen dependensi PHP
 COPY composer.json composer.lock ./
 
-# Install vendor tanpa mengecek ekstensi host dulu demi kecepatan kompilasi
 RUN composer install \
     --ignore-platform-reqs \
     --no-interaction \
     --no-plugins \
     --no-scripts \
     --prefer-dist \
-    --no-dev \
     --optimize-autoloader
 
 
@@ -26,29 +23,24 @@ FROM node:22-alpine as node-builder
 
 WORKDIR /app
 
-# Copy berkas manajemen dependensi Node.js
 COPY package*.json ./
 RUN npm install
 
-# Copy seluruh source code aplikasi ke Stage Node
 COPY . .
 
-# Terima build argument untuk environment Vite
 ARG VITE_BINDUK_APP_URL
 ENV VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL}
 
-# Build production assets
 RUN npm run build
 
 
 # =================================================================
-# STAGE 3: Final Application (PHP-FPM Production Environment)
+# STAGE 3: Final Application (PHP-FPM Staging Environment)
 # =================================================================
 FROM php:8.3-fpm
 
 WORKDIR /var/www
 
-# Install dependencies internal OS (PostgreSQL, Imagick, LibreOffice, Fonts, dsb)
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
@@ -79,23 +71,16 @@ RUN docker-php-ext-install pdo_pgsql pgsql zip exif pcntl
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd
 
-# Clean up apt cache untuk mengurangi ukuran image akhir
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy Composer binary (opsional, untuk kebutuhan internal runtime vps jika diperlukan)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy seluruh source code Laravel asli ke dalam container
 COPY . /var/www
 
-# Ambil aset frontend yang sudah matang di-build dari STAGE 2
 COPY --from=node-builder /app/public/build /var/www/public/build
 
-# Ambil folder vendor yang sudah matang di-download dari STAGE 1
-# (Taktik ini jauh lebih cepat daripada menjalankan ulang composer install di dalam stage ini)
 COPY --from=composer-builder /app/vendor /var/www/vendor
 
-# Set permissions untuk storage, cache, dan public Laravel agar bisa dibaca Nginx/PHP-FPM
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/public
 
 EXPOSE 9000
