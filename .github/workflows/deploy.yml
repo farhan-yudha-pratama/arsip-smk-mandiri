@@ -13,20 +13,28 @@ jobs:
     steps:
     - name: 🚀 Deploy to aaPanel VPS via SSH
       uses: appleboy/ssh-action@master
+      env:
+        ENV_PROD: ${{ secrets.ENV_PROD }}
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         key: ${{ secrets.VPS_SSH_KEY }}
+        envs: ENV_PROD
         script: |
           cd /www/wwwroot/arsip-laravel
           git pull origin staging
-          docker-compose up -d --build
+          
+          # Menyuntikkan Github Secrets ENV_PROD ke file .env di VPS
+          echo "$ENV_PROD" > .env
+          
+          # Build ulang dan jalankan container production
+          # Menambahkan -V untuk membersihkan volume anonim/public_data lama jika ada update aset Vite
+          docker-compose -f docker-compose.production.yml up -d --build --force-recreate -V
           
           # Jalankan optimasi Laravel di dalam container (Asumsi nama service adalah 'app')
-          # Sesuaikan 'app' dengan nama service PHP/Laravel Anda di docker-compose.yml
-          docker-compose exec -T app php artisan config:cache
-          docker-compose exec -T app php artisan route:cache
-          docker-compose exec -T app php artisan view:cache
+          docker-compose -f docker-compose.production.yml exec -T app php artisan config:cache
+          docker-compose -f docker-compose.production.yml exec -T app php artisan route:cache
+          docker-compose -f docker-compose.production.yml exec -T app php artisan view:cache
           
           # Jalankan database migration otomatis
-          docker-compose exec -T app php artisan migrate --force
+          docker-compose -f docker-compose.production.yml exec -T app php artisan migrate --force
