@@ -7,54 +7,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🚚 Checkout Code
-      uses: actions/checkout@v4
-
-    - name: 🐘 Setup PHP
-      uses: shivammathur/setup-php@v2
+    - name: 🚀 Deploy to aaPanel VPS via SSH
+      uses: appleboy/ssh-action@master
       with:
-        php-version: '8.3'
-
-    - name: 📦 Install Composer Dependencies
-      run: composer install --no-dev --optimize-autoloader
-
-    - name: ⚡ Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-
-    - name: 🔍 Check Node Version
-      run: node -v
-
-    - name: 🔨 Install NPM & Build Frontend
-      env:
-        VITE_BINDUK_APP_URL: ${{ secrets.VITE_BINDUK_APP_URL }}
-      run: |
-        rm -rf node_modules
-        npm install
-        npm run build
-
-    - name: 🚀 Sync Files via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        port: 21
-        log-level: verbose
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/.github/**
-          **/node_modules/**
-          **/storage/*.sqlite
-          **/tests/**
-          .env
-          phpunit.xml
-          auth.json
-        local-dir: ./
-        server-dir: ./
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          cd /www/wwwroot/arsip-laravel
+          git pull origin staging
+          docker-compose up -d --build
+          
+          # Jalankan optimasi Laravel di dalam container (Asumsi nama service adalah 'app')
+          # Sesuaikan 'app' dengan nama service PHP/Laravel Anda di docker-compose.yml
+          docker-compose exec -T app php artisan config:cache
+          docker-compose exec -T app php artisan route:cache
+          docker-compose exec -T app php artisan view:cache
+          
+          # Jalankan database migration otomatis
+          docker-compose exec -T app php artisan migrate --force
