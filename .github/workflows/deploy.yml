@@ -25,6 +25,7 @@ jobs:
           cd /www/wwwroot/arsip-laravel-staging
           git pull origin staging
           
+          # for env staging
           echo "$ENV_STAG" > .env
           
           docker-compose --env-file .env -f docker-compose.staging.yml up -d --build --force-recreate -V
