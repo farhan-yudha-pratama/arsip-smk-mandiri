@@ -30,7 +30,7 @@ jobs:
           
           # Build ulang dan jalankan container production
           # Menambahkan -V untuk membersihkan volume anonim/public_data lama jika ada update aset Vite
-          docker-compose -f docker-compose.production.yml up -d --build --force-recreate -V
+          docker-compose --env-file .env -f docker-compose.production.yml up -d --build --force-recreate -V
           
           # Jalankan optimasi Laravel di dalam container (Asumsi nama service adalah 'app')
           docker-compose -f docker-compose.production.yml exec -T app php artisan config:cache
