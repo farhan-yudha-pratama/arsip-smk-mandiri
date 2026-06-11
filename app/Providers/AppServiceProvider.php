@@ -29,6 +29,12 @@ class AppServiceProvider extends ServiceProvider
      */
    public function boot(): void
     {
+        // Paksa HTTP scheme di staging (tanpa domain/SSL valid)
+        // Mencegah mixed content error akibat aaPanel mengirim X-Forwarded-Proto: https
+        if (!app()->isProduction()) {
+            URL::forceScheme('http');
+        }
+
         $this->configureDefaults();
     }
 
