@@ -192,7 +192,7 @@ extractVariables.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
  * @see app/Http/Controllers/TemplateController.php:110
  * @route '/templates/{template}'
  */
-export const update = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const update = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: update.url(args, options),
     method: 'post',
 })
@@ -207,7 +207,7 @@ update.definition = {
  * @see app/Http/Controllers/TemplateController.php:110
  * @route '/templates/{template}'
  */
-update.url = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { template: args }
     }
@@ -240,7 +240,7 @@ update.url = (args: { template: string | number | { id: string | number } } | [t
  * @see app/Http/Controllers/TemplateController.php:110
  * @route '/templates/{template}'
  */
-update.post = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+update.post = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: update.url(args, options),
     method: 'post',
 })
@@ -250,7 +250,7 @@ update.post = (args: { template: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/TemplateController.php:110
  * @route '/templates/{template}'
  */
-    const updateForm = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, options),
         method: 'post',
     })
@@ -260,7 +260,7 @@ update.post = (args: { template: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/TemplateController.php:110
  * @route '/templates/{template}'
  */
-        updateForm.post = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.post = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, options),
             method: 'post',
         })
@@ -271,7 +271,7 @@ update.post = (args: { template: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/TemplateController.php:132
  * @route '/templates/{template}'
  */
-export const destroy = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -286,7 +286,7 @@ destroy.definition = {
  * @see app/Http/Controllers/TemplateController.php:132
  * @route '/templates/{template}'
  */
-destroy.url = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { template: args }
     }
@@ -319,7 +319,7 @@ destroy.url = (args: { template: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/TemplateController.php:132
  * @route '/templates/{template}'
  */
-destroy.delete = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -329,7 +329,7 @@ destroy.delete = (args: { template: string | number | { id: string | number } } 
  * @see app/Http/Controllers/TemplateController.php:132
  * @route '/templates/{template}'
  */
-    const destroyForm = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -344,7 +344,7 @@ destroy.delete = (args: { template: string | number | { id: string | number } } 
  * @see app/Http/Controllers/TemplateController.php:132
  * @route '/templates/{template}'
  */
-        destroyForm.delete = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -360,7 +360,7 @@ destroy.delete = (args: { template: string | number | { id: string | number } } 
  * @see app/Http/Controllers/TemplateController.php:145
  * @route '/templates/{template}/preview'
  */
-export const preview = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const preview = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: preview.url(args, options),
     method: 'get',
 })
@@ -375,7 +375,7 @@ preview.definition = {
  * @see app/Http/Controllers/TemplateController.php:145
  * @route '/templates/{template}/preview'
  */
-preview.url = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+preview.url = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { template: args }
     }
@@ -408,7 +408,7 @@ preview.url = (args: { template: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/TemplateController.php:145
  * @route '/templates/{template}/preview'
  */
-preview.get = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+preview.get = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: preview.url(args, options),
     method: 'get',
 })
@@ -417,7 +417,7 @@ preview.get = (args: { template: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/TemplateController.php:145
  * @route '/templates/{template}/preview'
  */
-preview.head = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+preview.head = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: preview.url(args, options),
     method: 'head',
 })
@@ -427,7 +427,7 @@ preview.head = (args: { template: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/TemplateController.php:145
  * @route '/templates/{template}/preview'
  */
-    const previewForm = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const previewForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: preview.url(args, options),
         method: 'get',
     })
@@ -437,7 +437,7 @@ preview.head = (args: { template: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/TemplateController.php:145
  * @route '/templates/{template}/preview'
  */
-        previewForm.get = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        previewForm.get = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: preview.url(args, options),
             method: 'get',
         })
@@ -446,7 +446,7 @@ preview.head = (args: { template: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/TemplateController.php:145
  * @route '/templates/{template}/preview'
  */
-        previewForm.head = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        previewForm.head = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: preview.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -462,7 +462,7 @@ preview.head = (args: { template: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/TemplateController.php:161
  * @route '/templates/{template}/download'
  */
-export const download = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const download = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: download.url(args, options),
     method: 'get',
 })
@@ -477,7 +477,7 @@ download.definition = {
  * @see app/Http/Controllers/TemplateController.php:161
  * @route '/templates/{template}/download'
  */
-download.url = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+download.url = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { template: args }
     }
@@ -510,7 +510,7 @@ download.url = (args: { template: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/TemplateController.php:161
  * @route '/templates/{template}/download'
  */
-download.get = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+download.get = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: download.url(args, options),
     method: 'get',
 })
@@ -519,7 +519,7 @@ download.get = (args: { template: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/TemplateController.php:161
  * @route '/templates/{template}/download'
  */
-download.head = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+download.head = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: download.url(args, options),
     method: 'head',
 })
@@ -529,7 +529,7 @@ download.head = (args: { template: string | number | { id: string | number } } |
  * @see app/Http/Controllers/TemplateController.php:161
  * @route '/templates/{template}/download'
  */
-    const downloadForm = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const downloadForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: download.url(args, options),
         method: 'get',
     })
@@ -539,7 +539,7 @@ download.head = (args: { template: string | number | { id: string | number } } |
  * @see app/Http/Controllers/TemplateController.php:161
  * @route '/templates/{template}/download'
  */
-        downloadForm.get = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        downloadForm.get = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: download.url(args, options),
             method: 'get',
         })
@@ -548,7 +548,7 @@ download.head = (args: { template: string | number | { id: string | number } } |
  * @see app/Http/Controllers/TemplateController.php:161
  * @route '/templates/{template}/download'
  */
-        downloadForm.head = (args: { template: string | number | { id: string | number } } | [template: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        downloadForm.head = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: download.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

@@ -1,10 +1,10 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:235
+ * @see app/Http/Controllers/DocumentController.php:241
  * @route '/documents/{document}/history/{history}/download'
  */
-export const download = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const download = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: download.url(args, options),
     method: 'get',
 })
@@ -16,10 +16,10 @@ download.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:235
+ * @see app/Http/Controllers/DocumentController.php:241
  * @route '/documents/{document}/history/{history}/download'
  */
-download.url = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
+download.url = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
                     document: args[0],
@@ -46,48 +46,48 @@ download.url = (args: { document: string | number | { id: string | number }, his
 
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:235
+ * @see app/Http/Controllers/DocumentController.php:241
  * @route '/documents/{document}/history/{history}/download'
  */
-download.get = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+download.get = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: download.url(args, options),
     method: 'get',
 })
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:235
+ * @see app/Http/Controllers/DocumentController.php:241
  * @route '/documents/{document}/history/{history}/download'
  */
-download.head = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+download.head = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: download.url(args, options),
     method: 'head',
 })
 
     /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:235
+ * @see app/Http/Controllers/DocumentController.php:241
  * @route '/documents/{document}/history/{history}/download'
  */
-    const downloadForm = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const downloadForm = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: download.url(args, options),
         method: 'get',
     })
 
             /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:235
+ * @see app/Http/Controllers/DocumentController.php:241
  * @route '/documents/{document}/history/{history}/download'
  */
-        downloadForm.get = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        downloadForm.get = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: download.url(args, options),
             method: 'get',
         })
             /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:235
+ * @see app/Http/Controllers/DocumentController.php:241
  * @route '/documents/{document}/history/{history}/download'
  */
-        downloadForm.head = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        downloadForm.head = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: download.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

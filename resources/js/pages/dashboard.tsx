@@ -15,7 +15,7 @@ export default function Dashboard({ outgoingCount = 0, incomingCount = 0, templa
     return (
         <>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 md:p-6">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     {/* Card 1 */}
                     <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border bg-card p-6 shadow-sm flex flex-col justify-between h-32 hover:shadow-md transition-all">
@@ -58,8 +58,8 @@ export default function Dashboard({ outgoingCount = 0, incomingCount = 0, templa
                 {/* Charts Area */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Timeline Chart */}
-                    <div className="bg-card p-6 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border shadow-sm flex flex-col h-[400px]">
-                        <h3 className="text-lg font-bold tracking-tight mb-6 text-foreground">Aktivitas Surat (14 Hari Terakhir)</h3>
+                    <div className="bg-card p-4 md:p-6 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border shadow-sm flex flex-col h-[350px] md:h-[400px]">
+                        <h3 className="text-base md:text-lg font-bold tracking-tight mb-4 md:mb-6 text-foreground">Aktivitas Surat (14 Hari Terakhir)</h3>
                         <div className="flex-1 min-h-0 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={timelineData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
@@ -79,8 +79,8 @@ export default function Dashboard({ outgoingCount = 0, incomingCount = 0, templa
                         </div>
                     </div>
                     {/* User Stats Chart */}
-                    <div className="bg-card p-6 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border shadow-sm flex flex-col h-[400px]">
-                        <h3 className="text-lg font-bold tracking-tight mb-6 text-foreground">Top 5 Pembuat Surat Keluar</h3>
+                    <div className="bg-card p-4 md:p-6 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border shadow-sm flex flex-col h-[350px] md:h-[400px]">
+                        <h3 className="text-base md:text-lg font-bold tracking-tight mb-4 md:mb-6 text-foreground">Top 5 Pembuat Surat Keluar</h3>
                         <div className="flex-1 min-h-0 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={userStats} layout="vertical" margin={{ top: 5, right: 20, left: 40, bottom: 5 }}>
