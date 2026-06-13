@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { School } from 'lucide-react';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -18,7 +18,7 @@ export default function AuthSimpleLayout({
                             className="flex flex-col items-center gap-3 font-medium"
                         >
                             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                <School className="size-8" />
+                                <AppLogoIcon className="size-50 rounded-md object-contain" />
                             </div>
                             <div className="text-center">
                                 <h2 className="text-xl font-bold tracking-tight text-foreground">SMK Mandiri Medan</h2>
