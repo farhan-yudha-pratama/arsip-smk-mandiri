@@ -13,11 +13,3 @@ services:
             - '5433:5432'
         volumes:
             - 'D:/program/docker/postgres-data:/var/lib/postgresql'
-
-    mailpit:
-        image: 'axllent/mailpit:latest'
-        container_name: arsip-smk-mandiri-mailpit
-        ports:
-            - '1025:1025'
-            - '8025:8025'
-        restart: always
