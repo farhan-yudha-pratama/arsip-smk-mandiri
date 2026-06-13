@@ -22,7 +22,7 @@ jobs:
         port: 2234
         envs: ENV_STAG
         script: |
-          cd /www/wwwroot/arsip-laravel
+          cd /www/wwwroot/arsip-smk-mandiri
           git pull origin staging
           
           # for env staging
