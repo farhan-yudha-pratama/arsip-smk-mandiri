@@ -1,0 +1,37 @@
+name: Deploy Arsip SMK Mandiri Staging
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚀 Deploy to aaPanel VPS via SSH
+      uses: appleboy/ssh-action@master
+      env:
+        ENV_STAG: ${{ secrets.ENV_STAG }}
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: 2234
+        envs: ENV_STAG
+        script: |
+          cd /www/wwwroot/arsip-smk-mandiri
+          git pull origin staging
+          
+          # for env staging
+          echo "$ENV_STAG" > .env
+          
+          docker-compose --env-file .env -f docker-compose.staging.yml up -d --build --force-recreate -V
+          
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan config:cache
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan route:cache
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan view:cache
+          
+          docker-compose -f docker-compose.staging.yml exec -T app php artisan migrate --force

@@ -46,6 +46,7 @@ class DocumentGenerationService
         $tempTemplatePath = '';
         $tempDocxPath = '';
         $tempPdfPath = '';
+        $loUserDir = '';
 
         try {
             $nomorSurat = null;
@@ -181,8 +182,15 @@ class DocumentGenerationService
             $executable = (strpos($sofficePath, ' ') !== false && strpos($sofficePath, '"') === false) 
                 ? '"' . $sofficePath . '"' 
                 : $sofficePath;
-            
-            $command = "{$executable} --headless --nologo --nofirststartwizard --norestore --convert-to pdf --outdir " . escapeshellarg($tempPdfDir) . " " . escapeshellarg($tempDocxPath) . " 2>&1";
+
+            // LibreOffice membutuhkan folder HOME dan UserInstallation yang writable.
+            // Di dalam container Docker, /var/www tidak writable oleh user www-data.
+            // Kita paksa menggunakan /tmp agar LibreOffice bisa menyimpan konfigurasi sementaranya.
+            $loUserDir = sys_get_temp_dir() . '/lo_user_' . uniqid();
+            $homeDir    = sys_get_temp_dir();
+            $loUserUrl  = 'file://' . $loUserDir;
+
+            $command = "HOME={$homeDir} {$executable} --headless --nologo --nofirststartwizard --norestore -env:UserInstallation={$loUserUrl} --convert-to pdf --outdir " . escapeshellarg($tempPdfDir) . " " . escapeshellarg($tempDocxPath) . " 2>&1";
             exec($command, $output, $returnVar);
 
             if ($returnVar !== 0) {
@@ -233,6 +241,17 @@ class DocumentGenerationService
             if ($tempTemplatePath && file_exists($tempTemplatePath)) @unlink($tempTemplatePath);
             if ($tempDocxPath && file_exists($tempDocxPath)) @unlink($tempDocxPath);
             if ($tempPdfPath && file_exists($tempPdfPath)) @unlink($tempPdfPath);
+            if ($loUserDir && is_dir($loUserDir)) {
+                // Hapus folder profil sementara LibreOffice
+                $files = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($loUserDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::CHILD_FIRST
+                );
+                foreach ($files as $fileinfo) {
+                    $fileinfo->isDir() ? @rmdir($fileinfo->getRealPath()) : @unlink($fileinfo->getRealPath());
+                }
+                @rmdir($loUserDir);
+            }
         }
     }
 
