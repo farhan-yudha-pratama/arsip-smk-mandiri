@@ -15,6 +15,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'document_generation_sync' => env('DOCUMENT_GENERATION_SYNC', false),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
