@@ -115,8 +115,8 @@ export default function ArchiveReport({ documents, filters }: Props) {
                             Riwayat dokumen yang telah diarsipkan.
                         </p>
                     </div>
-                    <div>
-                        <Button onClick={() => setIsExportModalOpen(true)}>
+                    <div className="w-full sm:w-auto">
+                        <Button className="w-full sm:w-auto" onClick={() => setIsExportModalOpen(true)}>
                             <Download className="mr-2 h-4 w-4" /> Export PDF
                         </Button>
                     </div>
@@ -172,7 +172,63 @@ export default function ArchiveReport({ documents, filters }: Props) {
 
                 <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        {/* Mobile View (Cards) */}
+                        <div className="block md:hidden p-4 bg-muted/20">
+                            {documents.data.length > 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    {documents.data.map((doc: any) => (
+                                        <div key={doc.id} className="flex flex-col gap-3 p-4 bg-card rounded-xl border shadow-sm transition-all hover:shadow-md">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="flex items-start gap-2">
+                                                    <div className="bg-blue-100 p-2 rounded-lg shrink-0 dark:bg-blue-900/30">
+                                                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                    </div>
+                                                    <span className="font-semibold text-sm line-clamp-2 mt-0.5">{doc.title}</span>
+                                                </div>
+                                                <div className="shrink-0">
+                                                    {doc.incoming_mail ? (
+                                                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 text-[10px] px-2 py-0.5">Masuk</Badge>
+                                                    ) : (
+                                                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 text-[10px] px-2 py-0.5">Keluar</Badge>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-3 text-xs bg-muted/40 p-3 rounded-lg mt-1">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-muted-foreground font-medium flex items-center gap-1.5">
+                                                        <User className="h-3 w-3" /> Pembuat
+                                                    </span>
+                                                    <span className="font-medium">{doc.creator?.name || 'Sistem'}</span>
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-muted-foreground font-medium flex items-center gap-1.5">
+                                                        <Globe className="h-3 w-3" /> Tujuan
+                                                    </span>
+                                                    <div className="flex items-center font-medium">
+                                                        <span className="truncate">{doc.recipient_name || '-'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between mt-1">
+                                                <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-md">
+                                                    <History className="h-3.5 w-3.5" />
+                                                    <span>{formatRelativeTime(doc.created_at)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex h-32 items-center justify-center text-sm text-muted-foreground bg-card rounded-xl border border-dashed">
+                                    Tidak ada riwayat arsip yang ditemukan.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Desktop View (Table) */}
+                        <table className="hidden md:table w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50 transition-colors">
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Judul Dokumen</th>
