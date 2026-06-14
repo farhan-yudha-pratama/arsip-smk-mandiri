@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('nis')->unique();
-            $table->string('nisn')->unique();
-            $table->string('name');
+            $table->string('nisn')->nullable()->unique();
+            $table->string('name')->index();
+            $table->string('kelas')->nullable();
+            $table->string('periode')->nullable();
             $table->timestamps();
         });
     }
