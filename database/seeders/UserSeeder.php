@@ -21,18 +21,18 @@ class UserSeeder extends Seeder
 
         $superadmin1 = User::create([
             'email' => 'agungdani0309@gmail.com',
-            'name' => 'Super Administrator',
+            'name' => 'Agung Dani',
             'password' => Hash::make('4IpbT0g&g$p$oZ!g')
             ],
         );
         $superadmin1->assignRole(RoleType::SUPERADMIN->value);
 
-        $superadmin1 = User::create([
+        $superadmin2 = User::create([
             'email' => 'farhan.yudha2016@gmail.com',
-            'name' => 'Super Administrator',
+            'name' => 'Yp',
             'password' => Hash::make('3URI:39LRxfvrY*k')
             ],
         );
-        $superadmin1->assignRole(RoleType::SUPERADMIN->value);
+        $superadmin2->assignRole(RoleType::SUPERADMIN->value);
     }
 }
