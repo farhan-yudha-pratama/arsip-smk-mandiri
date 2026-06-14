@@ -28,10 +28,10 @@ jobs:
           # for env staging
           echo "$ENV_STAG" > .env
           
-          docker-compose --env-file .env -f docker-compose.staging.yml up -d --build --force-recreate -V
+          docker-compose --env-file .env up -d --build --force-recreate -V
           
-          docker-compose -f docker-compose.staging.yml exec -T app php artisan config:cache
-          docker-compose -f docker-compose.staging.yml exec -T app php artisan route:cache
-          docker-compose -f docker-compose.staging.yml exec -T app php artisan view:cache
+          docker-compose exec -T app php artisan config:cache
+          docker-compose exec -T app php artisan route:cache
+          docker-compose exec -T app php artisan view:cache
           
-          docker-compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
+          docker-compose exec -T app php artisan migrate --force
