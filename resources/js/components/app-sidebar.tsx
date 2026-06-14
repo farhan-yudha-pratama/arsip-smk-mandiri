@@ -12,6 +12,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarTrigger,
 } from '@/components/ui/sidebar';
 import users from '@/routes/users';
 import categoryNumbering from '@/routes/category-numbering';
@@ -30,7 +31,7 @@ const mainNavItems: NavItem[] = [
         title: 'Laporan Arsip',
         href: '/laporan-arsip',
         icon: History,
-        roles: ['SUPERADMIN', 'ADMIN', 'OPERATOR'],
+        roles: ['SUPERADMIN', 'OPERATOR'],
     },
     {
         title: 'Surat Masuk',
@@ -56,14 +57,14 @@ const mainNavItems: NavItem[] = [
         title: 'Templates',
         href: templates.index(),
         icon: LayoutTemplate,
-        roles: ['SUPERADMIN', 'ADMIN'],
+        roles: ['SUPERADMIN', 'OPERATOR'],
     },
 
     {
         title: 'Kategori Penomoran',
         href: categoryNumbering.index(),
         icon: Hash,
-        roles: ['SUPERADMIN', 'ADMIN'],
+        roles: ['SUPERADMIN', 'OPERATOR'],
     },
 ];
 
@@ -78,15 +79,18 @@ export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+                <div className="flex items-center justify-between">
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton size="lg" asChild>
+                                <Link href={dashboard()} prefetch>
+                                    <AppLogo />
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                    <SidebarTrigger className="md:hidden" />
+                </div>
             </SidebarHeader>
 
             <SidebarContent>

@@ -25,22 +25,34 @@ export default function UserIndex({ users, roles }: Props) {
                             <CardDescription>Kelola peran dan hak akses pengguna.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <div className="relative w-full overflow-auto">
-                                <table className="w-full caption-bottom text-sm">
-                                    <thead className="[&_tr]:border-b">
-                                        <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Nama</th>
-                                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Email</th>
-                                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Peran Saat Ini</th>
-                                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Ubah Peran</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="[&_tr:last-child]:border-0">
+                             <div className="relative w-full">
+                                {/* Mobile View (Cards) */}
+                                <div className="block md:hidden">
+                                    <div className="flex flex-col gap-4">
                                         {users.data.map((user) => (
-                                            <UserRow key={user.id} user={user} roles={roles} />
+                                            <UserCard key={user.id} user={user} roles={roles} />
                                         ))}
-                                    </tbody>
-                                </table>
+                                    </div>
+                                </div>
+
+                                {/* Desktop View (Table) */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="w-full caption-bottom text-sm">
+                                        <thead className="[&_tr]:border-b">
+                                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                                                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Nama</th>
+                                                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Email</th>
+                                                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Peran Saat Ini</th>
+                                                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Ubah Peran</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="[&_tr:last-child]:border-0">
+                                            {users.data.map((user) => (
+                                                <UserRow key={user.id} user={user} roles={roles} />
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             <div className="mt-4 flex justify-end">
                                 <Pagination links={users.links} />
@@ -50,6 +62,53 @@ export default function UserIndex({ users, roles }: Props) {
                 </div>
             </div>
         </>
+    );
+}
+
+function UserCard({ user, roles }: { user: User & { roles: { name: string }[] }; roles: string[] }) {
+    const { patch, processing } = useForm({
+        role: user.roles[0]?.name || '',
+    });
+
+    const handleRoleChange = (newRole: string) => {
+        patch(usersRoute.updateRole(user.id.toString()).url, {
+            data: { role: newRole },
+            onSuccess: () => toast.success('Peran berhasil diperbarui'),
+        });
+    };
+
+    return (
+        <div className="flex flex-col gap-3 p-4 bg-card rounded-xl border shadow-sm transition-all hover:shadow-md">
+            <div className="flex flex-col gap-1">
+                <span className="font-semibold">{user.name}</span>
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+            </div>
+            
+            <div className="flex items-center justify-between mt-2">
+                <div className="flex flex-col gap-1.5">
+                    <span className="text-xs text-muted-foreground font-medium">Peran Saat Ini</span>
+                    <div>
+                        <Badge variant="outline" className="bg-muted/50">{user.roles[0]?.name || 'Tanpa Peran'}</Badge>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-2 pt-3 border-t">
+                <span className="text-xs text-muted-foreground font-medium block mb-2">Ubah Peran</span>
+                <Select disabled={processing} onValueChange={handleRoleChange} defaultValue={user.roles[0]?.name}>
+                    <SelectTrigger className="w-full h-9">
+                        <SelectValue placeholder="Pilih peran" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {roles.map((role) => (
+                            <SelectItem key={role} value={role}>
+                                {role}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
     );
 }
 

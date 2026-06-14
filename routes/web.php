@@ -25,8 +25,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
     // Laporan
-    Route::get('/laporan-arsip', [\App\Http\Controllers\ArchiveReportController::class, 'index'])->name('reports.archive.index');
-    Route::get('/laporan-arsip/export', [\App\Http\Controllers\ArchiveReportController::class, 'export'])->name('reports.archive.export');
+    Route::middleware(['role:SUPERADMIN|OPERATOR'])->group(function () {
+        Route::get('/laporan-arsip', [\App\Http\Controllers\ArchiveReportController::class, 'index'])->name('reports.archive.index');
+        Route::get('/laporan-arsip/export', [\App\Http\Controllers\ArchiveReportController::class, 'export'])->name('reports.archive.export');
+    });
 });
 
 Route::middleware(['auth', 'role:SUPERADMIN'])->group(function () {
@@ -34,7 +36,7 @@ Route::middleware(['auth', 'role:SUPERADMIN'])->group(function () {
     Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
 });
 
-Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
+Route::middleware(['auth', 'role:SUPERADMIN|OPERATOR'])->group(function () {
     // Templates
     Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::post('/templates', [TemplateController::class, 'store'])->name('templates.store');

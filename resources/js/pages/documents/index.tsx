@@ -299,7 +299,99 @@ export default function Documents({ documents = [], templates, students, teacher
 
                 <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        {/* Mobile View (Cards) */}
+                        <div className="block md:hidden p-4 bg-muted/20">
+                            {filteredDocuments.length > 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    {filteredDocuments.map((doc) => (
+                                        <div key={doc.id} className="flex flex-col gap-3 p-4 bg-card rounded-xl border shadow-sm transition-all hover:shadow-md">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="flex items-start gap-2">
+                                                    <div className="bg-blue-100 p-2 rounded-lg shrink-0 dark:bg-blue-900/30">
+                                                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold text-sm line-clamp-2 mt-0.5">{doc.title}</span>
+                                                        <span className="text-[10px] text-muted-foreground mt-0.5">Template: {doc.template?.name || 'N/A'}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="shrink-0 flex flex-col items-end gap-1">
+                                                    {getStatusBadge(doc.status)}
+                                                    {doc.is_batch && (
+                                                        <Badge variant="secondary" className="px-1 h-4 text-[9px] uppercase bg-blue-50 text-blue-600 border-blue-100">Batch</Badge>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-3 text-xs bg-muted/40 p-3 rounded-lg mt-1">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-muted-foreground font-medium flex items-center gap-1.5">
+                                                        <User className="h-3 w-3" /> Pembuat
+                                                    </span>
+                                                    <span className="font-medium">{doc.creator?.name || 'System'}</span>
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-muted-foreground font-medium flex items-center gap-1.5">
+                                                        <Globe className="h-3 w-3" /> Tujuan
+                                                    </span>
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center font-medium">
+                                                            {getRecipientIcon(doc.recipient_type)}
+                                                            {doc.recipient_type}
+                                                        </div>
+                                                        <RecipientBatchInfo doc={doc} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between mt-1">
+                                                <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-md">
+                                                    <History className="h-3.5 w-3.5" />
+                                                    <span>{formatDateTime(doc.created_at)}</span>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    {doc.status === 'GENERATED' || doc.status === 'SIGNED' || doc.status === 'ARCHIVED' ? (
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                                                            <a href={documentRoutes.download.url(doc.id.toString())}>
+                                                                <Download className="h-3 w-3" />
+                                                            </a>
+                                                        </Button>
+                                                    ) : null}
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openHistoryModal(doc)}>
+                                                        <History className="h-3 w-3 text-muted-foreground" />
+                                                    </Button>
+                                                    {doc.status === 'GENERATED' && (
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600" onClick={() => openUploadSignedModal(doc)}>
+                                                            <Upload className="h-3 w-3" />
+                                                        </Button>
+                                                    )}
+                                                    {doc.status === 'SIGNED' && (
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600" onClick={() => handleArchive(doc)} disabled={archiving}>
+                                                            <CheckCircle className="h-3 w-3" />
+                                                        </Button>
+                                                    )}
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => openDeleteModal(doc)}>
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </Button>
+                                                    {(doc.status === 'DRAFT' || doc.status === 'FAILED') && (
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600" onClick={() => openEditModal(doc)}>
+                                                            <Pencil className="h-3 w-3" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex h-32 items-center justify-center text-sm text-muted-foreground bg-card rounded-xl border border-dashed">
+                                    No documents found.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Desktop View (Table) */}
+                        <table className="hidden md:table w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50 transition-colors">
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Title</th>

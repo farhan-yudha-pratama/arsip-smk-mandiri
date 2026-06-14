@@ -45,19 +45,19 @@ export default function GetTeacher() {
 
     return (
         <>
-            <Head title="Get Teacher" />
+            <Head title="Tarik Data Guru" />
 
             <div className="space-y-6">
                 <div>
-                    <h2 className="text-lg font-medium">Get Teacher Data</h2>
+                    <h2 className="text-lg font-medium">Tarik Data Guru</h2>
                     <p className="text-sm text-muted-foreground">
-                        Fetch active teacher data from the API endpoint using a secure token.
+                        Tarik data guru aktif dari API menggunakan token keamanan.
                     </p>
                 </div>
 
                 <form onSubmit={fetchTeachers} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="token">API Token</Label>
+                        <Label htmlFor="token">Token API</Label>
                         <div className="flex gap-2">
                             <Input
                                 id="token"
@@ -67,12 +67,12 @@ export default function GetTeacher() {
                                     if (successMsg) setSuccessMsg(null);
                                     if (error) setError(null);
                                 }}
-                                placeholder="Enter API Token"
+                                placeholder="Masukkan Token API"
                                 className="max-w-md"
                                 required
                             />
                             <Button type="submit" disabled={loading || token.trim().length === 0}>
-                                {loading ? 'Fetching...' : 'Fetch Teachers'}
+                                {loading ? 'Menarik Data...' : 'Tarik Data Guru'}
                             </Button>
                         </div>
                     </div>
@@ -91,9 +91,24 @@ export default function GetTeacher() {
                 )}
 
                 {teachers.length > 0 && (
-                    <div className="rounded-md border">
+                    <div className="rounded-md border bg-card">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            {/* Mobile View (Cards) */}
+                            <div className="block md:hidden p-4">
+                                <div className="flex flex-col gap-4">
+                                    {teachers.map((teacher, index) => (
+                                        <div key={index} className="flex flex-col gap-2 p-4 bg-muted/20 rounded-xl border">
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold">{teacher.nama_lengkap}</span>
+                                                <span className="text-sm text-muted-foreground">NIP: {teacher.nip || '-'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Desktop View (Table) */}
+                            <table className="hidden md:table w-full text-sm">
                                 <thead className="border-b bg-muted/50">
                                     <tr>
                                         <th className="p-3 text-left font-medium">NIP</th>
