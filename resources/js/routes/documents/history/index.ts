@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\DocumentController::download
  * @see app/Http/Controllers/DocumentController.php:241
@@ -62,42 +62,6 @@ download.head = (args: { document: string | { id: string }, history: number | { 
     url: download.url(args, options),
     method: 'head',
 })
-
-    /**
-* @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:241
- * @route '/documents/{document}/history/{history}/download'
- */
-    const downloadForm = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: download.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:241
- * @route '/documents/{document}/history/{history}/download'
- */
-        downloadForm.get = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: download.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:241
- * @route '/documents/{document}/history/{history}/download'
- */
-        downloadForm.head = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: download.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    download.form = downloadForm
 const history = {
     download: Object.assign(download, download),
 }

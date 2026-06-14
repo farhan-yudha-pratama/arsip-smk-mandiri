@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../wayfinder'
 import incoming from './incoming'
 import outgoing from './outgoing'
 import history from './history'
@@ -36,27 +36,6 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     method: 'post',
 })
 
-    /**
-* @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:96
- * @route '/documents'
- */
-    const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: store.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:96
- * @route '/documents'
- */
-        storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: store.url(options),
-            method: 'post',
-        })
-    
-    store.form = storeForm
 /**
 * @see \App\Http\Controllers\DocumentController::download
  * @see app/Http/Controllers/DocumentController.php:224
@@ -124,41 +103,6 @@ download.head = (args: { document: string | { id: string } } | [document: string
     method: 'head',
 })
 
-    /**
-* @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:224
- * @route '/documents/{document}/download'
- */
-    const downloadForm = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: download.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:224
- * @route '/documents/{document}/download'
- */
-        downloadForm.get = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: download.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:224
- * @route '/documents/{document}/download'
- */
-        downloadForm.head = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: download.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    download.form = downloadForm
 /**
 * @see \App\Http\Controllers\DocumentController::uploadSigned
  * @see app/Http/Controllers/DocumentController.php:281
@@ -217,27 +161,6 @@ uploadSigned.post = (args: { document: string | { id: string } } | [document: st
     method: 'post',
 })
 
-    /**
-* @see \App\Http\Controllers\DocumentController::uploadSigned
- * @see app/Http/Controllers/DocumentController.php:281
- * @route '/documents/{document}/signed'
- */
-    const uploadSignedForm = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: uploadSigned.url(args, options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::uploadSigned
- * @see app/Http/Controllers/DocumentController.php:281
- * @route '/documents/{document}/signed'
- */
-        uploadSignedForm.post = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: uploadSigned.url(args, options),
-            method: 'post',
-        })
-    
-    uploadSigned.form = uploadSignedForm
 /**
 * @see \App\Http\Controllers\DocumentController::archive
  * @see app/Http/Controllers/DocumentController.php:321
@@ -296,27 +219,6 @@ archive.post = (args: { document: string | { id: string } } | [document: string 
     method: 'post',
 })
 
-    /**
-* @see \App\Http\Controllers\DocumentController::archive
- * @see app/Http/Controllers/DocumentController.php:321
- * @route '/documents/{document}/archive'
- */
-    const archiveForm = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: archive.url(args, options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::archive
- * @see app/Http/Controllers/DocumentController.php:321
- * @route '/documents/{document}/archive'
- */
-        archiveForm.post = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: archive.url(args, options),
-            method: 'post',
-        })
-    
-    archive.form = archiveForm
 /**
 * @see \App\Http\Controllers\DocumentController::update
  * @see app/Http/Controllers/DocumentController.php:172
@@ -375,37 +277,6 @@ update.put = (args: { document: string | { id: string } } | [document: string | 
     method: 'put',
 })
 
-    /**
-* @see \App\Http\Controllers\DocumentController::update
- * @see app/Http/Controllers/DocumentController.php:172
- * @route '/documents/{document}'
- */
-    const updateForm = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: update.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'PUT',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::update
- * @see app/Http/Controllers/DocumentController.php:172
- * @route '/documents/{document}'
- */
-        updateForm.put = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: update.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PUT',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    update.form = updateForm
 /**
 * @see \App\Http\Controllers\DocumentController::destroy
  * @see app/Http/Controllers/DocumentController.php:263
@@ -463,38 +334,6 @@ destroy.delete = (args: { document: string | { id: string } } | [document: strin
     url: destroy.url(args, options),
     method: 'delete',
 })
-
-    /**
-* @see \App\Http\Controllers\DocumentController::destroy
- * @see app/Http/Controllers/DocumentController.php:263
- * @route '/documents/{document}'
- */
-    const destroyForm = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: destroy.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'DELETE',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::destroy
- * @see app/Http/Controllers/DocumentController.php:263
- * @route '/documents/{document}'
- */
-        destroyForm.delete = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: destroy.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'DELETE',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    destroy.form = destroyForm
 const documents = {
     incoming: Object.assign(incoming, incoming),
 outgoing: Object.assign(outgoing, outgoing),
