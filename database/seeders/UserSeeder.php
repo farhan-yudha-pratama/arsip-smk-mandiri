@@ -22,7 +22,8 @@ class UserSeeder extends Seeder
         $superadmin = User::create([
             'email' => 'superadmin@example.com',
             'name' => 'Super Administrator',
-            'password' => Hash::make('password')
+            'password' => Hash::make('password'),
+            'is_active' => true,
             ],
         );
         $superadmin->assignRole(RoleType::SUPERADMIN->value);
@@ -30,7 +31,8 @@ class UserSeeder extends Seeder
         $admin = User::create([
             'email' => 'admin@example.com',
             'name' => 'Administrator',
-            'password' => Hash::make('password')
+            'password' => Hash::make('password'),
+            'is_active' => true,
             ],
         );
         $admin->assignRole(RoleType::ADMIN->value);
@@ -38,7 +40,8 @@ class UserSeeder extends Seeder
         $operator = User::create([
             'email' => 'operator@example.com',
             'name' => 'Operator',
-            'password' => Hash::make('password')
+            'password' => Hash::make('password'),
+            'is_active' => true,
             ],
         );
         $operator->assignRole(RoleType::OPERATOR->value);

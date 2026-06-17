@@ -99,9 +99,127 @@ updateRole.patch = (args: { user: string | { id: string } } | [user: string | { 
     url: updateRole.url(args, options),
     method: 'patch',
 })
+
+/**
+* @see \App\Http\Controllers\UserController::updateStatus
+ * @see app/Http/Controllers/UserController.php:46
+ * @route '/users/{user}/status'
+ */
+export const updateStatus = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus.url(args, options),
+    method: 'patch',
+})
+
+updateStatus.definition = {
+    methods: ["patch"],
+    url: '/users/{user}/status',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\UserController::updateStatus
+ * @see app/Http/Controllers/UserController.php:46
+ * @route '/users/{user}/status'
+ */
+updateStatus.url = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { user: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { user: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    user: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        user: typeof args.user === 'object'
+                ? args.user.id
+                : args.user,
+                }
+
+    return updateStatus.definition.url
+            .replace('{user}', parsedArgs.user.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\UserController::updateStatus
+ * @see app/Http/Controllers/UserController.php:46
+ * @route '/users/{user}/status'
+ */
+updateStatus.patch = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus.url(args, options),
+    method: 'patch',
+})
+
+/**
+* @see \App\Http\Controllers\UserController::destroy
+ * @see app/Http/Controllers/UserController.php:59
+ * @route '/users/{user}'
+ */
+export const destroy = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy.url(args, options),
+    method: 'delete',
+})
+
+destroy.definition = {
+    methods: ["delete"],
+    url: '/users/{user}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\UserController::destroy
+ * @see app/Http/Controllers/UserController.php:59
+ * @route '/users/{user}'
+ */
+destroy.url = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { user: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { user: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    user: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        user: typeof args.user === 'object'
+                ? args.user.id
+                : args.user,
+                }
+
+    return destroy.definition.url
+            .replace('{user}', parsedArgs.user.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\UserController::destroy
+ * @see app/Http/Controllers/UserController.php:59
+ * @route '/users/{user}'
+ */
+destroy.delete = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy.url(args, options),
+    method: 'delete',
+})
 const users = {
     index: Object.assign(index, index),
 updateRole: Object.assign(updateRole, updateRole),
+updateStatus: Object.assign(updateStatus, updateStatus),
+destroy: Object.assign(destroy, destroy),
 }
 
 export default users

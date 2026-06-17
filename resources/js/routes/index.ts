@@ -208,6 +208,45 @@ home.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
 })
 
 /**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
+ */
+export const unconfirmed = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: unconfirmed.url(options),
+    method: 'get',
+})
+
+unconfirmed.definition = {
+    methods: ["get","head"],
+    url: '/unconfirmed',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
+ */
+unconfirmed.url = (options?: RouteQueryOptions) => {
+    return unconfirmed.definition.url + queryParams(options)
+}
+
+/**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
+ */
+unconfirmed.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: unconfirmed.url(options),
+    method: 'get',
+})
+/**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
+ */
+unconfirmed.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: unconfirmed.url(options),
+    method: 'head',
+})
+
+/**
 * @see \App\Http\Controllers\DashboardController::dashboard
  * @see app/Http/Controllers/DashboardController.php:9
  * @route '/dashboard'
