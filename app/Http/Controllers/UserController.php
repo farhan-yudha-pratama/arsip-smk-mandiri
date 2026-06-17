@@ -42,4 +42,28 @@ class UserController extends Controller
 
         return back()->with('status', 'Peran pengguna berhasil diperbarui.');
     }
+
+    public function updateStatus(Request $request, User $user)
+    {
+        $request->validate([
+            'is_active' => 'required|boolean',
+        ]);
+
+        $user->update([
+            'is_active' => $request->is_active,
+        ]);
+
+        return back()->with('status', 'Status pengguna berhasil diperbarui.');
+    }
+
+    public function destroy(User $user)
+    {
+        if ($user->is_active) {
+            return back()->withErrors(['error' => 'Pengguna yang aktif tidak dapat dihapus.']);
+        }
+
+        $user->delete();
+
+        return back()->with('status', 'Pengguna berhasil dihapus.');
+    }
 }

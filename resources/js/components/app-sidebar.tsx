@@ -31,7 +31,7 @@ const mainNavItems: NavItem[] = [
         title: 'Laporan Arsip',
         href: '/laporan-arsip',
         icon: History,
-        roles: ['SUPERADMIN', 'OPERATOR'],
+        roles: ['SUPERADMIN', 'ADMIN', 'OPERATOR'],
     },
     {
         title: 'Surat Masuk',
@@ -57,14 +57,14 @@ const mainNavItems: NavItem[] = [
         title: 'Templates',
         href: templates.index(),
         icon: LayoutTemplate,
-        roles: ['SUPERADMIN', 'OPERATOR'],
+        roles: ['SUPERADMIN', 'ADMIN'],
     },
 
     {
         title: 'Kategori Penomoran',
         href: categoryNumbering.index(),
         icon: Hash,
-        roles: ['SUPERADMIN', 'OPERATOR'],
+        roles: ['SUPERADMIN', 'ADMIN'],
     },
 ];
 

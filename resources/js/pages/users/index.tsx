@@ -1,4 +1,7 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { Trash2, UserX } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -44,6 +47,8 @@ export default function UserIndex({ users, roles }: Props) {
                                                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Email</th>
                                                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Peran Saat Ini</th>
                                                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Ubah Peran</th>
+                                                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                                                <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody className="[&_tr:last-child]:border-0">
@@ -66,19 +71,38 @@ export default function UserIndex({ users, roles }: Props) {
 }
 
 function UserCard({ user, roles }: { user: User & { roles: { name: string }[] }; roles: string[] }) {
-    const { patch, processing } = useForm({
-        role: user.roles[0]?.name || '',
-    });
+    const [processing, setProcessing] = useState(false);
 
     const handleRoleChange = (newRole: string) => {
-        patch(usersRoute.updateRole(user.id.toString()).url, {
-            data: { role: newRole },
+        router.patch(usersRoute.updateRole(user.id.toString()).url, { role: newRole }, {
+            onBefore: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
             onSuccess: () => toast.success('Peran berhasil diperbarui'),
         });
     };
 
+    const handleStatusChange = (status: string) => {
+        router.patch(usersRoute.updateStatus(user.id.toString()).url, { is_active: status === 'true' }, {
+            onBefore: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
+            onSuccess: () => toast.success('Status berhasil diperbarui'),
+        });
+    };
+
+    const handleDelete = () => {
+        if (!confirm(`Apakah Anda yakin ingin menghapus pengguna ${user.name}?`)) return;
+        router.delete(usersRoute.destroy(user.id.toString()).url, {
+            onBefore: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
+            onSuccess: () => toast.success('Pengguna berhasil dihapus'),
+            onError: (errs: any) => {
+                toast.error(errs?.error || 'Gagal menghapus pengguna');
+            }
+        });
+    };
+
     return (
-        <div className="flex flex-col gap-3 p-4 bg-card rounded-xl border shadow-sm transition-all hover:shadow-md">
+        <div className="flex flex-col gap-3 p-4 bg-card rounded-xl border shadow-sm transition-all hover:shadow-md opacity-100 data-[inactive=true]:opacity-75" data-inactive={!user.is_active}>
             <div className="flex flex-col gap-1">
                 <span className="font-semibold">{user.name}</span>
                 <span className="text-sm text-muted-foreground">{user.email}</span>
@@ -93,39 +117,81 @@ function UserCard({ user, roles }: { user: User & { roles: { name: string }[] };
                 </div>
             </div>
 
-            <div className="mt-2 pt-3 border-t">
-                <span className="text-xs text-muted-foreground font-medium block mb-2">Ubah Peran</span>
-                <Select disabled={processing} onValueChange={handleRoleChange} defaultValue={user.roles[0]?.name}>
-                    <SelectTrigger className="w-full h-9">
-                        <SelectValue placeholder="Pilih peran" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {roles.map((role) => (
-                            <SelectItem key={role} value={role}>
-                                {role}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+            <div className="mt-2 pt-3 border-t grid grid-cols-2 gap-3">
+                <div>
+                    <span className="text-xs text-muted-foreground font-medium block mb-2">Ubah Peran</span>
+                    <Select disabled={processing} onValueChange={handleRoleChange} defaultValue={user.roles[0]?.name}>
+                        <SelectTrigger className="w-full h-9">
+                            <SelectValue placeholder="Pilih peran" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {roles.map((role) => (
+                                <SelectItem key={role} value={role}>
+                                    {role}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div>
+                    <span className="text-xs text-muted-foreground font-medium block mb-2">Status</span>
+                    <Select disabled={processing} onValueChange={handleStatusChange} defaultValue={user.is_active ? 'true' : 'false'}>
+                        <SelectTrigger className="w-full h-9">
+                            <SelectValue placeholder="Pilih status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="true">Aktif</SelectItem>
+                            <SelectItem value="false">Tidak Aktif</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
+            
+            {!user.is_active && (
+                <div className="mt-1 pt-2 border-t flex justify-end">
+                    <Button variant="destructive" size="sm" onClick={handleDelete} disabled={processing}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Hapus Pengguna
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
 
 function UserRow({ user, roles }: { user: User & { roles: { name: string }[] }; roles: string[] }) {
-    const { patch, processing } = useForm({
-        role: user.roles[0]?.name || '',
-    });
+    const [processing, setProcessing] = useState(false);
 
     const handleRoleChange = (newRole: string) => {
-        patch(usersRoute.updateRole(user.id.toString()).url, {
-            data: { role: newRole },
+        router.patch(usersRoute.updateRole(user.id.toString()).url, { role: newRole }, {
+            onBefore: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
             onSuccess: () => toast.success('Peran berhasil diperbarui'),
         });
     };
 
+    const handleStatusChange = (status: string) => {
+        router.patch(usersRoute.updateStatus(user.id.toString()).url, { is_active: status === 'true' }, {
+            onBefore: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
+            onSuccess: () => toast.success('Status berhasil diperbarui'),
+        });
+    };
+
+    const handleDelete = () => {
+        if (!confirm(`Apakah Anda yakin ingin menghapus pengguna ${user.name}?`)) return;
+        router.delete(usersRoute.destroy(user.id.toString()).url, {
+            onBefore: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
+            onSuccess: () => toast.success('Pengguna berhasil dihapus'),
+            onError: (errs: any) => {
+                toast.error(errs?.error || 'Gagal menghapus pengguna');
+            }
+        });
+    };
+
     return (
-        <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+        <tr className={`border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${!user.is_active ? 'opacity-75 bg-muted/20' : ''}`}>
             <td className="p-4 align-middle font-medium">{user.name}</td>
             <td className="p-4 align-middle">{user.email}</td>
             <td className="p-4 align-middle">
@@ -144,6 +210,29 @@ function UserRow({ user, roles }: { user: User & { roles: { name: string }[] }; 
                         ))}
                     </SelectContent>
                 </Select>
+            </td>
+            <td className="p-4 align-middle">
+                <Select disabled={processing} onValueChange={handleStatusChange} defaultValue={user.is_active ? 'true' : 'false'}>
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="true">Aktif</SelectItem>
+                        <SelectItem value="false">Tidak Aktif</SelectItem>
+                    </SelectContent>
+                </Select>
+            </td>
+            <td className="p-4 align-middle text-center">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-destructive hover:bg-destructive/10" 
+                    disabled={user.is_active || processing}
+                    onClick={handleDelete}
+                    title={user.is_active ? "Nonaktifkan pengguna terlebih dahulu untuk menghapus" : "Hapus pengguna"}
+                >
+                    <Trash2 className="h-4 w-4" />
+                </Button>
             </td>
         </tr>
     );
