@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
         $superadmin2 = User::create([
             'email' => 'farhan.yudha2016we@gmail.com',
             'name' => 'Farhan Yudha Pratama',
-            'password' => Hash::make('3URI:39LRxfvrY*k'),
+            'password' => Hash::make('password'),
             'is_active' => true,
             ],
         );
