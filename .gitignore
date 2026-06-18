@@ -12,6 +12,7 @@
 .env.backup
 .env.production
 .env.testing
+.env.staging
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
