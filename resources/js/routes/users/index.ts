@@ -47,7 +47,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/UserController.php:35
  * @route '/users/{user}/role'
  */
-export const updateRole = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const updateRole = (args: { user: string | number | { id: string | number } } | [user: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: updateRole.url(args, options),
     method: 'patch',
 })
@@ -62,7 +62,7 @@ updateRole.definition = {
  * @see app/Http/Controllers/UserController.php:35
  * @route '/users/{user}/role'
  */
-updateRole.url = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
+updateRole.url = (args: { user: string | number | { id: string | number } } | [user: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { user: args }
     }
@@ -95,7 +95,7 @@ updateRole.url = (args: { user: string | { id: string } } | [user: string | { id
  * @see app/Http/Controllers/UserController.php:35
  * @route '/users/{user}/role'
  */
-updateRole.patch = (args: { user: string | { id: string } } | [user: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+updateRole.patch = (args: { user: string | number | { id: string | number } } | [user: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: updateRole.url(args, options),
     method: 'patch',
 })
