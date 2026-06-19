@@ -116,8 +116,7 @@ class S3StorageService implements StorageServiceInterface
                 return $this->disk->url($path);
             }
 
-            
-            $externalEndpoint = env('AWS_EXTERNAL_ENDPOINT', 'http://localhost:3900');
+            $externalEndpoint = env('AWS_EXTERNAL_ENDPOINT', config('filesystems.disks.s3.endpoint', 'http://localhost:9000'));
             
             $client = new \Aws\S3\S3Client([
                 'version'                 => 'latest',

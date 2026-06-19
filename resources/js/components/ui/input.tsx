@@ -2,7 +2,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Upload } from "lucide-react"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({ className, type, onChange, ...props }: React.ComponentProps<"input">) {
   const [fileName, setFileName] = React.useState<string | null>(null)
 
   if (type === "file") {
@@ -19,15 +19,15 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         <input
           type="file"
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+          {...props}
           onChange={(e) => {
             if (e.target.files && e.target.files.length > 0) {
               setFileName(e.target.files[0].name)
             } else {
               setFileName(null)
             }
-            props.onChange?.(e)
+            onChange?.(e)
           }}
-          {...props}
         />
         <div className="flex h-full items-center justify-center gap-2 bg-muted/80 px-4 border-r border-input text-sm font-medium text-foreground transition-colors group-hover:bg-muted">
           <Upload className="h-4 w-4" />
@@ -54,6 +54,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:focus-visible:ring-destructive/30",
         className
       )}
+      onChange={onChange}
       {...props}
     />
   )

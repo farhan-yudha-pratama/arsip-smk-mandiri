@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
             'is_active' => true,
             ],
         );
-        $superadmin1->assignRole(RoleType::SUPERADMIN->value);
+        $superadmin->assignRole(RoleType::SUPERADMIN->value);
 
         $admin = User::create([
             'email' => 'admin@example.com',

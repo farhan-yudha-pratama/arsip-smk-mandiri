@@ -4,6 +4,9 @@
 /public/build
 /public/hot
 /public/storage
+/database/seeders/
+/docker-compose.staging.yaml
+/docker-compose.yaml
 /storage/*.key
 /storage/pail
 /vendor
@@ -25,4 +28,3 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-/database/seeders/*
