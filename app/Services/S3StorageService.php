@@ -101,7 +101,7 @@ class S3StorageService implements StorageServiceInterface
         return $this->disk->url($path);
     }
 
-    public function getTemporaryUrl(string $path, int $minutes = 10, bool $download = false, ?string $filename = null): string
+    public function getTemporaryUrl(string $path, ?int $minutes = null, bool $download = false, ?string $filename = null): string
     {
         try {
             if (!$this->disk->exists($path)) {
@@ -116,7 +116,8 @@ class S3StorageService implements StorageServiceInterface
                 return $this->disk->url($path);
             }
 
-            $externalEndpoint = env('AWS_EXTERNAL_ENDPOINT', config('filesystems.disks.s3.endpoint', 'http://localhost:9000'));
+            $minutes = $minutes ?? config('filesystems.disks.s3.temporary_url_minutes', 10);
+            $externalEndpoint = config('filesystems.disks.s3.external_endpoint', config('filesystems.disks.s3.endpoint', 'http://localhost:9000'));
             
             $client = new \Aws\S3\S3Client([
                 'version'                 => 'latest',

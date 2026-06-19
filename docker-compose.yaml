@@ -26,8 +26,6 @@ services:
                    php-fpm"
         networks:
             - global-vps-network
-        extra_hosts:
-            - "103.162.122.114:host-gateway"
 
     webserver:
         image: nginx:alpine

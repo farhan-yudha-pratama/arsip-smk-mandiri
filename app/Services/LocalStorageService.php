@@ -99,7 +99,7 @@ class LocalStorageService implements StorageServiceInterface
         return $this->disk->url($path);
     }
 
-    public function getTemporaryUrl(string $path, int $minutes = 10, bool $download = false, ?string $filename = null): string
+    public function getTemporaryUrl(string $path, ?int $minutes = null, bool $download = false, ?string $filename = null): string
     {
         // For local storage we don't use Temporary URL, the controllers should bypass this.
         throw new \Exception('getTemporaryUrl is not supported for Local disk. Controllers should use direct download.');

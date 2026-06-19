@@ -57,9 +57,11 @@ return [
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
+            'external_endpoint' => env('AWS_EXTERNAL_ENDPOINT', env('AWS_ENDPOINT')),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
+            'temporary_url_minutes' => (int) env('MINIO_TEMPORARY_URL_MINUTES', 10),
         ],
 
     ],
