@@ -203,9 +203,9 @@ export default function IncomingDocuments({ documents = { data: [], links: [] },
                             </SelectContent>
                         </Select>
                         {(searchTerm || recipientFilter !== 'ALL' || statusFilter !== 'ALL') && (
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => {
                                     setSearchTerm('');
                                     setStatusFilter('ALL');
@@ -241,7 +241,7 @@ export default function IncomingDocuments({ documents = { data: [], links: [] },
                                                     {getStatusBadge(doc.status)}
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="grid grid-cols-2 gap-3 text-xs bg-muted/40 p-3 rounded-lg mt-1">
                                                 <div className="flex flex-col gap-1.5">
                                                     <span className="text-muted-foreground font-medium flex items-center gap-1.5">
@@ -264,7 +264,7 @@ export default function IncomingDocuments({ documents = { data: [], links: [] },
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="flex items-center justify-between mt-1">
                                                 <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-md">
                                                     <History className="h-3.5 w-3.5" />
@@ -436,14 +436,14 @@ export default function IncomingDocuments({ documents = { data: [], links: [] },
                         </table>
                     </div>
                     <div className="p-4 border-t flex justify-end">
-                         <Pagination links={documents.links} />
+                        <Pagination links={documents.links} />
                     </div>
                 </div>
             </div>
 
 
 
-            <IncomingMailModal 
+            <IncomingMailModal
                 open={isIncomingModalOpen}
                 onOpenChange={setIsIncomingModalOpen}
             />

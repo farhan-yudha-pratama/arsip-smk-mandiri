@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/select';
 import documentRoutes from '@/routes/documents';
 import { CreateDocumentModal } from './DocumentModal';
-import { EditDocumentModalNew } from './EditDocumentModalNew';
+import { EditDocumentModal } from './EditDocumentModal';
 import { DocumentHistoryModal } from './DocumentHistoryModal';
 import { IncomingMailModal } from './IncomingMailModal';
 import { UploadSignedModal } from './UploadSignedModal';
@@ -534,7 +534,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 document={documentForHistory}
             />
 
-            <EditDocumentModalNew
+            <EditDocumentModal
                 open={isEditModalOpen}
                 onOpenChange={setIsEditModalOpen}
                 document={documentToEdit}
