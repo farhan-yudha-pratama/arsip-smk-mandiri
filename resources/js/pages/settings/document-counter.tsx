@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 
 export default function DocumentCounter() {
     const { currentSequence, currentYear, flash } = usePage().props as any;
-    const [sequence, setSequence] = useState(currentSequence || 0);
+    const [sequence, setSequence] = useState<string>(currentSequence !== undefined ? currentSequence.toString() : '0');
     const [loading, setLoading] = useState(false);
     const [isResetOpen, setIsResetOpen] = useState(false);
     const [confirmText, setConfirmText] = useState('');
@@ -25,7 +25,7 @@ export default function DocumentCounter() {
         e.preventDefault();
         setLoading(true);
 
-        router.post('/settings/document-counter', { sequence }, {
+        router.post('/settings/document-counter', { sequence: parseInt(sequence as string) || 0 }, {
             onFinish: () => setLoading(false),
             preserveScroll: true,
         });
@@ -53,7 +53,7 @@ export default function DocumentCounter() {
                                 type="number"
                                 min="0"
                                 value={sequence}
-                                onChange={(e) => setSequence(parseInt(e.target.value) || 0)}
+                                onChange={(e) => setSequence(e.target.value)}
                                 className="max-w-md"
                                 required
                             />
