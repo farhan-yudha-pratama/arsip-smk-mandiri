@@ -105,7 +105,7 @@ export default function DocumentCounter() {
                                     variant="destructive" 
                                     disabled={confirmText !== 'RESET' || loading}
                                     onClick={() => {
-                                        setSequence(0);
+                                        setSequence('0');
                                         setLoading(true);
                                         router.post('/settings/document-counter', { sequence: 0 }, {
                                             onFinish: () => {
