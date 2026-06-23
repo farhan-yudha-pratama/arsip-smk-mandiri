@@ -13,6 +13,7 @@ interface SearchableSelectProps {
     className?: string
     inline?: boolean
     limit?: number
+    disabled?: boolean
 }
 
 export function SearchableSelect({
@@ -24,6 +25,7 @@ export function SearchableSelect({
     className,
     inline = false,
     limit,
+    disabled = false,
 }: SearchableSelectProps) {
     const [open, setOpen] = React.useState(false)
     const [searchTerm, setSearchTerm] = React.useState("")
@@ -172,11 +174,15 @@ export function SearchableSelect({
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
+                disabled={disabled}
                 className={cn(
                     "w-full justify-between font-normal h-full min-h-[2.5rem]",
-                    open && inline && "rounded-b-none border-b-0"
+                    open && inline && "rounded-b-none border-b-0",
+                    disabled && "opacity-50 cursor-not-allowed"
                 )}
-                onClick={() => setOpen(!open)}
+                onClick={() => {
+                    if (!disabled) setOpen(!open)
+                }}
             >
                 <span className="truncate">
                     {selectedOption ? selectedOption.label : placeholder}

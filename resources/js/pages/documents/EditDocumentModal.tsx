@@ -97,9 +97,11 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                 {/* Header */}
                 <div className="px-6 py-4 border-b flex items-center justify-between bg-muted/30">
                     <div>
-                        <h2 className="text-xl font-bold tracking-tight">Edit Draft Document</h2>
+                        <h2 className="text-xl font-bold tracking-tight">
+                            {document?.status === 'GENERATED' ? 'Edit Document' : 'Edit Draft Document'}
+                        </h2>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                            Modify the document name and metadata. Only draft documents can be edited.
+                            Modify the document name and metadata.
                         </p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full">
@@ -180,6 +182,7 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                                                             value: c.id.toString()
                                                         }))}
                                                         value={data.category_numbering_id.toString()}
+                                                        disabled={document?.status === 'GENERATED'}
                                                         onChange={(value) => {
                                                             const category = categoryNumberings.find(c => c.id.toString() === value);
                                                             if (category) {
@@ -305,15 +308,17 @@ export function EditDocumentModal({ open, onOpenChange, document, templates, stu
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                         Cancel
                     </Button>
-                    <Button
-                        type="submit"
-                        form="edit-document-form"
-                        variant="secondary"
-                        onClick={() => { isDraftRef.current = true; }}
-                        disabled={processing}
-                    >
-                        {processing && isDraftRef.current ? 'Saving...' : 'Save as Draft'}
-                    </Button>
+                    {document?.status !== 'GENERATED' && (
+                        <Button
+                            type="submit"
+                            form="edit-document-form"
+                            variant="secondary"
+                            onClick={() => { isDraftRef.current = true; }}
+                            disabled={processing}
+                        >
+                            {processing && isDraftRef.current ? 'Saving...' : 'Save as Draft'}
+                        </Button>
+                    )}
                     <Button
                         type="submit"
                         form="edit-document-form"

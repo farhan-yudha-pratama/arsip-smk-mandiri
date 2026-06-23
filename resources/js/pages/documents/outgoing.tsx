@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/select';
 import documentRoutes from '@/routes/documents';
 import { CreateDocumentModal } from './DocumentModal';
-import { EditDocumentModal } from './EditDocumentModal';
+import { EditDocumentModalNew } from './EditDocumentModalNew';
 import { DocumentHistoryModal } from './DocumentHistoryModal';
 import { IncomingMailModal } from './IncomingMailModal';
 import { UploadSignedModal } from './UploadSignedModal';
@@ -55,6 +55,7 @@ interface Props {
     documents: { data: Document[]; links: any[] };
     templates: Template[];
     students: Student[];
+    teachers: Teacher[];
     categoryNumbering: CategoryNumbering[];
     filters: any;
     syncMode?: boolean;
@@ -365,7 +366,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => openDeleteModal(doc)}>
                                                         <Trash2 className="h-3 w-3" />
                                                     </Button>
-                                                    {(doc.status === 'DRAFT' || doc.status === 'FAILED') && (
+                                                    {(doc.status === 'DRAFT' || doc.status === 'FAILED' || doc.status === 'GENERATED') && (
                                                         <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600" onClick={() => openEditModal(doc)}>
                                                             <Pencil className="h-3 w-3" />
                                                         </Button>
@@ -486,7 +487,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
-                                                    {(doc.status === 'DRAFT' || doc.status === 'FAILED') && (
+                                                    {(doc.status === 'DRAFT' || doc.status === 'FAILED' || doc.status === 'GENERATED') && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -533,7 +534,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 document={documentForHistory}
             />
 
-            <EditDocumentModal
+            <EditDocumentModalNew
                 open={isEditModalOpen}
                 onOpenChange={setIsEditModalOpen}
                 document={documentToEdit}

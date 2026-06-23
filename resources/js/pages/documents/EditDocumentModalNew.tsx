@@ -15,6 +15,7 @@ import { SearchableSelect } from '@/components/SearchableSelect';
 import { X, Plus, Trash2, Copy, FileText, Users, Table as TableIcon, CheckCircle2, ChevronRight, ChevronLeft, Info, Settings } from 'lucide-react';
 import { cn, formatIndonesianDate, formatIndonesianDateTime, formatIndonesianTime, parseIndonesianDate, parseIndonesianDateTime } from '@/lib/utils';
 import documentRoutes from '@/routes/documents';
+import { Document } from '@/types/document';
 import { Template } from '@/types/template';
 import { CategoryNumbering } from '@/types/category-numbering';
 import { Student, Teacher } from '@/types/user';
@@ -26,11 +27,12 @@ interface Props {
     students: Student[];
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
+    document: Document | null;
     syncMode?: boolean;
 }
 
-export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false }: Props) {
-    const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
+export function EditDocumentModalNew({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], document, syncMode = false }: Props) {
+    const { data, setData, put, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
         recipient_type: 'STUDENT',
@@ -51,61 +53,49 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
     const [dynamicRows, setDynamicRows] = useState<any[]>([]);
     const [kepalaSekolah, setKepalaSekolah] = useState('Farhan Yudha Pratama S.Kom');
 
-    useEffect(() => {
-        if (data.template_id) {
-            const template = templates.find((t) => t.id === data.template_id);
-            setSelectedTemplate(template || null);
-
-            if (template) {
-                const initialValues: Record<string, any> = {};
-                const metaData = Array.isArray(template.meta_data) ? template.meta_data : [];
-
-                metaData.forEach((key: string) => {
-                    if (!key.startsWith('T_')) {
-                        if (key.toLowerCase().includes('kepala-sekolah') || key.toLowerCase().includes('kepala_sekolah')) {
-                            initialValues[key] = kepalaSekolah; // Ganti dengan nama asli
-                        } else {
-                            initialValues[key] = '';
-                        }
-                    }
-                });
-
-                const tableKeys = metaData.filter((key: string) => key.startsWith('T_'));
-                if (tableKeys.length > 0) {
-                    const firstRow: Record<string, any> = { T_no: 1 };
-                    tableKeys.forEach(key => {
-                        if (key !== 'T_no') {
-                            if (key.toLowerCase().includes('kepala-sekolah') || key.toLowerCase().includes('kepala_sekolah')) {
-                                firstRow[key] = kepalaSekolah; // Ganti dengan nama asli
-                            } else {
-                                firstRow[key] = '';
-                            }
-                        }
-                    });
-                    setDynamicRows([firstRow]);
-                    initialValues['T_table_data'] = [firstRow];
-                } else {
-                    setDynamicRows([]);
-                }
-
-                setData(prev => ({
-                    ...prev,
-                    meta_data_values: initialValues
-                }));
-            }
-        }
-    }, [data.template_id, templates]);
+    // Removed automatic template initialization because this is an edit modal
 
     useEffect(() => {
         if (open) {
-            document.body.style.overflow = 'hidden';
+            window.document.body.style.overflow = 'hidden';
+            if (document) {
+                setData({
+                    template_id: document.template_id?.toString() || '',
+                    title: document.title || '',
+                    recipient_type: document.recipient_type || 'STUDENT',
+                    student_id: (document as any).student_id?.toString() || '',
+                    teacher_id: (document as any).teacher_id?.toString() || '',
+                    student_ids: [], // Not populated easily, but for generated it's usually static
+                    teacher_ids: [],
+                    meta_data_values: document.meta_data_values || {},
+                    category_numbering_id: document.category_numbering_id || '',
+                    is_draft: false,
+                    is_batch: document.is_batch || false,
+                    recipient_name: document.recipient_type === 'EXTERNAL' ? ((document as any).recipient_name || '') : '',
+                });
+
+                const template = templates.find((t) => t.id === document.template_id);
+                setSelectedTemplate(template || null);
+
+                // Initialize dynamicRows if table data exists
+                if (document.meta_data_values && document.meta_data_values['T_table_data']) {
+                    setDynamicRows(document.meta_data_values['T_table_data'] as unknown as any[]);
+                } else {
+                    setDynamicRows([]);
+                }
+            }
         } else {
-            document.body.style.overflow = '';
+            window.document.body.style.overflow = '';
+            reset();
+            clearErrors();
+            setCurrentStep(1);
+            setSelectedTemplate(null);
+            setDynamicRows([]);
         }
         return () => {
-            document.body.style.overflow = '';
+            window.document.body.style.overflow = '';
         };
-    }, [open]);
+    }, [open, document, templates]);
 
     const handleMetaDataChange = (key: string, value: string) => {
         setData(prev => ({
@@ -248,6 +238,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
 
     const handleSubmit = (e?: FormEvent) => {
         if (e) e.preventDefault();
+        if (!document) return;
         const isDraft = isDraftRef.current;
 
         transform((currentData) => ({
@@ -255,13 +246,14 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
             is_draft: isDraft,
         }));
 
-        post(documentRoutes.store.url(), {
+        put(documentRoutes.update.url(document?.id?.toString() || ''), {
             onSuccess: () => {
                 onOpenChange(false);
                 reset();
                 setCurrentStep(1);
-                toast.success(isDraft ? 'Dokumen disimpan sebagai draf' : 'Dokumen berhasil dibuat');
+                toast.success(isDraft ? 'Draf berhasil diperbarui' : (syncMode ? 'Dokumen berhasil diperbarui' : 'Memulai proses dokumen...'));
             },
+        
         });
     };
 
@@ -291,7 +283,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                             <FileText className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Buat Dokumen Baru</h2>
+                            <h2 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{document?.status === "GENERATED" ? "Edit Dokumen" : "Edit Draf Dokumen"}</h2>
                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mt-0.5 opacity-70">
                                 Generation Workspace
                             </p>
@@ -376,6 +368,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                     <Select
                                                         value={data.template_id}
                                                         onValueChange={(value) => setData('template_id', value)}
+                                                        disabled
                                                     >
                                                         <SelectTrigger className="h-14 rounded-2xl border-2 bg-muted/10 focus:ring-primary/20 transition-all hover:bg-muted/20">
                                                             <SelectValue placeholder="Pilih template yang akan digunakan" />
@@ -456,6 +449,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                                 value: c.id.toString()
                                                                             }))}
                                                                             value={data.category_numbering_id.toString()}
+                                                                            disabled={document?.status === 'GENERATED'}
                                                                             onChange={(value) => {
                                                                                 const category = categoryNumberings.find(c => c.id.toString() === value);
                                                                                 if (category) {
@@ -906,7 +900,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                             </Button>
                         ) : (
                             <>
-                                <Button
+                                {document?.status !== 'GENERATED' && (<Button
                                     type="button"
                                     variant="secondary"
                                     onClick={() => { isDraftRef.current = true; handleSubmit(); }}
@@ -914,7 +908,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                     className="h-12 rounded-2xl px-6 font-bold border-2"
                                 >
                                     {processing && isDraftRef.current ? 'Menyimpan...' : 'Simpan Draf'}
-                                </Button>
+                                </Button>)}
                                 <Button
                                     type="button"
                                     onClick={() => { isDraftRef.current = false; handleSubmit(); }}

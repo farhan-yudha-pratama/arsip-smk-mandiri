@@ -38,7 +38,7 @@ class DocumentNumberingService
 
             $counter = NumberingCounter::lockForUpdate()
                 ->firstOrCreate(
-                    ['month' => $bulan, 'year' => $tahun],
+                    ['month' => 1, 'year' => $tahun],
                     ['global_sequence' => 0]
                 );
 
