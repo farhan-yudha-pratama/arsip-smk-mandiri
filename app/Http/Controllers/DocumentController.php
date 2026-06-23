@@ -153,12 +153,21 @@ class DocumentController extends Controller
 
 
                 if (!$isDraft) {
-                    app(DocumentGenerationService::class)->generate(
-                        $document,
-                        $request->meta_data_values ?? [],
-                        $request->integer('category_numbering_id') ?: null,
-                    );
-                    return back()->with('success', 'Dokumen berhasil dibuat!');
+                    if (env('USE_QUEUE', true)) {
+                        \App\Jobs\GenerateDocumentJob::dispatch(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null
+                        );
+                        return back()->with('success', 'Dokumen sedang dibuat di background. Silakan tunggu beberapa saat!');
+                    } else {
+                        app(DocumentGenerationService::class)->generate(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null,
+                        );
+                        return back()->with('success', 'Dokumen berhasil dibuat!');
+                    }
                 }
 
                 return back()->with('success', 'Dokumen disimpan sebagai draf!');
@@ -205,12 +214,21 @@ class DocumentController extends Controller
                 ]);
 
                 if (!$isDraft) {
-                    app(DocumentGenerationService::class)->generate(
-                        $document,
-                        $request->meta_data_values ?? [],
-                        $request->integer('category_numbering_id') ?: null,
-                    );
-                    return back()->with('success', 'Dokumen berhasil dibuat!');
+                    if (env('USE_QUEUE', true)) {
+                        \App\Jobs\GenerateDocumentJob::dispatch(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null
+                        );
+                        return back()->with('success', 'Dokumen sedang dibuat di background. Silakan tunggu beberapa saat!');
+                    } else {
+                        app(DocumentGenerationService::class)->generate(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null,
+                        );
+                        return back()->with('success', 'Dokumen berhasil dibuat!');
+                    }
                 }
 
                 return back()->with('success', 'Draf berhasil diperbarui!');
@@ -355,41 +373,65 @@ class DocumentController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($request) {
-                $file = $request->file('file');
-                $path = $this->storageService->uploadFile(
-                    $file->getRealPath(), 
-                    'documents', 
-                    'document', 
-                    $file->getClientOriginalExtension()
+            $file = $request->file('file');
+            $extension = $file->getClientOriginalExtension();
+
+            if (env('USE_QUEUE', true)) {
+                $tempDir = storage_path('app/temp_uploads');
+                if (!file_exists($tempDir)) {
+                    mkdir($tempDir, 0755, true);
+                }
+                
+                $tempFileName = 'incoming_' . uniqid() . '.' . $extension;
+                $file->move($tempDir, $tempFileName);
+                $tempFilePath = $tempDir . DIRECTORY_SEPARATOR . $tempFileName;
+
+                $data = $request->only(['title', 'sender_origin', 'received_at']);
+                
+                \App\Jobs\ProcessIncomingMailJob::dispatch(
+                    $tempFilePath,
+                    $extension,
+                    $data,
+                    Auth::id()
                 );
 
-                $document = Document::create([
-                    'title' => $request->title,
-                    'status' => StatusDocument::ARCHIVED,
-                    'recipient_type' => RecipientType::EXTERNAL,
-                    'meta_data_values' => [],
-                    'current_url' => $path,
-                    'created_by' => Auth::id(),
-                ]);
+                return back()->with('success', 'Surat masuk sedang diproses di background. Silakan refresh halaman beberapa saat lagi.');
+            } else {
+                return DB::transaction(function () use ($request, $file, $extension) {
+                    $path = $this->storageService->uploadFile(
+                        $file->getRealPath(), 
+                        'documents', 
+                        'document', 
+                        $extension
+                    );
 
-                IncomingMail::create([
-                    'document_id' => $document->id,
-                    'sender_origin' => $request->sender_origin,
-                    'received_at' => $request->received_at,
-                ]);
+                    $document = Document::create([
+                        'title' => $request->title,
+                        'status' => StatusDocument::ARCHIVED,
+                        'recipient_type' => RecipientType::EXTERNAL,
+                        'meta_data_values' => [],
+                        'current_url' => $path,
+                        'created_by' => Auth::id(),
+                    ]);
 
-                DocumentHistory::create([
-                    'document_id' => $document->id,
-                    'file_path' => $path,
-                    'version_name' => StatusDocument::ARCHIVED,
-                    'note' => "Incoming external document from {$request->sender_origin}.",
-                    'created_by' => Auth::id(),
-                    'created_at' => now(),
-                ]);
+                    IncomingMail::create([
+                        'document_id' => $document->id,
+                        'sender_origin' => $request->sender_origin,
+                        'received_at' => $request->received_at,
+                    ]);
 
-                return back()->with('success', 'Surat masuk berhasil didaftarkan!');
-            });
+                    DocumentHistory::create([
+                        'document_id' => $document->id,
+                        'file_path' => $path,
+                        'version_name' => StatusDocument::ARCHIVED,
+                        'note' => "Incoming external document from {$request->sender_origin}.",
+                        'created_by' => Auth::id(),
+                        'created_at' => now(),
+                    ]);
+
+                    return back()->with('success', 'Surat masuk berhasil didaftarkan!');
+                });
+            }
         } catch (\Exception $e) {
             Log::error('Store Incoming Failed', ['error' => $e->getMessage()]);
             return back()->withErrors(['error' => 'Gagal mendaftar surat masuk: ' . $e->getMessage()]);

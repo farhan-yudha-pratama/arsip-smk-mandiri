@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:241
+ * @see app/Http/Controllers/DocumentController.php:259
  * @route '/documents/{document}/history/{history}/download'
  */
 export const download = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ download.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:241
+ * @see app/Http/Controllers/DocumentController.php:259
  * @route '/documents/{document}/history/{history}/download'
  */
 download.url = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -46,7 +46,7 @@ download.url = (args: { document: string | { id: string }, history: number | { i
 
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:241
+ * @see app/Http/Controllers/DocumentController.php:259
  * @route '/documents/{document}/history/{history}/download'
  */
 download.get = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -55,7 +55,7 @@ download.get = (args: { document: string | { id: string }, history: number | { i
 })
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:241
+ * @see app/Http/Controllers/DocumentController.php:259
  * @route '/documents/{document}/history/{history}/download'
  */
 download.head = (args: { document: string | { id: string }, history: number | { id: number } } | [document: string | { id: string }, history: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
