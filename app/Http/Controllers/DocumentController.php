@@ -171,8 +171,8 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        if (!in_array($document->status, [StatusDocument::DRAFT, StatusDocument::FAILED])) {
-            return back()->withErrors(['error' => 'Hanya dokumen draf atau gagal yang dapat diubah.']);
+        if (!in_array($document->status, [StatusDocument::DRAFT, StatusDocument::FAILED, StatusDocument::GENERATED])) {
+            return back()->withErrors(['error' => 'Hanya dokumen draf, gagal, atau yang sudah dibuat yang dapat diubah.']);
         }
 
         $request->validate([
@@ -199,7 +199,7 @@ class DocumentController extends Controller
                     'document_id' => $document->id,
                     'file_path' => '',
                     'version_name' => $status,
-                    'note' => $isDraft ? 'Draft updated.' : 'Generation started from draft.',
+                    'note' => $isDraft ? 'Draft updated.' : 'Generation started from update.',
                     'created_by' => Auth::id(),
                     'created_at' => now(),
                 ]);

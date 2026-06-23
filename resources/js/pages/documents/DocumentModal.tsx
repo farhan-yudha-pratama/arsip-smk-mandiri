@@ -26,9 +26,10 @@ interface Props {
     students: Student[];
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
+    syncMode?: boolean;
 }
 
-export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [] }: Props) {
+export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
