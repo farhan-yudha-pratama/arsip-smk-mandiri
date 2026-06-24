@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ArchiveReportController::index
  * @see app/Http/Controllers/ArchiveReportController.php:12
@@ -42,41 +42,6 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
-    /**
-* @see \App\Http\Controllers\ArchiveReportController::index
- * @see app/Http/Controllers/ArchiveReportController.php:12
- * @route '/laporan-arsip'
- */
-    const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: index.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\ArchiveReportController::index
- * @see app/Http/Controllers/ArchiveReportController.php:12
- * @route '/laporan-arsip'
- */
-        indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: index.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\ArchiveReportController::index
- * @see app/Http/Controllers/ArchiveReportController.php:12
- * @route '/laporan-arsip'
- */
-        indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: index.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    index.form = indexForm
 /**
 * @see \App\Http\Controllers\ArchiveReportController::exportMethod
  * @see app/Http/Controllers/ArchiveReportController.php:41
@@ -119,42 +84,6 @@ exportMethod.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: exportMethod.url(options),
     method: 'head',
 })
-
-    /**
-* @see \App\Http\Controllers\ArchiveReportController::exportMethod
- * @see app/Http/Controllers/ArchiveReportController.php:41
- * @route '/laporan-arsip/export'
- */
-    const exportMethodForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: exportMethod.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\ArchiveReportController::exportMethod
- * @see app/Http/Controllers/ArchiveReportController.php:41
- * @route '/laporan-arsip/export'
- */
-        exportMethodForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: exportMethod.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\ArchiveReportController::exportMethod
- * @see app/Http/Controllers/ArchiveReportController.php:41
- * @route '/laporan-arsip/export'
- */
-        exportMethodForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: exportMethod.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    exportMethod.form = exportMethodForm
 const archive = {
     index: Object.assign(index, index),
 export: Object.assign(exportMethod, exportMethod),
