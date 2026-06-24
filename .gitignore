@@ -4,6 +4,9 @@
 /public/build
 /public/hot
 /public/storage
+/database/seeders/
+/docker-compose.staging.yaml
+/docker-compose.yaml
 /storage/*.key
 /storage/pail
 /vendor
@@ -12,6 +15,7 @@
 .env.backup
 .env.production
 .env.testing
+.env.staging
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -24,3 +28,4 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+docker-compose.yaml

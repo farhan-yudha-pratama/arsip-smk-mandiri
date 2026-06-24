@@ -46,10 +46,14 @@ class DocumentGenerationService
         $tempTemplatePath = '';
         $tempDocxPath = '';
         $tempPdfPath = '';
+        $loUserDir = '';
 
         try {
             $nomorSurat = null;
-            if ($categoryNumberingId) {
+            if ($document->document_number) {
+                $nomorSurat = $document->document_number;
+                $metaDataValues['nomor-surat'] = $nomorSurat;
+            } elseif ($categoryNumberingId) {
                 try {
                     $numberingService = app(DocumentNumberingService::class);
                     $kategori         = $numberingService->ambilKategori(
@@ -181,9 +185,24 @@ class DocumentGenerationService
             $executable = (strpos($sofficePath, ' ') !== false && strpos($sofficePath, '"') === false) 
                 ? '"' . $sofficePath . '"' 
                 : $sofficePath;
+
+            // LibreOffice membutuhkan folder HOME dan UserInstallation yang writable.
+            // Di dalam container Docker, /var/www tidak writable oleh user www-data.
+            // Kita paksa menggunakan /tmp agar LibreOffice bisa menyimpan konfigurasi sementaranya.
+            $loUserDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lo_user_' . uniqid();
+            if (!is_dir($loUserDir)) {
+                mkdir($loUserDir, 0777, true);
+            }
+            $homeDir    = sys_get_temp_dir();
+            $isWindows  = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+            $loUserUrl  = 'file://' . ($isWindows ? '/' . str_replace('\\', '/', $loUserDir) : $loUserDir);
+
+            putenv("HOME={$homeDir}");
             
-            $command = "{$executable} --headless --nologo --nofirststartwizard --norestore --convert-to pdf --outdir " . escapeshellarg($tempPdfDir) . " " . escapeshellarg($tempDocxPath) . " 2>&1";
+            $command = "{$executable} --headless --nologo --nofirststartwizard --norestore -env:UserInstallation={$loUserUrl} --convert-to pdf --outdir " . escapeshellarg($tempPdfDir) . " " . escapeshellarg($tempDocxPath) . " 2>&1";
             exec($command, $output, $returnVar);
+
+            putenv("HOME=");
 
             if ($returnVar !== 0) {
                 throw new \Exception("LibreOffice conversion failed.\nCommand: {$command}\nOutput: " . implode("\n", $output));
@@ -233,6 +252,17 @@ class DocumentGenerationService
             if ($tempTemplatePath && file_exists($tempTemplatePath)) @unlink($tempTemplatePath);
             if ($tempDocxPath && file_exists($tempDocxPath)) @unlink($tempDocxPath);
             if ($tempPdfPath && file_exists($tempPdfPath)) @unlink($tempPdfPath);
+            if ($loUserDir && is_dir($loUserDir)) {
+                // Hapus folder profil sementara LibreOffice
+                $files = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($loUserDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::CHILD_FIRST
+                );
+                foreach ($files as $fileinfo) {
+                    $fileinfo->isDir() ? @rmdir($fileinfo->getRealPath()) : @unlink($fileinfo->getRealPath());
+                }
+                @rmdir($loUserDir);
+            }
         }
     }
 

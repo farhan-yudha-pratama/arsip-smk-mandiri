@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(\App\Contracts\StorageServiceInterface::class, function ($app) {
-            if (env('DOCUMENT_GENERATION_SYNC', false)) {
+            if (config('filesystems.document_generation_sync', false)) {
                 return new \App\Services\LocalStorageService();
             }
             return new \App\Services\S3StorageService();
@@ -29,10 +29,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (config('app.env') === 'production' || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
-            URL::forceScheme('https');
-        }
-
         $this->configureDefaults();
     }
 

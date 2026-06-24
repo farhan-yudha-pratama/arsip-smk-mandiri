@@ -47,19 +47,19 @@ export default function GetStudent() {
 
     return (
         <>
-            <Head title="Get Student" />
+            <Head title="Tarik Data Siswa" />
 
             <div className="space-y-6">
                 <div>
-                    <h2 className="text-lg font-medium">Get Student Data</h2>
+                    <h2 className="text-lg font-medium">Tarik Data Siswa</h2>
                     <p className="text-sm text-muted-foreground">
-                        Fetch student data from the API endpoint using a secure token.
+                        Tarik data siswa aktif dari API menggunakan token keamanan.
                     </p>
                 </div>
 
                 <form onSubmit={fetchStudents} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="token">API Token</Label>
+                        <Label htmlFor="token">Token API</Label>
                         <div className="flex gap-2">
                             <Input
                                 id="token"
@@ -69,12 +69,12 @@ export default function GetStudent() {
                                     if (successMsg) setSuccessMsg(null);
                                     if (error) setError(null);
                                 }}
-                                placeholder="Enter API Token"
+                                placeholder="Masukkan Token API"
                                 className="max-w-md"
                                 required
                             />
                             <Button type="submit" disabled={loading || token.trim().length === 0}>
-                                {loading ? 'Fetching...' : 'Fetch Students'}
+                                {loading ? 'Menarik Data...' : 'Tarik Data Siswa'}
                             </Button>
                         </div>
                     </div>
@@ -93,12 +93,37 @@ export default function GetStudent() {
                 )}
 
                 {students.length > 0 && (
-                    <div className="rounded-md border">
+                    <div className="rounded-md border bg-card">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            {/* Mobile View (Cards) */}
+                            <div className="block md:hidden p-4">
+                                <div className="flex flex-col gap-4">
+                                    {students.map((student) => (
+                                        <div key={student.student_id} className="flex flex-col gap-2 p-4 bg-muted/20 rounded-xl border">
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold">{student.nama_siswa}</span>
+                                                <span className="text-xs text-muted-foreground">NIS: {student.nis}</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 text-sm mt-2 pt-2 border-t">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-muted-foreground">Kelas</span>
+                                                    <span>{student.nama_kelas}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-muted-foreground">Angkatan</span>
+                                                    <span>{student.tahun_angkatan || '-'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Desktop View (Table) */}
+                            <table className="hidden md:table w-full text-sm">
                                 <thead className="border-b bg-muted/50">
                                     <tr>
-                                        <th className="p-3 text-left font-medium">Student ID</th>
+                                        <th className="p-3 text-left font-medium">ID Siswa</th>
                                         <th className="p-3 text-left font-medium">NIS</th>
                                         <th className="p-3 text-left font-medium">Nama Siswa</th>
                                         <th className="p-3 text-left font-medium">Kelas</th>

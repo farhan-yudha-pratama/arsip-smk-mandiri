@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/incoming'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/incoming'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -68,7 +68,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/incoming'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

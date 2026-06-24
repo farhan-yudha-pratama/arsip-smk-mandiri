@@ -11,7 +11,7 @@ use App\Models\DocumentHistory;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Template;
-use App\Services\LocalStorageService;
+use App\Contracts\StorageServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ class DocumentController extends Controller
 {
     protected $storageService;
 
-    public function __construct(LocalStorageService $storageService)
+    public function __construct(StorageServiceInterface $storageService)
     {
         $this->storageService = $storageService;
     }
@@ -153,12 +153,21 @@ class DocumentController extends Controller
 
 
                 if (!$isDraft) {
-                    app(DocumentGenerationService::class)->generate(
-                        $document,
-                        $request->meta_data_values ?? [],
-                        $request->integer('category_numbering_id') ?: null,
-                    );
-                    return back()->with('success', 'Dokumen berhasil dibuat!');
+                    if (env('USE_QUEUE', true)) {
+                        \App\Jobs\GenerateDocumentJob::dispatch(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null
+                        );
+                        return back()->with('success', 'Dokumen sedang dibuat di background. Silakan tunggu beberapa saat!');
+                    } else {
+                        app(DocumentGenerationService::class)->generate(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null,
+                        );
+                        return back()->with('success', 'Dokumen berhasil dibuat!');
+                    }
                 }
 
                 return back()->with('success', 'Dokumen disimpan sebagai draf!');
@@ -171,8 +180,8 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        if (!in_array($document->status, [StatusDocument::DRAFT, StatusDocument::FAILED])) {
-            return back()->withErrors(['error' => 'Hanya dokumen draf atau gagal yang dapat diubah.']);
+        if (!in_array($document->status, [StatusDocument::DRAFT, StatusDocument::FAILED, StatusDocument::GENERATED])) {
+            return back()->withErrors(['error' => 'Hanya dokumen draf, gagal, atau yang sudah dibuat yang dapat diubah.']);
         }
 
         $request->validate([
@@ -199,18 +208,27 @@ class DocumentController extends Controller
                     'document_id' => $document->id,
                     'file_path' => '',
                     'version_name' => $status,
-                    'note' => $isDraft ? 'Draft updated.' : 'Generation started from draft.',
+                    'note' => $isDraft ? 'Draft updated.' : 'Generation started from update.',
                     'created_by' => Auth::id(),
                     'created_at' => now(),
                 ]);
 
                 if (!$isDraft) {
-                    app(DocumentGenerationService::class)->generate(
-                        $document,
-                        $request->meta_data_values ?? [],
-                        $request->integer('category_numbering_id') ?: null,
-                    );
-                    return back()->with('success', 'Dokumen berhasil dibuat!');
+                    if (env('USE_QUEUE', true)) {
+                        \App\Jobs\GenerateDocumentJob::dispatch(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null
+                        );
+                        return back()->with('success', 'Dokumen sedang dibuat di background. Silakan tunggu beberapa saat!');
+                    } else {
+                        app(DocumentGenerationService::class)->generate(
+                            $document,
+                            $request->meta_data_values ?? [],
+                            $request->integer('category_numbering_id') ?: null,
+                        );
+                        return back()->with('success', 'Dokumen berhasil dibuat!');
+                    }
                 }
 
                 return back()->with('success', 'Draf berhasil diperbarui!');
@@ -226,7 +244,13 @@ class DocumentController extends Controller
         try {
             $extension = pathinfo($document->current_url, PATHINFO_EXTENSION) ?: 'pdf';
             $filename = $document->title . '.' . $extension;
-            return Storage::disk('local')->download($document->current_url, $filename);
+            $diskName = $this->storageService->getDiskName();
+            if ($diskName === 'public' || $diskName === 'local') {
+                return Storage::disk($diskName)->download($document->current_url, $filename);
+            }
+
+            $url = $this->storageService->getTemporaryUrl($document->current_url, 10, true, $filename);
+            return Inertia::location($url);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Gagal membuat tautan unduhan: ' . $e->getMessage()]);
         }
@@ -242,7 +266,13 @@ class DocumentController extends Controller
             $versionName = $history->version_name->value ?? $history->version_name;
             $extension = pathinfo($history->file_path, PATHINFO_EXTENSION) ?: 'pdf';
             $filename = $document->title . ' - ' . $versionName . '.' . $extension;
-            return Storage::disk('local')->download($history->file_path, $filename);
+            $diskName = $this->storageService->getDiskName();
+            if ($diskName === 'public' || $diskName === 'local') {
+                return Storage::disk($diskName)->download($history->file_path, $filename);
+            }
+
+            $url = $this->storageService->getTemporaryUrl($history->file_path, 10, true, $filename);
+            return Inertia::location($url);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Gagal membuat tautan unduhan: ' . $e->getMessage()]);
         }
@@ -343,41 +373,65 @@ class DocumentController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($request) {
-                $file = $request->file('file');
-                $path = $this->storageService->uploadFile(
-                    $file->getRealPath(), 
-                    'documents', 
-                    'document', 
-                    $file->getClientOriginalExtension()
+            $file = $request->file('file');
+            $extension = $file->getClientOriginalExtension();
+
+            if (env('USE_QUEUE', true)) {
+                $tempDir = storage_path('app/temp_uploads');
+                if (!file_exists($tempDir)) {
+                    mkdir($tempDir, 0755, true);
+                }
+                
+                $tempFileName = 'incoming_' . uniqid() . '.' . $extension;
+                $file->move($tempDir, $tempFileName);
+                $tempFilePath = $tempDir . DIRECTORY_SEPARATOR . $tempFileName;
+
+                $data = $request->only(['title', 'sender_origin', 'received_at']);
+                
+                \App\Jobs\ProcessIncomingMailJob::dispatch(
+                    $tempFilePath,
+                    $extension,
+                    $data,
+                    Auth::id()
                 );
 
-                $document = Document::create([
-                    'title' => $request->title,
-                    'status' => StatusDocument::ARCHIVED,
-                    'recipient_type' => RecipientType::EXTERNAL,
-                    'meta_data_values' => [],
-                    'current_url' => $path,
-                    'created_by' => Auth::id(),
-                ]);
+                return back()->with('success', 'Surat masuk sedang diproses di background. Silakan refresh halaman beberapa saat lagi.');
+            } else {
+                return DB::transaction(function () use ($request, $file, $extension) {
+                    $path = $this->storageService->uploadFile(
+                        $file->getRealPath(), 
+                        'documents', 
+                        'document', 
+                        $extension
+                    );
 
-                IncomingMail::create([
-                    'document_id' => $document->id,
-                    'sender_origin' => $request->sender_origin,
-                    'received_at' => $request->received_at,
-                ]);
+                    $document = Document::create([
+                        'title' => $request->title,
+                        'status' => StatusDocument::ARCHIVED,
+                        'recipient_type' => RecipientType::EXTERNAL,
+                        'meta_data_values' => [],
+                        'current_url' => $path,
+                        'created_by' => Auth::id(),
+                    ]);
 
-                DocumentHistory::create([
-                    'document_id' => $document->id,
-                    'file_path' => $path,
-                    'version_name' => StatusDocument::ARCHIVED,
-                    'note' => "Incoming external document from {$request->sender_origin}.",
-                    'created_by' => Auth::id(),
-                    'created_at' => now(),
-                ]);
+                    IncomingMail::create([
+                        'document_id' => $document->id,
+                        'sender_origin' => $request->sender_origin,
+                        'received_at' => $request->received_at,
+                    ]);
 
-                return back()->with('success', 'Surat masuk berhasil didaftarkan!');
-            });
+                    DocumentHistory::create([
+                        'document_id' => $document->id,
+                        'file_path' => $path,
+                        'version_name' => StatusDocument::ARCHIVED,
+                        'note' => "Incoming external document from {$request->sender_origin}.",
+                        'created_by' => Auth::id(),
+                        'created_at' => now(),
+                    ]);
+
+                    return back()->with('success', 'Surat masuk berhasil didaftarkan!');
+                });
+            }
         } catch (\Exception $e) {
             Log::error('Store Incoming Failed', ['error' => $e->getMessage()]);
             return back()->withErrors(['error' => 'Gagal mendaftar surat masuk: ' . $e->getMessage()]);

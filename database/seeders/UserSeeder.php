@@ -19,28 +19,22 @@ class UserSeeder extends Seeder
             Role::firstOrCreate(['name' => $role->value]);
         }
 
-        $superadmin = User::create([
-            'email' => 'superadmin@example.com',
-            'name' => 'Super Administrator',
-            'password' => Hash::make('password')
+        $superadmin1 = User::create([
+            'email' => 'agungdani0309@gmail.com',
+            'name' => 'Agung Dani',
+            'password' => Hash::make('password'),
+            'is_active' => true,
             ],
         );
-        $superadmin->assignRole(RoleType::SUPERADMIN->value);
+        $superadmin1->assignRole(RoleType::SUPERADMIN->value);
 
-        $admin = User::create([
-            'email' => 'admin@example.com',
-            'name' => 'Administrator',
-            'password' => Hash::make('password')
+        $superadmin2 = User::create([
+            'email' => 'farhan.yudha2016we@gmail.com',
+            'name' => 'Farhan Yudha Pratama',
+            'password' => Hash::make('password'),
+            'is_active' => true,
             ],
         );
-        $admin->assignRole(RoleType::ADMIN->value);
-
-        $operator = User::create([
-            'email' => 'operator@example.com',
-            'name' => 'Operator',
-            'password' => Hash::make('password')
-            ],
-        );
-        $operator->assignRole(RoleType::OPERATOR->value);
+        $superadmin2->assignRole(RoleType::SUPERADMIN->value);
     }
 }

@@ -26,9 +26,10 @@ interface Props {
     students: Student[];
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
+    syncMode?: boolean;
 }
 
-export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [] }: Props) {
+export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
@@ -429,7 +430,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                     </Label>
                                                                     {isStudentKey ? (
                                                                         <SearchableSelect
-                                                                            options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.id.toString() }))}
+                                                                            options={students.map(s => ({ label: `${s.name} - ${s.kelas || '-'} (${s.periode || '-'})`, value: s.id.toString() }))}
                                                                             value={students.find(s => s.name === currentVal)?.id.toString() || ''}
                                                                             onChange={(id) => {
                                                                                 const student = students.find(s => s.id.toString() === id);
@@ -623,7 +624,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                                 </Label>
                                                                                 {isStudentNameKey ? (
                                                                                     <SearchableSelect
-                                                                                        options={students.map(s => ({ label: s.name, value: s.id.toString() }))}
+                                                                                        options={students.map(s => ({ label: `${s.name} - ${s.kelas || '-'} (${s.periode || '-'})`, value: s.id.toString() }))}
                                                                                         value={row.student_id?.toString() || ''}
                                                                                         onChange={(val) => handleUserSelectInRow(index, val, 'STUDENT')}
                                                                                         placeholder="Cari Siswa..."
@@ -796,7 +797,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                     </Label>
                                                     {data.recipient_type === 'STUDENT' ? (
                                                         <SearchableSelect
-                                                            options={students.map(s => ({ label: `${s.name} (${s.nis})`, value: s.id.toString() }))}
+                                                            options={students.map(s => ({ label: `${s.name} - ${s.kelas || '-'} (${s.periode || '-'})`, value: s.id.toString() }))}
                                                             value={data.student_id?.toString() || ''}
                                                             onChange={(value) => setData('student_id', value)}
                                                             placeholder="Cari siswa..."
