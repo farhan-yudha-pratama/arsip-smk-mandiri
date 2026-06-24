@@ -35,6 +35,11 @@ const sidebarNavItems: NavItem[] = [
         title: 'Get Teacher',
         href: '/settings/get-teacher',
         icon: null,
+    },
+    {
+        title: 'Penomoran Surat',
+        href: '/settings/document-counter',
+        icon: null,
     }
 ];
 

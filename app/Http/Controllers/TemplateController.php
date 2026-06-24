@@ -84,23 +84,33 @@ class TemplateController extends Controller
             
             file_put_contents($tempFilePath, $binary);
 
-            $filePath = $this->storageService->uploadFile(
-                $tempFilePath,
-                'templates',
-                'document'
-            );
+            if (env('USE_QUEUE', true)) {
+                \App\Jobs\ProcessTemplateUploadJob::dispatch(
+                    $tempFilePath,
+                    $request->title,
+                    $request->metadata ?? []
+                );
 
-            Template::create([
-                'name' => $request->title,
-                'url'  => $filePath,
-                'meta_data' => $request->metadata ?? []
-            ]);
+                return back()->with('success', 'Upload template sedang diproses di background. Silakan refresh halaman beberapa saat lagi.');
+            } else {
+                $filePath = $this->storageService->uploadFile(
+                    $tempFilePath,
+                    'templates',
+                    'document'
+                );
 
-            if (file_exists($tempFilePath)) {
-                unlink($tempFilePath);
+                Template::create([
+                    'name' => $request->title,
+                    'url'  => $filePath,
+                    'meta_data' => $request->metadata ?? []
+                ]);
+
+                if (file_exists($tempFilePath)) {
+                    unlink($tempFilePath);
+                }
+
+                return back()->with('success', 'Template berhasil ditambahkan!');
             }
-
-            return back()->with('success', 'Template berhasil ditambahkan!');
 
         } catch (\Throwable $e) {
             return back()->withErrors(['document' => 'Gagal memproses data: ' . $e->getMessage()]);

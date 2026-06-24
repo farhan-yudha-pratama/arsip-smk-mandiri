@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../wayfinder'
 /**
 * @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::login
  * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:47
@@ -42,41 +42,6 @@ login.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
-    /**
-* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::login
- * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:47
- * @route '/login'
- */
-    const loginForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: login.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::login
- * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:47
- * @route '/login'
- */
-        loginForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: login.url(options),
-            method: 'get',
-        })
-            /**
-* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::login
- * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:47
- * @route '/login'
- */
-        loginForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: login.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    login.form = loginForm
 /**
 * @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::logout
  * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:100
@@ -111,27 +76,6 @@ logout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     method: 'post',
 })
 
-    /**
-* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::logout
- * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:100
- * @route '/logout'
- */
-    const logoutForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: logout.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::logout
- * @see vendor/laravel/fortify/src/Http/Controllers/AuthenticatedSessionController.php:100
- * @route '/logout'
- */
-        logoutForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: logout.url(options),
-            method: 'post',
-        })
-    
-    logout.form = logoutForm
 /**
 * @see \Laravel\Fortify\Http\Controllers\RegisteredUserController::register
  * @see vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php:41
@@ -175,41 +119,6 @@ register.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
-    /**
-* @see \Laravel\Fortify\Http\Controllers\RegisteredUserController::register
- * @see vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php:41
- * @route '/register'
- */
-    const registerForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: register.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \Laravel\Fortify\Http\Controllers\RegisteredUserController::register
- * @see vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php:41
- * @route '/register'
- */
-        registerForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: register.url(options),
-            method: 'get',
-        })
-            /**
-* @see \Laravel\Fortify\Http\Controllers\RegisteredUserController::register
- * @see vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php:41
- * @route '/register'
- */
-        registerForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: register.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    register.form = registerForm
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
  * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
@@ -298,106 +207,45 @@ home.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
     method: 'options',
 })
 
-    /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
+/**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
  */
-    const homeForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: home.url(options),
-        method: 'get',
-    })
+export const unconfirmed = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: unconfirmed.url(options),
+    method: 'get',
+})
 
-            /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
+unconfirmed.definition = {
+    methods: ["get","head"],
+    url: '/unconfirmed',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
  */
-        homeForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: home.url(options),
-            method: 'get',
-        })
-            /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
+unconfirmed.url = (options?: RouteQueryOptions) => {
+    return unconfirmed.definition.url + queryParams(options)
+}
+
+/**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
  */
-        homeForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: home.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-            /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
+unconfirmed.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: unconfirmed.url(options),
+    method: 'get',
+})
+/**
+ * @see routes/web.php:13
+ * @route '/unconfirmed'
  */
-        homeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: home.url(options),
-            method: 'post',
-        })
-            /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
- */
-        homeForm.put = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: home.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PUT',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-            /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
- */
-        homeForm.patch = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: home.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PATCH',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-            /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
- */
-        homeForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: home.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'DELETE',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-            /**
-* @see \Illuminate\Routing\RedirectController::__invoke
- * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
- * @route '/'
- */
-        homeForm.options = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: home.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'OPTIONS',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    home.form = homeForm
+unconfirmed.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: unconfirmed.url(options),
+    method: 'head',
+})
+
 /**
 * @see \App\Http\Controllers\DashboardController::dashboard
  * @see app/Http/Controllers/DashboardController.php:9
@@ -440,39 +288,3 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: dashboard.url(options),
     method: 'head',
 })
-
-    /**
-* @see \App\Http\Controllers\DashboardController::dashboard
- * @see app/Http/Controllers/DashboardController.php:9
- * @route '/dashboard'
- */
-    const dashboardForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: dashboard.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\DashboardController::dashboard
- * @see app/Http/Controllers/DashboardController.php:9
- * @route '/dashboard'
- */
-        dashboardForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: dashboard.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\DashboardController::dashboard
- * @see app/Http/Controllers/DashboardController.php:9
- * @route '/dashboard'
- */
-        dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: dashboard.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    dashboard.form = dashboardForm

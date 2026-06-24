@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\DocumentController::index
  * @see app/Http/Controllers/DocumentController.php:36
@@ -42,44 +42,9 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
-    /**
-* @see \App\Http\Controllers\DocumentController::index
- * @see app/Http/Controllers/DocumentController.php:36
- * @route '/document-incoming'
- */
-    const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: index.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::index
- * @see app/Http/Controllers/DocumentController.php:36
- * @route '/document-incoming'
- */
-        indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: index.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\DocumentController::index
- * @see app/Http/Controllers/DocumentController.php:36
- * @route '/document-incoming'
- */
-        indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: index.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    index.form = indexForm
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/incoming'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +59,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/incoming'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -103,35 +68,13 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/incoming'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(options),
     method: 'post',
 })
-
-    /**
-* @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
- * @route '/documents/incoming'
- */
-    const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: store.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:336
- * @route '/documents/incoming'
- */
-        storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: store.url(options),
-            method: 'post',
-        })
-    
-    store.form = storeForm
 const incoming = {
     index: Object.assign(index, index),
 store: Object.assign(store, store),

@@ -9,6 +9,15 @@ use Laravel\Fortify\Features;
 
 Route::redirect('/', '/login')->name('home');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/unconfirmed', function () {
+        if (\Illuminate\Support\Facades\Auth::user()->is_active) {
+            return redirect()->route('dashboard');
+        }
+        return \Inertia\Inertia::render('auth/Unconfirmed');
+    })->name('unconfirmed');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     
@@ -25,13 +34,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
     // Laporan
-    Route::get('/laporan-arsip', [\App\Http\Controllers\ArchiveReportController::class, 'index'])->name('reports.archive.index');
-    Route::get('/laporan-arsip/export', [\App\Http\Controllers\ArchiveReportController::class, 'export'])->name('reports.archive.export');
+    Route::middleware(['role:SUPERADMIN|ADMIN|OPERATOR'])->group(function () {
+        Route::get('/laporan-arsip', [\App\Http\Controllers\ArchiveReportController::class, 'index'])->name('reports.archive.index');
+        Route::get('/laporan-arsip/export', [\App\Http\Controllers\ArchiveReportController::class, 'export'])->name('reports.archive.export');
+    });
 });
 
 Route::middleware(['auth', 'role:SUPERADMIN'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+    Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->name('users.update-status');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
 Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
@@ -43,7 +56,6 @@ Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
     Route::delete('/templates/{template}', [TemplateController::class, 'destroy'])->name('templates.destroy');
     Route::get('/templates/{template}/preview', [TemplateController::class, 'preview'])->name('templates.preview');
     Route::get('/templates/{template}/download', [TemplateController::class, 'download'])->name('templates.download');
-
     // Kategori Penomoran Surat
     Route::get('/category-numbering', [CategoryNumberingController::class, 'index'])->name('category-numbering.index');
     Route::post('/category-numbering', [CategoryNumberingController::class, 'store'])->name('category-numbering.store');

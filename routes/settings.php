@@ -28,4 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('settings/get-teacher', 'settings/get-teacher')->name('get-teacher.index');
     Route::post('settings/get-teacher', [TeacherSyncController::class, 'store'])->name('get-teacher.store');
+
+    Route::get('settings/document-counter', [\App\Http\Controllers\Settings\DocumentCounterController::class, 'index'])->name('document-counter.index');
+    Route::post('settings/document-counter', [\App\Http\Controllers\Settings\DocumentCounterController::class, 'update'])->name('document-counter.update');
 });

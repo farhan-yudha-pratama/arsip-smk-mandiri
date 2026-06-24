@@ -22,6 +22,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import CategoryNumberingModal from './CategoryNumberingModal';
 import { CategoryNumbering, FORMAT_TOKENS } from '@/types/category-numbering';
@@ -87,6 +88,92 @@ function NomorContoh({ pattern, kode }: { pattern: string; kode: string }) {
         .replace('{instansi}', 'SMK-M')
         .replace('{bulan_romawi}', romawi[now.getMonth()])
         .replace('{tahun}', now.getFullYear().toString());
+}
+
+function TokenReference() {
+    return (
+        <>
+            {/* Desktop View: Card */}
+            <div className="hidden md:block rounded-xl border bg-card shadow-sm">
+                <div className="px-5 py-3 border-b">
+                    <h2 className="text-sm font-semibold flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-muted-foreground" />
+                        Referensi Token Format
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                        Token-token ini dapat digunakan dalam format penomoran surat secara dinamis.
+                    </p>
+                </div>
+                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                    {FORMAT_TOKENS.map((t) => (
+                        <div
+                            key={t.token}
+                            className="rounded-lg border p-3 space-y-1 hover:shadow-sm transition-shadow"
+                        >
+                            <span
+                                className={`inline-block rounded px-2 py-0.5 font-mono text-xs font-medium border ${t.color}`}
+                            >
+                                {t.token}
+                            </span>
+                            <p className="text-xs font-medium">{t.label}</p>
+                            <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                {t.description}
+                            </p>
+                            <p className="text-[10px] font-mono text-muted-foreground">
+                                Contoh:{' '}
+                                <span className="font-semibold text-foreground">{t.example}</span>
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Mobile View: Dialog/Popup */}
+            <div className="block md:hidden">
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full bg-card hover:bg-muted">
+                            <Tag className="mr-2 h-4 w-4 text-primary" />
+                            Lihat Referensi Token Format
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[85vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <Tag className="h-4 w-4" />
+                                Referensi Token Format
+                            </DialogTitle>
+                            <DialogDescription>
+                                Token-token ini dapat digunakan dalam format penomoran surat secara dinamis.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col gap-3 mt-2">
+                            {FORMAT_TOKENS.map((t) => (
+                                <div
+                                    key={t.token}
+                                    className="rounded-lg border p-3 space-y-1 shadow-sm"
+                                >
+                                    <span
+                                        className={`inline-block rounded px-2 py-0.5 font-mono text-xs font-medium border ${t.color}`}
+                                    >
+                                        {t.token}
+                                    </span>
+                                    <p className="text-xs font-medium">{t.label}</p>
+                                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                        {t.description}
+                                    </p>
+                                    <p className="text-[10px] font-mono text-muted-foreground">
+                                        Contoh:{' '}
+                                        <span className="font-semibold text-foreground">{t.example}</span>
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </>
+    );
 }
 
 export default function CategoryNumberingIndex({ categories }: Props) {
@@ -155,40 +242,8 @@ export default function CategoryNumberingIndex({ categories }: Props) {
                     </Button>
                 </div>
 
-                {/* ── Token Reference Card ── */}
-                <div className="rounded-xl border bg-card shadow-sm">
-                    <div className="px-5 py-3 border-b">
-                        <h2 className="text-sm font-semibold flex items-center gap-2">
-                            <Tag className="h-4 w-4 text-muted-foreground" />
-                            Referensi Token Format
-                        </h2>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                            Token-token ini dapat digunakan dalam format penomoran surat secara dinamis.
-                        </p>
-                    </div>
-                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-                        {FORMAT_TOKENS.map((t) => (
-                            <div
-                                key={t.token}
-                                className="rounded-lg border p-3 space-y-1 hover:shadow-sm transition-shadow"
-                            >
-                                <span
-                                    className={`inline-block rounded px-2 py-0.5 font-mono text-xs font-medium border ${t.color}`}
-                                >
-                                    {t.token}
-                                </span>
-                                <p className="text-xs font-medium">{t.label}</p>
-                                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                                    {t.description}
-                                </p>
-                                <p className="text-[10px] font-mono text-muted-foreground">
-                                    Contoh:{' '}
-                                    <span className="font-semibold text-foreground">{t.example}</span>
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                {/* ── Token Reference Card / Popup ── */}
+                <TokenReference />
 
                 {/* ── Tabel Kategori ── */}
                 <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
@@ -203,7 +258,100 @@ export default function CategoryNumberingIndex({ categories }: Props) {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        {/* Mobile View (Cards) */}
+                        <div className="block md:hidden p-4 bg-muted/20">
+                            {categories.length > 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    {categories.map((cat) => (
+                                        <div key={cat.id} className="flex flex-col gap-3 p-4 bg-card rounded-xl border shadow-sm transition-all hover:shadow-md">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="flex items-start gap-2">
+                                                    <div className="bg-primary/10 p-2 rounded-lg shrink-0">
+                                                        <FileText className="h-4 w-4 text-primary" />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold text-sm line-clamp-2 mt-0.5">{cat.name_numbering_document}</span>
+                                                        {cat.description && (
+                                                            <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{cat.description}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="shrink-0 flex flex-col items-end gap-1">
+                                                    <span className="inline-flex h-6 min-w-[2rem] items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold px-2" title="Jumlah Surat Dibuat">
+                                                        {cat.sequences_count ?? 0}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-3 text-xs bg-muted/40 p-3 rounded-lg mt-1">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-muted-foreground font-medium">Kode</span>
+                                                    <code className="rounded bg-background border px-2 py-0.5 text-xs font-mono font-semibold w-fit">
+                                                        {cat.letter_code}
+                                                    </code>
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-muted-foreground font-medium">Singkatan</span>
+                                                    <Badge variant="outline" className="font-mono text-[10px] w-fit bg-background">
+                                                        {cat.abbreviation}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 mt-1 px-1">
+                                                <span className="text-xs font-medium text-muted-foreground">Format Penomoran:</span>
+                                                <div className="bg-muted/30 p-2 rounded-md border text-[11px] overflow-x-auto whitespace-nowrap">
+                                                    <FormatDisplay pattern={cat.format_pattern} />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 mt-1 px-1">
+                                                <span className="text-xs font-medium text-muted-foreground">Contoh Nomor:</span>
+                                                <div className="flex items-center justify-between bg-muted/30 p-2 rounded-md border text-[11px]">
+                                                    <code className="font-mono text-muted-foreground overflow-x-auto">
+                                                        {NomorContoh({
+                                                            pattern: cat.format_pattern,
+                                                            kode: cat.letter_code,
+                                                        })}
+                                                    </code>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => copyContoh(cat)}
+                                                        className="text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-2"
+                                                        title="Salin contoh nomor"
+                                                    >
+                                                        <Copy className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-end mt-1 pt-3 border-t">
+                                                <div className="flex gap-1">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(cat)} title="Edit kategori">
+                                                        <Edit2 className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(cat)} title="Hapus kategori" disabled={(cat.sequences_count ?? 0) > 0}>
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col h-32 items-center justify-center text-sm text-muted-foreground bg-card rounded-xl border border-dashed gap-2">
+                                    <Hash className="h-8 w-8 opacity-20" />
+                                    <p className="text-sm">Belum ada kategori surat.</p>
+                                    <Button variant="outline" size="sm" onClick={openCreate}>
+                                        <Plus className="mr-2 h-3.5 w-3.5" />
+                                        Tambah Kategori
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Desktop View (Table) */}
+                        <table className="hidden md:table w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/40">
                                     <th className="h-11 px-5 text-left align-middle font-medium text-muted-foreground">

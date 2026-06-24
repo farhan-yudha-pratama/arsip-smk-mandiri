@@ -17,12 +17,27 @@ class StudentSyncController extends Controller
         $students = $request->input('students');
 
         foreach ($students as $studentData) {
-            if (isset($studentData['nisn']) && isset($studentData['nis']) && isset($studentData['nama_lengkap'])) {
+            if (isset($studentData['nis']) && isset($studentData['nama_siswa'])) {
+                $nama_kelas = $studentData['nama_kelas'] ?? '';
+                $kelas = $nama_kelas;
+                $periode = $studentData['tahun_angkatan'] ?? null;
+
+                // Extract kelas and periode from nama_kelas if needed
+                // e.g., "XII PPLG 2 2025/2026"
+                if (preg_match('/(.*?)\s+(\d{4}\/\d{4})$/', $nama_kelas, $matches)) {
+                    $kelas = trim($matches[1]);
+                    // Only use extracted period if tahun_angkatan is null/empty
+                    if (empty($periode)) {
+                        $periode = $matches[2];
+                    }
+                }
+
                 Student::updateOrCreate(
-                    ['nisn' => $studentData['nisn']],
+                    ['nis' => $studentData['nis']],
                     [
-                        'nis' => $studentData['nis'],
-                        'name' => $studentData['nama_lengkap'],
+                        'name' => $studentData['nama_siswa'],
+                        'kelas' => $kelas,
+                        'periode' => $periode,
                     ]
                 );
             }
