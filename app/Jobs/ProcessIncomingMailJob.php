@@ -26,7 +26,7 @@ class ProcessIncomingMailJob implements ShouldQueue
     protected $data;
     protected $authId;
 
-    public function __construct(string $tempFilePath, string $extension, array $data, int $authId)
+    public function __construct(string $tempFilePath, string $extension, array $data, string $authId)
     {
         $this->tempFilePath = $tempFilePath;
         $this->extension = $extension;
