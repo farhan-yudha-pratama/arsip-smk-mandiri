@@ -27,7 +27,9 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 import TemplateModal from './TemplateModal';
+import TemplateGuideModal from './TemplateGuideModal';
 import { Template } from '@/types/template';
 import { formatDateTime } from '@/lib/utils';
 import { Pagination } from '@/components/Pagination';
@@ -39,6 +41,7 @@ interface Props {
 
 export default function Templates({ templates = { data: [], links: [] }, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isGuideOpen, setIsGuideOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(
         null,
@@ -93,12 +96,21 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                             Kelola template dokumen.
                         </p>
                     </div>
-                    <Button
-                        onClick={openCreateModal}
-                        className="w-full sm:w-auto"
-                    >
-                        <Plus className="mr-2 h-4 w-4" /> Tambah Template
-                    </Button>
+                    <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsGuideOpen(true)}
+                            className="w-full sm:w-auto"
+                        >
+                            <Info className="mr-2 h-4 w-4" /> Panduan Variabel
+                        </Button>
+                        <Button
+                            onClick={openCreateModal}
+                            className="w-full sm:w-auto"
+                        >
+                            <Plus className="mr-2 h-4 w-4" /> Tambah Template
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2">
@@ -307,6 +319,11 @@ export default function Templates({ templates = { data: [], links: [] }, filters
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 editingTemplate={editingTemplate}
+            />
+
+            <TemplateGuideModal 
+                isOpen={isGuideOpen} 
+                onClose={() => setIsGuideOpen(false)} 
             />
 
             <Dialog
