@@ -26,12 +26,13 @@ interface Props {
     templates: Template[];
     students: Student[];
     teachers: Teacher[];
-    categoryNumberings: CategoryNumbering[];
+    categoryNumberings?: CategoryNumbering[];
     document: Document | null;
     syncMode?: boolean;
+    headmasterName?: string;
 }
 
-export function EditDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], document, syncMode = false }: Props) {
+export function EditDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], document, syncMode = false, headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
     const { data, setData, put, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
@@ -51,7 +52,7 @@ export function EditDocumentModal({ open, onOpenChange, templates, students, tea
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [dynamicRows, setDynamicRows] = useState<any[]>([]);
-    const [kepalaSekolah, setKepalaSekolah] = useState('Farhan Yudha Pratama S.Kom');
+    const kepalaSekolah = headmasterName;
 
     // Removed automatic template initialization because this is an edit modal
 
@@ -68,7 +69,7 @@ export function EditDocumentModal({ open, onOpenChange, templates, students, tea
                     student_ids: [], // Not populated easily, but for generated it's usually static
                     teacher_ids: [],
                     meta_data_values: document.meta_data_values || {},
-                    category_numbering_id: document.category_numbering_id || '',
+                    category_numbering_id: (document.meta_data_values && document.meta_data_values['_category_numbering_id']) || document.category_numbering_id || '',
                     is_draft: false,
                     is_batch: document.is_batch || false,
                     recipient_name: document.recipient_type === 'EXTERNAL' ? ((document as any).recipient_name || '') : '',
@@ -458,7 +459,8 @@ export function EditDocumentModal({ open, onOpenChange, templates, students, tea
                                                                                         category_numbering_id: category.id,
                                                                                         meta_data_values: {
                                                                                             ...prev.meta_data_values,
-                                                                                            [key]: "[AUTO]"
+                                                                                            [key]: "[AUTO]",
+                                                                                            _category_numbering_id: category.id.toString()
                                                                                         }
                                                                                     }));
                                                                                 }
