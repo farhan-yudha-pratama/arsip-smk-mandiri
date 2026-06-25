@@ -1,6 +1,7 @@
 import { Head, useForm, router } from '@inertiajs/react';
 import {
     Download,
+    Eye,
     FileText,
     Plus,
     Search,
@@ -343,13 +344,16 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                                     <span>{formatDateTime(doc.created_at)}</span>
                                                 </div>
                                                 <div className="flex gap-1">
-                                                    {doc.status === 'GENERATED' || doc.status === 'SIGNED' || doc.status === 'ARCHIVED' ? (
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                            <a href={documentRoutes.download.url(doc.id.toString())}>
-                                                                <Download className="h-3 w-3" />
-                                                            </a>
-                                                        </Button>
-                                                    ) : null}
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                                                        <a href={documentRoutes.view.url(doc.id.toString())} target="_blank" rel="noopener noreferrer">
+                                                            <Eye className="h-3 w-3" />
+                                                        </a>
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                                                        <a href={documentRoutes.download.url(doc.id.toString())}>
+                                                            <Download className="h-3 w-3" />
+                                                        </a>
+                                                    </Button>
                                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openHistoryModal(doc)}>
                                                         <History className="h-3 w-3 text-muted-foreground" />
                                                     </Button>
@@ -436,17 +440,16 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                             </td>
                                             <td className="p-4 text-right align-middle">
                                                 <div className="flex justify-end gap-2">
-                                                    {doc.status === 'GENERATED' || doc.status === 'SIGNED' || doc.status === 'ARCHIVED' ? (
-                                                        <Button variant="ghost" size="icon" asChild title="Download">
-                                                            <a href={documentRoutes.download.url(doc.id.toString())}>
-                                                                <Download className="h-4 w-4" />
-                                                            </a>
-                                                        </Button>
-                                                    ) : (
-                                                        <Button variant="ghost" size="icon" disabled title={doc.status === 'PROCESSING' ? "Processing..." : "Download unavailable"}>
-                                                            <Download className="h-4 w-4 text-muted-foreground/30" />
-                                                        </Button>
-                                                    )}
+                                                    <Button variant="ghost" size="icon" asChild title="View Document">
+                                                        <a href={documentRoutes.view.url(doc.id.toString())} target="_blank" rel="noopener noreferrer">
+                                                            <Eye className="h-4 w-4" />
+                                                        </a>
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" asChild title="Download">
+                                                        <a href={documentRoutes.download.url(doc.id.toString())}>
+                                                            <Download className="h-4 w-4" />
+                                                        </a>
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"

@@ -16,4 +16,9 @@ export interface Document {
     created_at: string;
     creator?: { name: string };
     is_batch: boolean;
+    recipient_name?: string;
+    incoming_mail?: {
+        sender_origin: string;
+        received_at: string;
+    };
 }

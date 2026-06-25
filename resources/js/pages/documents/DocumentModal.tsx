@@ -464,7 +464,8 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
                                                                                         category_numbering_id: category.id,
                                                                                         meta_data_values: {
                                                                                             ...prev.meta_data_values,
-                                                                                            [key]: "[AUTO]"
+                                                                                            [key]: "[AUTO]",
+                                                                                            _category_numbering_id: category.id.toString()
                                                                                         }
                                                                                     }));
                                                                                 }

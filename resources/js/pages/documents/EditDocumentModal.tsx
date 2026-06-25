@@ -68,7 +68,7 @@ export function EditDocumentModal({ open, onOpenChange, templates, students, tea
                     student_ids: [], // Not populated easily, but for generated it's usually static
                     teacher_ids: [],
                     meta_data_values: document.meta_data_values || {},
-                    category_numbering_id: document.category_numbering_id || '',
+                    category_numbering_id: (document.meta_data_values && document.meta_data_values['_category_numbering_id']) || document.category_numbering_id || '',
                     is_draft: false,
                     is_batch: document.is_batch || false,
                     recipient_name: document.recipient_type === 'EXTERNAL' ? ((document as any).recipient_name || '') : '',
@@ -458,7 +458,8 @@ export function EditDocumentModal({ open, onOpenChange, templates, students, tea
                                                                                         category_numbering_id: category.id,
                                                                                         meta_data_values: {
                                                                                             ...prev.meta_data_values,
-                                                                                            [key]: "[AUTO]"
+                                                                                            [key]: "[AUTO]",
+                                                                                            _category_numbering_id: category.id.toString()
                                                                                         }
                                                                                     }));
                                                                                 }

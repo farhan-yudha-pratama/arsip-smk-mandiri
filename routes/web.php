@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/document-incoming', [DocumentController::class, 'incomingIndex'])->name('documents.incoming.index');
     Route::get('/document-outgoing', [DocumentController::class, 'outgoingIndex'])->name('documents.outgoing.index');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/view', [DocumentController::class, 'view'])->name('documents.view');
     Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
     Route::get('/documents/{document}/history/{history}/download', [DocumentController::class, 'downloadHistory'])->name('documents.history.download');
     Route::post('/documents/incoming', [DocumentController::class, 'storeIncoming'])->name('documents.incoming.store');

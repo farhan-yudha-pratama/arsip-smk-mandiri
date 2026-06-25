@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\CategoryNumberingController::index
  * @see app/Http/Controllers/CategoryNumberingController.php:18
@@ -42,6 +42,41 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
+    /**
+* @see \App\Http\Controllers\CategoryNumberingController::index
+ * @see app/Http/Controllers/CategoryNumberingController.php:18
+ * @route '/category-numbering'
+ */
+    const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: index.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\CategoryNumberingController::index
+ * @see app/Http/Controllers/CategoryNumberingController.php:18
+ * @route '/category-numbering'
+ */
+        indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\CategoryNumberingController::index
+ * @see app/Http/Controllers/CategoryNumberingController.php:18
+ * @route '/category-numbering'
+ */
+        indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    index.form = indexForm
 /**
 * @see \App\Http\Controllers\CategoryNumberingController::store
  * @see app/Http/Controllers/CategoryNumberingController.php:29
@@ -76,6 +111,27 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     method: 'post',
 })
 
+    /**
+* @see \App\Http\Controllers\CategoryNumberingController::store
+ * @see app/Http/Controllers/CategoryNumberingController.php:29
+ * @route '/category-numbering'
+ */
+    const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: store.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\CategoryNumberingController::store
+ * @see app/Http/Controllers/CategoryNumberingController.php:29
+ * @route '/category-numbering'
+ */
+        storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: store.url(options),
+            method: 'post',
+        })
+    
+    store.form = storeForm
 /**
 * @see \App\Http\Controllers\CategoryNumberingController::update
  * @see app/Http/Controllers/CategoryNumberingController.php:62
@@ -134,6 +190,37 @@ update.put = (args: { categoryNumbering: number | { id: number } } | [categoryNu
     method: 'put',
 })
 
+    /**
+* @see \App\Http\Controllers\CategoryNumberingController::update
+ * @see app/Http/Controllers/CategoryNumberingController.php:62
+ * @route '/category-numbering/{categoryNumbering}'
+ */
+    const updateForm = (args: { categoryNumbering: number | { id: number } } | [categoryNumbering: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: update.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PUT',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\CategoryNumberingController::update
+ * @see app/Http/Controllers/CategoryNumberingController.php:62
+ * @route '/category-numbering/{categoryNumbering}'
+ */
+        updateForm.put = (args: { categoryNumbering: number | { id: number } } | [categoryNumbering: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: update.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PUT',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    update.form = updateForm
 /**
 * @see \App\Http\Controllers\CategoryNumberingController::destroy
  * @see app/Http/Controllers/CategoryNumberingController.php:95
@@ -191,6 +278,38 @@ destroy.delete = (args: { categoryNumbering: number | { id: number } } | [catego
     url: destroy.url(args, options),
     method: 'delete',
 })
+
+    /**
+* @see \App\Http\Controllers\CategoryNumberingController::destroy
+ * @see app/Http/Controllers/CategoryNumberingController.php:95
+ * @route '/category-numbering/{categoryNumbering}'
+ */
+    const destroyForm = (args: { categoryNumbering: number | { id: number } } | [categoryNumbering: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: destroy.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'DELETE',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\CategoryNumberingController::destroy
+ * @see app/Http/Controllers/CategoryNumberingController.php:95
+ * @route '/category-numbering/{categoryNumbering}'
+ */
+        destroyForm.delete = (args: { categoryNumbering: number | { id: number } } | [categoryNumbering: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: destroy.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'DELETE',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    destroy.form = destroyForm
 const CategoryNumberingController = { index, store, update, destroy }
 
 export default CategoryNumberingController
