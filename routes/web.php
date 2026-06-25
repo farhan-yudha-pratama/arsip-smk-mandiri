@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryNumberingController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\HeadmasterController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -62,6 +63,10 @@ Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
     Route::post('/category-numbering', [CategoryNumberingController::class, 'store'])->name('category-numbering.store');
     Route::put('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'update'])->name('category-numbering.update');
     Route::delete('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'destroy'])->name('category-numbering.destroy');
+
+    // Headmaster
+    Route::get('/headmaster', [HeadmasterController::class, 'index'])->name('headmaster.index');
+    Route::post('/headmaster', [HeadmasterController::class, 'store'])->name('headmaster.store');
 });
 
 require __DIR__.'/settings.php';

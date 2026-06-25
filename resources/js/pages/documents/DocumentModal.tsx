@@ -27,9 +27,10 @@ interface Props {
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
     syncMode?: boolean;
+    headmasterName?: string;
 }
 
-export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false }: Props) {
+export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false, headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
@@ -49,7 +50,7 @@ export function CreateDocumentModal({ open, onOpenChange, templates, students, t
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [dynamicRows, setDynamicRows] = useState<any[]>([]);
-    const [kepalaSekolah, setKepalaSekolah] = useState('Farhan Yudha Pratama S.Kom');
+    const kepalaSekolah = headmasterName;
 
     useEffect(() => {
         if (data.template_id) {

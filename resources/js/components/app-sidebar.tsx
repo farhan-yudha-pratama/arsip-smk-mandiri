@@ -20,6 +20,7 @@ import type { NavItem } from '@/types';
 import { dashboard } from '@/routes';
 import documents from '@/routes/documents';
 import templates from '@/routes/templates';
+import headmaster from '@/routes/headmaster';
 
 const mainNavItems: NavItem[] = [
     {
@@ -64,6 +65,12 @@ const mainNavItems: NavItem[] = [
         title: 'Kategori Penomoran',
         href: categoryNumbering.index(),
         icon: Hash,
+        roles: ['SUPERADMIN', 'ADMIN'],
+    },
+    {
+        title: 'Kepala Sekolah',
+        href: headmaster.index(),
+        icon: Users,
         roles: ['SUPERADMIN', 'ADMIN'],
     },
 ];

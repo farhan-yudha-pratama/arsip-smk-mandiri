@@ -57,6 +57,7 @@ interface Props {
     students: Student[];
     teachers: Teacher[];
     categoryNumberings: CategoryNumbering[];
+    headmasterName?: string;
 }
 
 const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
@@ -102,7 +103,7 @@ const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
     );
 };
 
-export default function Documents({ documents = [], templates, students, teachers, categoryNumberings = [] }: Props) {
+export default function Documents({ documents = [], templates, students, teachers, categoryNumberings = [], headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);

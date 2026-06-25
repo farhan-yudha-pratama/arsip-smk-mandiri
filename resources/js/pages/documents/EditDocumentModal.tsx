@@ -26,12 +26,13 @@ interface Props {
     templates: Template[];
     students: Student[];
     teachers: Teacher[];
-    categoryNumberings: CategoryNumbering[];
+    categoryNumberings?: CategoryNumbering[];
     document: Document | null;
     syncMode?: boolean;
+    headmasterName?: string;
 }
 
-export function EditDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], document, syncMode = false }: Props) {
+export function EditDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], document, syncMode = false, headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
     const { data, setData, put, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
@@ -51,7 +52,7 @@ export function EditDocumentModal({ open, onOpenChange, templates, students, tea
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [dynamicRows, setDynamicRows] = useState<any[]>([]);
-    const [kepalaSekolah, setKepalaSekolah] = useState('Farhan Yudha Pratama S.Kom');
+    const kepalaSekolah = headmasterName;
 
     // Removed automatic template initialization because this is an edit modal
 

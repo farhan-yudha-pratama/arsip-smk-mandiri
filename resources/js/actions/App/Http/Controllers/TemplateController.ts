@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\TemplateController::index
  * @see app/Http/Controllers/TemplateController.php:20
@@ -42,41 +42,6 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
-    /**
-* @see \App\Http\Controllers\TemplateController::index
- * @see app/Http/Controllers/TemplateController.php:20
- * @route '/templates'
- */
-    const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: index.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\TemplateController::index
- * @see app/Http/Controllers/TemplateController.php:20
- * @route '/templates'
- */
-        indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: index.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\TemplateController::index
- * @see app/Http/Controllers/TemplateController.php:20
- * @route '/templates'
- */
-        indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: index.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    index.form = indexForm
 /**
 * @see \App\Http\Controllers\TemplateController::store
  * @see app/Http/Controllers/TemplateController.php:46
@@ -111,27 +76,6 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     method: 'post',
 })
 
-    /**
-* @see \App\Http\Controllers\TemplateController::store
- * @see app/Http/Controllers/TemplateController.php:46
- * @route '/templates'
- */
-    const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: store.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\TemplateController::store
- * @see app/Http/Controllers/TemplateController.php:46
- * @route '/templates'
- */
-        storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: store.url(options),
-            method: 'post',
-        })
-    
-    store.form = storeForm
 /**
 * @see \App\Http\Controllers\TemplateController::extractVariables
  * @see app/Http/Controllers/TemplateController.php:186
@@ -166,27 +110,6 @@ extractVariables.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
     method: 'post',
 })
 
-    /**
-* @see \App\Http\Controllers\TemplateController::extractVariables
- * @see app/Http/Controllers/TemplateController.php:186
- * @route '/templates/extract-variables'
- */
-    const extractVariablesForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: extractVariables.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\TemplateController::extractVariables
- * @see app/Http/Controllers/TemplateController.php:186
- * @route '/templates/extract-variables'
- */
-        extractVariablesForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: extractVariables.url(options),
-            method: 'post',
-        })
-    
-    extractVariables.form = extractVariablesForm
 /**
 * @see \App\Http\Controllers\TemplateController::update
  * @see app/Http/Controllers/TemplateController.php:120
@@ -245,27 +168,6 @@ update.post = (args: { template: string | { id: string } } | [template: string |
     method: 'post',
 })
 
-    /**
-* @see \App\Http\Controllers\TemplateController::update
- * @see app/Http/Controllers/TemplateController.php:120
- * @route '/templates/{template}'
- */
-    const updateForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: update.url(args, options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\TemplateController::update
- * @see app/Http/Controllers/TemplateController.php:120
- * @route '/templates/{template}'
- */
-        updateForm.post = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: update.url(args, options),
-            method: 'post',
-        })
-    
-    update.form = updateForm
 /**
 * @see \App\Http\Controllers\TemplateController::destroy
  * @see app/Http/Controllers/TemplateController.php:142
@@ -324,37 +226,6 @@ destroy.delete = (args: { template: string | { id: string } } | [template: strin
     method: 'delete',
 })
 
-    /**
-* @see \App\Http\Controllers\TemplateController::destroy
- * @see app/Http/Controllers/TemplateController.php:142
- * @route '/templates/{template}'
- */
-    const destroyForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: destroy.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'DELETE',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\TemplateController::destroy
- * @see app/Http/Controllers/TemplateController.php:142
- * @route '/templates/{template}'
- */
-        destroyForm.delete = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: destroy.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'DELETE',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    destroy.form = destroyForm
 /**
 * @see \App\Http\Controllers\TemplateController::preview
  * @see app/Http/Controllers/TemplateController.php:155
@@ -422,41 +293,6 @@ preview.head = (args: { template: string | { id: string } } | [template: string 
     method: 'head',
 })
 
-    /**
-* @see \App\Http\Controllers\TemplateController::preview
- * @see app/Http/Controllers/TemplateController.php:155
- * @route '/templates/{template}/preview'
- */
-    const previewForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: preview.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\TemplateController::preview
- * @see app/Http/Controllers/TemplateController.php:155
- * @route '/templates/{template}/preview'
- */
-        previewForm.get = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: preview.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\TemplateController::preview
- * @see app/Http/Controllers/TemplateController.php:155
- * @route '/templates/{template}/preview'
- */
-        previewForm.head = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: preview.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    preview.form = previewForm
 /**
 * @see \App\Http\Controllers\TemplateController::download
  * @see app/Http/Controllers/TemplateController.php:171
@@ -523,42 +359,6 @@ download.head = (args: { template: string | { id: string } } | [template: string
     url: download.url(args, options),
     method: 'head',
 })
-
-    /**
-* @see \App\Http\Controllers\TemplateController::download
- * @see app/Http/Controllers/TemplateController.php:171
- * @route '/templates/{template}/download'
- */
-    const downloadForm = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: download.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\TemplateController::download
- * @see app/Http/Controllers/TemplateController.php:171
- * @route '/templates/{template}/download'
- */
-        downloadForm.get = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: download.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\TemplateController::download
- * @see app/Http/Controllers/TemplateController.php:171
- * @route '/templates/{template}/download'
- */
-        downloadForm.head = (args: { template: string | { id: string } } | [template: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: download.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    download.form = downloadForm
 const TemplateController = { index, store, extractVariables, update, destroy, preview, download }
 
 export default TemplateController

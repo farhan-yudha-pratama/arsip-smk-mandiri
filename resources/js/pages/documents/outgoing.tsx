@@ -60,6 +60,7 @@ interface Props {
     categoryNumbering: CategoryNumbering[];
     filters: any;
     syncMode?: boolean;
+    headmasterName?: string;
 }
 
 const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
@@ -105,7 +106,7 @@ const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
     );
 };
 
-export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters, syncMode = false }: Props) {
+export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters, syncMode = false, headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -529,6 +530,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 teachers={teachers}
                 categoryNumberings={categoryNumbering}
                 syncMode={syncMode}
+                headmasterName={headmasterName}
             />
 
             <DocumentHistoryModal
@@ -546,6 +548,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 teachers={teachers}
                 categoryNumberings={categoryNumbering}
                 syncMode={syncMode}
+                headmasterName={headmasterName}
             />
 
             <IncomingMailModal 

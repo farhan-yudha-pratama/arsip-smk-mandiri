@@ -81,6 +81,9 @@ class DocumentController extends Controller
         $students          = Student::all();
         $teachers          = Teacher::all();
         $categoryNumbering = CategoryNumbering::orderBy('letter_code')->get();
+        
+        $headmaster = \App\Models\Headmaster::first();
+        $headmasterName = $headmaster ? $headmaster->name : 'Farhan Yudha Pratama S.Kom';
 
         return Inertia::render('documents/outgoing', [
             'documents'         => $documents,
@@ -90,6 +93,7 @@ class DocumentController extends Controller
             'categoryNumbering' => $categoryNumbering,
             'recipientTypes'    => RecipientType::cases(),
             'filters'           => $request->only('search', 'status', 'recipient'),
+            'headmasterName'    => $headmasterName,
         ]);
     }
 
