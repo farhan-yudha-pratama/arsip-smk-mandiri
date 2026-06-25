@@ -83,7 +83,7 @@ class DocumentController extends Controller
         $categoryNumbering = CategoryNumbering::orderBy('letter_code')->get();
         
         $headmaster = \App\Models\Headmaster::first();
-        $headmasterName = $headmaster ? $headmaster->name : 'Farhan Yudha Pratama S.Kom';
+        $headmasterName = $headmaster ? $headmaster->name : 'Dadang S.Kom';
 
         return Inertia::render('documents/outgoing', [
             'documents'         => $documents,

@@ -45,7 +45,7 @@ export default function HeadmasterSettings({ headmaster }: Props) {
                                 </Label>
                                 <Input
                                     id="name"
-                                    placeholder="Contoh: Farhan Yudha Pratama S.Kom"
+                                    placeholder="Contoh: Dadang S.Kom"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
                                     className={errors.name ? 'border-destructive focus-visible:ring-destructive' : ''}
