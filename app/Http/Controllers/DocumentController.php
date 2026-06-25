@@ -81,6 +81,9 @@ class DocumentController extends Controller
         $students          = Student::all();
         $teachers          = Teacher::all();
         $categoryNumbering = CategoryNumbering::orderBy('letter_code')->get();
+        
+        $headmaster = \App\Models\Headmaster::first();
+        $headmasterName = $headmaster ? $headmaster->name : 'Farhan Yudha Pratama S.Kom';
 
         return Inertia::render('documents/outgoing', [
             'documents'         => $documents,
@@ -90,6 +93,7 @@ class DocumentController extends Controller
             'categoryNumbering' => $categoryNumbering,
             'recipientTypes'    => RecipientType::cases(),
             'filters'           => $request->only('search', 'status', 'recipient'),
+            'headmasterName'    => $headmasterName,
         ]);
     }
 
@@ -239,8 +243,31 @@ class DocumentController extends Controller
         }
     }
 
+    public function view(Document $document)
+    {
+        if (!$document->current_url) {
+            return back()->withErrors(['error' => 'Dokumen belum memiliki file.']);
+        }
+
+        try {
+            $diskName = $this->storageService->getDiskName();
+            if ($diskName === 'public' || $diskName === 'local') {
+                return Storage::disk($diskName)->response($document->current_url);
+            }
+
+            $url = $this->storageService->getTemporaryUrl($document->current_url, 10, false);
+            return Inertia::location($url);
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Gagal membuka dokumen: ' . $e->getMessage()]);
+        }
+    }
+
     public function download(Document $document)
     {
+        if (!$document->current_url) {
+            return back()->withErrors(['error' => 'Dokumen belum memiliki file.']);
+        }
+
         try {
             $extension = pathinfo($document->current_url, PATHINFO_EXTENSION) ?: 'pdf';
             $filename = $document->title . '.' . $extension;

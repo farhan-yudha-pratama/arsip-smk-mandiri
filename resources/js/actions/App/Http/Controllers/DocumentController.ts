@@ -87,7 +87,7 @@ outgoingIndex.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:96
+ * @see app/Http/Controllers/DocumentController.php:100
  * @route '/documents'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -102,7 +102,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:96
+ * @see app/Http/Controllers/DocumentController.php:100
  * @route '/documents'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -111,7 +111,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DocumentController::store
- * @see app/Http/Controllers/DocumentController.php:96
+ * @see app/Http/Controllers/DocumentController.php:100
  * @route '/documents'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -120,8 +120,75 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 })
 
 /**
+* @see \App\Http\Controllers\DocumentController::view
+ * @see app/Http/Controllers/DocumentController.php:246
+ * @route '/documents/{document}/view'
+ */
+export const view = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: view.url(args, options),
+    method: 'get',
+})
+
+view.definition = {
+    methods: ["get","head"],
+    url: '/documents/{document}/view',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\DocumentController::view
+ * @see app/Http/Controllers/DocumentController.php:246
+ * @route '/documents/{document}/view'
+ */
+view.url = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { document: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { document: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    document: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        document: typeof args.document === 'object'
+                ? args.document.id
+                : args.document,
+                }
+
+    return view.definition.url
+            .replace('{document}', parsedArgs.document.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\DocumentController::view
+ * @see app/Http/Controllers/DocumentController.php:246
+ * @route '/documents/{document}/view'
+ */
+view.get = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: view.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\DocumentController::view
+ * @see app/Http/Controllers/DocumentController.php:246
+ * @route '/documents/{document}/view'
+ */
+view.head = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: view.url(args, options),
+    method: 'head',
+})
+
+/**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:242
+ * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
 export const download = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -136,7 +203,7 @@ download.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:242
+ * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
 download.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
@@ -169,7 +236,7 @@ download.url = (args: { document: string | number | { id: string | number } } | 
 
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:242
+ * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
 download.get = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +245,7 @@ download.get = (args: { document: string | number | { id: string | number } } | 
 })
 /**
 * @see \App\Http\Controllers\DocumentController::download
- * @see app/Http/Controllers/DocumentController.php:242
+ * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
 download.head = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -188,7 +255,7 @@ download.head = (args: { document: string | number | { id: string | number } } |
 
 /**
 * @see \App\Http\Controllers\DocumentController::downloadHistory
- * @see app/Http/Controllers/DocumentController.php:259
+ * @see app/Http/Controllers/DocumentController.php:286
  * @route '/documents/{document}/history/{history}/download'
  */
 export const downloadHistory = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -203,7 +270,7 @@ downloadHistory.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::downloadHistory
- * @see app/Http/Controllers/DocumentController.php:259
+ * @see app/Http/Controllers/DocumentController.php:286
  * @route '/documents/{document}/history/{history}/download'
  */
 downloadHistory.url = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
@@ -233,7 +300,7 @@ downloadHistory.url = (args: { document: string | number | { id: string | number
 
 /**
 * @see \App\Http\Controllers\DocumentController::downloadHistory
- * @see app/Http/Controllers/DocumentController.php:259
+ * @see app/Http/Controllers/DocumentController.php:286
  * @route '/documents/{document}/history/{history}/download'
  */
 downloadHistory.get = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -242,7 +309,7 @@ downloadHistory.get = (args: { document: string | number | { id: string | number
 })
 /**
 * @see \App\Http\Controllers\DocumentController::downloadHistory
- * @see app/Http/Controllers/DocumentController.php:259
+ * @see app/Http/Controllers/DocumentController.php:286
  * @route '/documents/{document}/history/{history}/download'
  */
 downloadHistory.head = (args: { document: string | number | { id: string | number }, history: string | number | { id: string | number } } | [document: string | number | { id: string | number }, history: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -252,7 +319,7 @@ downloadHistory.head = (args: { document: string | number | { id: string | numbe
 
 /**
 * @see \App\Http\Controllers\DocumentController::storeIncoming
- * @see app/Http/Controllers/DocumentController.php:366
+ * @see app/Http/Controllers/DocumentController.php:393
  * @route '/documents/incoming'
  */
 export const storeIncoming = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -267,7 +334,7 @@ storeIncoming.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::storeIncoming
- * @see app/Http/Controllers/DocumentController.php:366
+ * @see app/Http/Controllers/DocumentController.php:393
  * @route '/documents/incoming'
  */
 storeIncoming.url = (options?: RouteQueryOptions) => {
@@ -276,7 +343,7 @@ storeIncoming.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DocumentController::storeIncoming
- * @see app/Http/Controllers/DocumentController.php:366
+ * @see app/Http/Controllers/DocumentController.php:393
  * @route '/documents/incoming'
  */
 storeIncoming.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -286,7 +353,7 @@ storeIncoming.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
 /**
 * @see \App\Http\Controllers\DocumentController::uploadSigned
- * @see app/Http/Controllers/DocumentController.php:299
+ * @see app/Http/Controllers/DocumentController.php:326
  * @route '/documents/{document}/signed'
  */
 export const uploadSigned = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -301,7 +368,7 @@ uploadSigned.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::uploadSigned
- * @see app/Http/Controllers/DocumentController.php:299
+ * @see app/Http/Controllers/DocumentController.php:326
  * @route '/documents/{document}/signed'
  */
 uploadSigned.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
@@ -334,7 +401,7 @@ uploadSigned.url = (args: { document: string | number | { id: string | number } 
 
 /**
 * @see \App\Http\Controllers\DocumentController::uploadSigned
- * @see app/Http/Controllers/DocumentController.php:299
+ * @see app/Http/Controllers/DocumentController.php:326
  * @route '/documents/{document}/signed'
  */
 uploadSigned.post = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -344,7 +411,7 @@ uploadSigned.post = (args: { document: string | number | { id: string | number }
 
 /**
 * @see \App\Http\Controllers\DocumentController::archive
- * @see app/Http/Controllers/DocumentController.php:339
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/{document}/archive'
  */
 export const archive = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +426,7 @@ archive.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::archive
- * @see app/Http/Controllers/DocumentController.php:339
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/{document}/archive'
  */
 archive.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
@@ -392,7 +459,7 @@ archive.url = (args: { document: string | number | { id: string | number } } | [
 
 /**
 * @see \App\Http\Controllers\DocumentController::archive
- * @see app/Http/Controllers/DocumentController.php:339
+ * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/{document}/archive'
  */
 archive.post = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -402,7 +469,7 @@ archive.post = (args: { document: string | number | { id: string | number } } | 
 
 /**
 * @see \App\Http\Controllers\DocumentController::update
- * @see app/Http/Controllers/DocumentController.php:181
+ * @see app/Http/Controllers/DocumentController.php:185
  * @route '/documents/{document}'
  */
 export const update = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -417,7 +484,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::update
- * @see app/Http/Controllers/DocumentController.php:181
+ * @see app/Http/Controllers/DocumentController.php:185
  * @route '/documents/{document}'
  */
 update.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
@@ -450,7 +517,7 @@ update.url = (args: { document: string | number | { id: string | number } } | [d
 
 /**
 * @see \App\Http\Controllers\DocumentController::update
- * @see app/Http/Controllers/DocumentController.php:181
+ * @see app/Http/Controllers/DocumentController.php:185
  * @route '/documents/{document}'
  */
 update.put = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -460,7 +527,7 @@ update.put = (args: { document: string | number | { id: string | number } } | [d
 
 /**
 * @see \App\Http\Controllers\DocumentController::destroy
- * @see app/Http/Controllers/DocumentController.php:281
+ * @see app/Http/Controllers/DocumentController.php:308
  * @route '/documents/{document}'
  */
 export const destroy = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -475,7 +542,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\DocumentController::destroy
- * @see app/Http/Controllers/DocumentController.php:281
+ * @see app/Http/Controllers/DocumentController.php:308
  * @route '/documents/{document}'
  */
 destroy.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
@@ -508,13 +575,13 @@ destroy.url = (args: { document: string | number | { id: string | number } } | [
 
 /**
 * @see \App\Http\Controllers\DocumentController::destroy
- * @see app/Http/Controllers/DocumentController.php:281
+ * @see app/Http/Controllers/DocumentController.php:308
  * @route '/documents/{document}'
  */
 destroy.delete = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
-const DocumentController = { incomingIndex, outgoingIndex, store, download, downloadHistory, storeIncoming, uploadSigned, archive, update, destroy }
+const DocumentController = { incomingIndex, outgoingIndex, store, view, download, downloadHistory, storeIncoming, uploadSigned, archive, update, destroy }
 
 export default DocumentController

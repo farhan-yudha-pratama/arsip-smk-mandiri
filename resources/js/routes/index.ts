@@ -208,7 +208,7 @@ home.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
 })
 
 /**
- * @see routes/web.php:13
+ * @see routes/web.php:14
  * @route '/unconfirmed'
  */
 export const unconfirmed = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -222,7 +222,7 @@ unconfirmed.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:13
+ * @see routes/web.php:14
  * @route '/unconfirmed'
  */
 unconfirmed.url = (options?: RouteQueryOptions) => {
@@ -230,7 +230,7 @@ unconfirmed.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:13
+ * @see routes/web.php:14
  * @route '/unconfirmed'
  */
 unconfirmed.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -238,7 +238,7 @@ unconfirmed.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:13
+ * @see routes/web.php:14
  * @route '/unconfirmed'
  */
 unconfirmed.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
