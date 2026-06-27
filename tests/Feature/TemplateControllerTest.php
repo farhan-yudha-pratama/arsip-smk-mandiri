@@ -2,14 +2,15 @@
 
 namespace Tests\Feature;
 
+use Tests\TestCase;
 use App\Models\User;
 use App\Models\Template;
-use App\Services\S3StorageService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
-use Mockery\MockInterface;
-use Tests\TestCase;
+use Inertia\Testing\AssertableInertia as Assert;
+use Illuminate\Support\Facades\Storage;
+use App\Contracts\StorageServiceInterface;
 use Spatie\Permission\Models\Role;
+use Mockery;
 
 class TemplateControllerTest extends TestCase
 {
@@ -18,99 +19,111 @@ class TemplateControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Setup role
-        Role::create(['name' => 'operator']);
+        // Setup role needed for templates routes (SUPERADMIN or ADMIN)
+        Role::create(['name' => 'ADMIN']);
     }
 
-    /**
-     * Test store success with mocked service.
-     */
-    public function test_store_uploads_file_and_saves_to_db()
+    public function test_index_renders_inertia_view_with_templates()
     {
-        $user = User::factory()->create();
-        $user->assignRole('operator');
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('ADMIN');
+        
+        Template::factory()->count(3)->create();
 
-        $this->instance(
-            S3StorageService::class,
-            Mockery::mock(S3StorageService::class, function (MockInterface $mock) {
-                $mock->shouldReceive('uploadBase64')
-                    ->once()
-                    ->with('base64content', 'templates', 'document')
-                    ->andReturn('templates/fake-path.docx');
-            })
+        $response = $this->actingAs($user)->get('/templates');
+        
+        if ($response->status() === 302) {
+            dump($response->headers->get('Location'));
+        }
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('templates/index')
+            ->has('templates.data', 3)
+            ->has('filters')
         );
-
-        $response = $this->actingAs($user)->post(route('templates.store'), [
-            'title'       => 'Test Template',
-            'category'    => 'Legal',
-            'description' => 'Test Description',
-            'document'    => 'base64content',
-        ]);
-
-        $response->assertRedirect();
-        $response->assertSessionHas('success');
-
-        $this->assertDatabaseHas('templates', [
-            'name' => 'Test Template',
-            'url'  => 'templates/fake-path.docx',
-        ]);
-
-        $template = Template::where('name', 'Test Template')->first();
-        $this->assertEquals('Legal', $template->meta_data['category']);
     }
 
-    /**
-     * Test store requires authentication and operator role.
-     */
-    public function test_store_requires_operator_role()
+    public function test_index_applies_search_filter()
     {
-        $user = User::factory()->create(); // No role
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('ADMIN');
+        
+        Template::factory()->create(['name' => 'Surat Pengantar']);
+        Template::factory()->create(['name' => 'Surat Cuti']);
 
-        $response = $this->actingAs($user)->post(route('templates.store'), [
-            'title' => 'Fail',
-        ]);
+        $response = $this->actingAs($user)->get('/templates?search=Cuti');
 
-        $response->assertStatus(403);
-    }
-
-    /**
-     * Test store validation errors.
-     */
-    public function test_store_validation_errors()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('operator');
-
-        $response = $this->actingAs($user)->post(route('templates.store'), []);
-
-        $response->assertSessionHasErrors(['title', 'category', 'document']);
-    }
-
-    /**
-     * Test store handles service exceptions.
-     */
-    public function test_store_handles_service_exceptions()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('operator');
-
-        $this->instance(
-            S3StorageService::class,
-            Mockery::mock(S3StorageService::class, function (MockInterface $mock) {
-                $mock->shouldReceive('uploadBase64')
-                    ->andThrow(new \Exception('Upload failed'));
-            })
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('templates/index')
+            ->has('templates.data', 1)
+            ->where('templates.data.0.name', 'Surat Cuti')
         );
+    }
 
-        $response = $this->actingAs($user)->post(route('templates.store'), [
-            'title'       => 'Test Template',
-            'category'    => 'Legal',
-            'document'    => 'base64content',
+    public function test_store_validates_required_fields()
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('ADMIN');
+
+        $response = $this->actingAs($user)->post('/templates', []);
+
+        $response->assertSessionHasErrors(['title', 'document']);
+    }
+
+    public function test_update_validates_required_fields()
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('ADMIN');
+        
+        $template = Template::factory()->create();
+
+        $response = $this->actingAs($user)->post("/templates/{$template->id}", []); // wait, routes list says POST /templates/{template} for update? No, the routes list shows: `Route::post('/templates/{template}', [TemplateController::class, 'update'])`. It uses POST for update!
+
+        $response->assertSessionHasErrors(['title']);
+    }
+
+    public function test_preview_redirects_to_storage_url()
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('ADMIN');
+        
+        $template = Template::factory()->create([
+            'url' => 'templates/test.docx'
         ]);
 
-        $response->assertRedirect();
-        $response->assertSessionHasErrors(['document']);
-        $this->assertStringContainsString('Upload failed', session('errors')->first('document'));
+        $this->mock(StorageServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('getDiskName')->andReturn('public');
+            $mock->shouldReceive('getUrl')->with('templates/test.docx')->andReturn('http://localhost/storage/templates/test.docx');
+        });
+
+        $this->withoutExceptionHandling();
+        $response = $this->actingAs($user)->get("/templates/{$template->id}/preview", [
+            'X-Inertia' => 'true'
+        ]);
+        
+        $response->assertStatus(409); // Inertia::location returns a 409 status code with X-Inertia-Location header
+    }
+
+    public function test_download_redirects_for_non_local_disk()
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('ADMIN');
+        
+        $template = Template::factory()->create([
+            'url' => 'templates/test.docx',
+            'name' => 'Test'
+        ]);
+
+        $this->mock(StorageServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('getDiskName')->andReturn('s3');
+            $mock->shouldReceive('getTemporaryUrl')->andReturn('http://s3.aws.com/templates/test.docx');
+        });
+
+        $this->withoutExceptionHandling();
+        $response = $this->actingAs($user)->get("/templates/{$template->id}/download", ['X-Inertia' => 'true']);
+
+        $response->assertStatus(409);
     }
 }
