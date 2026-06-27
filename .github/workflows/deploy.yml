@@ -1,9 +1,9 @@
-name: Deploy Arsip SMK Mandiri Production
+name: Deploy Arsip SMK Mandiri Staging
 
 on:
   push:
     branches:
-      - main
+      - staging
   workflow_dispatch:
 
 jobs:
@@ -14,18 +14,18 @@ jobs:
     - name: 🚀 Deploy to aaPanel VPS via SSH
       uses: appleboy/ssh-action@master
       env:
-        ENV_STAG: ${{ secrets.ENV_PROD }}
+        ENV_STAG: ${{ secrets.ENV_STAG }}
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         key: ${{ secrets.VPS_SSH_KEY }}
         port: 2234
-        envs: ENV_PROD
+        envs: ENV_STAG
         script: |
-          cd /www/wwwroot/arsip-smk-mandiri
+          cd /www/wwwroot/arsip-smk-mandiri-staging
           git pull origin staging
           
-          echo "$ENV_PROD" > .env
+          echo "$ENV_STAG" > .env
           
           docker-compose --env-file .env up -d --build --force-recreate -V
           
