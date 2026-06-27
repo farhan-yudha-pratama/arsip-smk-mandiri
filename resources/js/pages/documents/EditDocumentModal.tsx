@@ -32,7 +32,7 @@ interface Props {
     headmasterName?: string;
 }
 
-export function EditDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], document, syncMode = false, headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
+export function EditDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], document, syncMode = false, headmasterName = 'Dadang S.Kom' }: Props) {
     const { data, setData, put, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',
@@ -254,7 +254,7 @@ export function EditDocumentModal({ open, onOpenChange, templates, students, tea
                 setCurrentStep(1);
                 toast.success(isDraft ? 'Draf berhasil diperbarui' : (syncMode ? 'Dokumen berhasil diperbarui' : 'Memulai proses dokumen...'));
             },
-        
+
         });
     };
 

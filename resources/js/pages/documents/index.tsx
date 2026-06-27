@@ -103,7 +103,7 @@ const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
     );
 };
 
-export default function Documents({ documents = [], templates, students, teachers, categoryNumberings = [], headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
+export default function Documents({ documents = [], templates, students, teachers, categoryNumberings = [], headmasterName = ' Dadang S.Kom' }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -170,8 +170,8 @@ export default function Documents({ documents = [], templates, students, teacher
             const matchesStatus = statusFilter === 'ALL' || doc.status === statusFilter;
             const matchesRecipient = recipientFilter === 'ALL' || doc.recipient_type === recipientFilter;
             const matchesBatch = batchFilter === 'ALL' ||
-                                (batchFilter === 'BATCH' && doc.is_batch) ||
-                                (batchFilter === 'SINGLE' && !doc.is_batch);
+                (batchFilter === 'BATCH' && doc.is_batch) ||
+                (batchFilter === 'SINGLE' && !doc.is_batch);
             return matchesSearch && matchesStatus && matchesRecipient && matchesBatch;
         });
     }, [documents, searchTerm, statusFilter, recipientFilter, batchFilter]);
@@ -324,7 +324,7 @@ export default function Documents({ documents = [], templates, students, teacher
                                                     )}
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="grid grid-cols-2 gap-3 text-xs bg-muted/40 p-3 rounded-lg mt-1">
                                                 <div className="flex flex-col gap-1.5">
                                                     <span className="text-muted-foreground font-medium flex items-center gap-1.5">
@@ -345,23 +345,23 @@ export default function Documents({ documents = [], templates, students, teacher
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="flex items-center justify-between mt-1">
                                                 <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-md">
                                                     <History className="h-3.5 w-3.5" />
                                                     <span>{formatDateTime(doc.created_at)}</span>
                                                 </div>
                                                 <div className="flex gap-1">
-                                                            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                                <a href={documentRoutes.view.url(doc.id.toString())} target="_blank" rel="noopener noreferrer">
-                                                                    <Eye className="h-3 w-3" />
-                                                                </a>
-                                                            </Button>
-                                                            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                                <a href={documentRoutes.download.url(doc.id.toString())}>
-                                                                    <Download className="h-3 w-3" />
-                                                                </a>
-                                                            </Button>
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                                                        <a href={documentRoutes.view.url(doc.id.toString())} target="_blank" rel="noopener noreferrer">
+                                                            <Eye className="h-3 w-3" />
+                                                        </a>
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                                                        <a href={documentRoutes.download.url(doc.id.toString())}>
+                                                            <Download className="h-3 w-3" />
+                                                        </a>
+                                                    </Button>
                                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openHistoryModal(doc)}>
                                                         <History className="h-3 w-3 text-muted-foreground" />
                                                     </Button>
@@ -434,7 +434,7 @@ export default function Documents({ documents = [], templates, students, teacher
                                                             </Badge>
                                                         )}
                                                     </div>
-                                                    
+
                                                     <RecipientBatchInfo doc={doc} />
                                                 </div>
                                             </td>
@@ -449,16 +449,16 @@ export default function Documents({ documents = [], templates, students, teacher
                                             </td>
                                             <td className="p-4 text-right align-middle">
                                                 <div className="flex justify-end gap-2">
-                                                            <Button variant="ghost" size="icon" asChild title="View Document">
-                                                                <a href={documentRoutes.view.url(doc.id.toString())} target="_blank" rel="noopener noreferrer">
-                                                                    <Eye className="h-4 w-4" />
-                                                                </a>
-                                                            </Button>
-                                                            <Button variant="ghost" size="icon" asChild title="Download">
-                                                                <a href={documentRoutes.download.url(doc.id.toString())}>
-                                                                    <Download className="h-4 w-4" />
-                                                                </a>
-                                                            </Button>
+                                                    <Button variant="ghost" size="icon" asChild title="View Document">
+                                                        <a href={documentRoutes.view.url(doc.id.toString())} target="_blank" rel="noopener noreferrer">
+                                                            <Eye className="h-4 w-4" />
+                                                        </a>
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" asChild title="Download">
+                                                        <a href={documentRoutes.download.url(doc.id.toString())}>
+                                                            <Download className="h-4 w-4" />
+                                                        </a>
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"

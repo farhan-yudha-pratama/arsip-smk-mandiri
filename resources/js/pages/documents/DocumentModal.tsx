@@ -30,7 +30,7 @@ interface Props {
     headmasterName?: string;
 }
 
-export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false, headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
+export function CreateDocumentModal({ open, onOpenChange, templates, students, teachers, categoryNumberings = [], syncMode = false, headmasterName = 'Dadang S.Kom' }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         template_id: '',
         title: '',

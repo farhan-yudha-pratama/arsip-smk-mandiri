@@ -69,9 +69,12 @@ class DocumentGenerationTest extends TestCase
         $response->assertStatus(302); // Redirect back
         $this->assertDatabaseHas('documents', [
             'title' => 'Test Generated Doc',
-            'student_id' => $student->id,
         ]);
 
+        $this->assertDatabaseHas('document_students', [
+            'document_id' => \App\Models\Document::first()->id,
+            'student_id' => $student->id,
+        ]);
         $this->assertDatabaseHas('document_history', [
             'version_name' => 'GENERATED',
         ]);

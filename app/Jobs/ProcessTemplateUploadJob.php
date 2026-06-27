@@ -16,9 +16,9 @@ class ProcessTemplateUploadJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $tempFilePath;
-    protected $title;
-    protected $metadata;
+    public $tempFilePath;
+    public $title;
+    public $metadata;
 
     /**
      * Create a new job instance.

@@ -106,7 +106,7 @@ const RecipientBatchInfo = ({ doc }: { doc: Document }) => {
     );
 };
 
-export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters, syncMode = false, headmasterName = 'Farhan Yudha Pratama S.Kom' }: Props) {
+export default function OutgoingDocuments({ documents = { data: [], links: [] }, templates, students, teachers, categoryNumbering = [], filters, syncMode = false, headmasterName = 'Dadang S.Kom' }: Props) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -275,9 +275,9 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                             </SelectContent>
                         </Select>
                         {(searchTerm || recipientFilter !== 'ALL' || statusFilter !== 'ALL') && (
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => {
                                     setSearchTerm('');
                                     setStatusFilter('ALL');
@@ -317,7 +317,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                                     )}
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="grid grid-cols-2 gap-3 text-xs bg-muted/40 p-3 rounded-lg mt-1">
                                                 <div className="flex flex-col gap-1.5">
                                                     <span className="text-muted-foreground font-medium flex items-center gap-1.5">
@@ -338,7 +338,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="flex items-center justify-between mt-1">
                                                 <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-md">
                                                     <History className="h-3.5 w-3.5" />
@@ -424,7 +424,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                                                         {doc.is_batch && (
                                                             <Badge variant="secondary" className="px-1 h-4 text-[9px] uppercase bg-blue-50 text-blue-600 border-blue-100">
                                                                 Batch
-                                                             </Badge>
+                                                            </Badge>
                                                         )}
                                                     </div>
                                                     <RecipientBatchInfo doc={doc} />
@@ -517,7 +517,7 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                         </table>
                     </div>
                     <div className="p-4 border-t flex justify-end">
-                         <Pagination links={documents.links} />
+                        <Pagination links={documents.links} />
                     </div>
                 </div>
             </div>
@@ -551,12 +551,12 @@ export default function OutgoingDocuments({ documents = { data: [], links: [] },
                 headmasterName={headmasterName}
             />
 
-            <IncomingMailModal 
+            <IncomingMailModal
                 open={isIncomingModalOpen}
                 onOpenChange={setIsIncomingModalOpen}
             />
 
-            <UploadSignedModal 
+            <UploadSignedModal
                 open={isUploadSignedOpen}
                 onOpenChange={setIsUploadSignedOpen}
                 document={documentForUpload}
