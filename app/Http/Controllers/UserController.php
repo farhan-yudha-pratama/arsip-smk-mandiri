@@ -34,6 +34,10 @@ class UserController extends Controller
 
     public function updateRole(Request $request, User $user)
     {
+        if ($user->id === Auth::id()) {
+            return back()->withErrors(['error' => 'Anda tidak dapat mengubah peran Anda sendiri.']);
+        }
+
         $request->validate([
             'role' => 'required|string|in:' . implode(',', array_column(RoleType::cases(), 'value')),
         ]);
@@ -45,6 +49,10 @@ class UserController extends Controller
 
     public function updateStatus(Request $request, User $user)
     {
+        if ($user->id === Auth::id()) {
+            return back()->withErrors(['error' => 'Anda tidak dapat menonaktifkan atau mengubah status Anda sendiri.']);
+        }
+
         $request->validate([
             'is_active' => 'required|boolean',
         ]);
