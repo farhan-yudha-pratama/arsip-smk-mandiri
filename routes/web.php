@@ -71,18 +71,16 @@ Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
 
 require __DIR__.'/settings.php';
 
-if (env('APP_ENV') === 'testing') {
-    Route::post('/k6-login', function (\Illuminate\Http\Request $request) {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+Route::post('/k6-login', function (\Illuminate\Http\Request $request) {
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
 
-        if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return response()->json(['message' => 'Login successful', 'user' => \Illuminate\Support\Facades\Auth::user()]);
-        }
+    if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return response()->json(['message' => 'Login successful', 'user' => \Illuminate\Support\Facades\Auth::user()]);
+    }
 
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    });
-}
+    return response()->json(['message' => 'Invalid credentials'], 401);
+});

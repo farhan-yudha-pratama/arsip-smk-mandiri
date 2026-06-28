@@ -16,11 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        if (env('APP_ENV') === 'testing') {
-            $middleware->validateCsrfTokens(except: [
-                '*'
-            ]);
-        }
+        $middleware->validateCsrfTokens(except: [
+            'k6-login',
+            '/k6-login'
+        ]);
 
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
