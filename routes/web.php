@@ -64,6 +64,12 @@ Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
     Route::put('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'update'])->name('category-numbering.update');
     Route::delete('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'destroy'])->name('category-numbering.destroy');
 
+    // Students
+    Route::get('/students', [\App\Http\Controllers\StudentController::class, 'index'])->name('students.index');
+
+    // Teachers
+    Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'index'])->name('teachers.index');
+
     // Headmaster
     Route::get('/headmaster', [HeadmasterController::class, 'index'])->name('headmaster.index');
     Route::post('/headmaster', [HeadmasterController::class, 'store'])->name('headmaster.store');

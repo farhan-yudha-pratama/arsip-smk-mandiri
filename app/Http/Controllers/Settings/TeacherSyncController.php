@@ -21,10 +21,20 @@ class TeacherSyncController extends Controller
             if (isset($teacherData['nama_lengkap'])) {
                 $nip = $teacherData['nip'] ?? 'NIP-' . strtoupper(Str::random(8));
 
-                Teacher::updateOrCreate(
-                    ['nip' => $nip],
-                    ['name' => $teacherData['nama_lengkap']]
-                );
+                $teacher = Teacher::where('nip', $nip)->first();
+
+                if ($teacher) {
+                    // Jika guru dengan NIP tersebut sudah ada, update datanya
+                    $teacher->update([
+                        'name' => $teacherData['nama_lengkap']
+                    ]);
+                } else {
+                    // Jika guru belum ada di database, buat data baru
+                    Teacher::create([
+                        'nip' => $nip,
+                        'name' => $teacherData['nama_lengkap']
+                    ]);
+                }
             }
         }
 

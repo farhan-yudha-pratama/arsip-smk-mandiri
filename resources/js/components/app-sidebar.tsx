@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, Hash, LayoutGrid, LayoutTemplate, Users, History } from 'lucide-react';
+import { BookOpen, FolderGit2, Hash, LayoutGrid, LayoutTemplate, Users, History, GraduationCap, Briefcase } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -15,6 +15,8 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar';
 import users from '@/routes/users';
+import students from '@/routes/students';
+import teachers from '@/routes/teachers';
 import categoryNumbering from '@/routes/category-numbering';
 import type { NavItem } from '@/types';
 import { dashboard } from '@/routes';
@@ -52,6 +54,18 @@ const mainNavItems: NavItem[] = [
         href: users.index(),
         icon: Users,
         roles: ['SUPERADMIN'],
+    },
+    {
+        title: 'Data Siswa',
+        href: students.index(),
+        icon: GraduationCap,
+        roles: ['SUPERADMIN', 'ADMIN'],
+    },
+    {
+        title: 'Data Guru',
+        href: teachers.index(),
+        icon: Briefcase,
+        roles: ['SUPERADMIN', 'ADMIN'],
     },
 
     {
