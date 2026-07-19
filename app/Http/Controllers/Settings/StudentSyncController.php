@@ -32,14 +32,25 @@ class StudentSyncController extends Controller
                     }
                 }
 
-                Student::updateOrCreate(
-                    ['nis' => $studentData['nis']],
-                    [
+                $student = Student::where('nis', $studentData['nis'])->first();
+
+                if ($student) {
+                    // Jika siswa dengan NIS tersebut sudah ada, update datanya
+                    // Termasuk jika dia naik kelas (kelas/periode berbeda)
+                    $student->update([
                         'name' => $studentData['nama_siswa'],
                         'kelas' => $kelas,
                         'periode' => $periode,
-                    ]
-                );
+                    ]);
+                } else {
+                    // Jika siswa belum ada di database, buat data baru
+                    Student::create([
+                        'nis' => $studentData['nis'],
+                        'name' => $studentData['nama_siswa'],
+                        'kelas' => $kelas,
+                        'periode' => $periode,
+                    ]);
+                }
             }
         }
 

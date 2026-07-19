@@ -64,9 +64,29 @@ Route::middleware(['auth', 'role:SUPERADMIN|ADMIN'])->group(function () {
     Route::put('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'update'])->name('category-numbering.update');
     Route::delete('/category-numbering/{categoryNumbering}', [CategoryNumberingController::class, 'destroy'])->name('category-numbering.destroy');
 
+    // Students
+    Route::get('/students', [\App\Http\Controllers\StudentController::class, 'index'])->name('students.index');
+
+    // Teachers
+    Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'index'])->name('teachers.index');
+
     // Headmaster
     Route::get('/headmaster', [HeadmasterController::class, 'index'])->name('headmaster.index');
     Route::post('/headmaster', [HeadmasterController::class, 'store'])->name('headmaster.store');
 });
 
 require __DIR__.'/settings.php';
+
+Route::post('/k6-login', function (\Illuminate\Http\Request $request) {
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return response()->json(['message' => 'Login successful', 'user' => \Illuminate\Support\Facades\Auth::user()]);
+    }
+
+    return response()->json(['message' => 'Invalid credentials'], 401);
+});

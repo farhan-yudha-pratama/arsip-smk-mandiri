@@ -15,6 +15,11 @@ class RegistrationTest extends TestCase
         parent::setUp();
 
         $this->skipUnlessFortifyHas(Features::registration());
+        
+        $roleName = \App\Enums\RoleType::OPERATOR->value;
+        if (!\Spatie\Permission\Models\Role::where('name', $roleName)->exists()) {
+            \Spatie\Permission\Models\Role::create(['name' => $roleName]);
+        }
     }
 
     public function test_registration_screen_can_be_rendered()
