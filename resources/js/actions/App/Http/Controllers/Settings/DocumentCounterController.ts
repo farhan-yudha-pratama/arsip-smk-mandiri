@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Settings\DocumentCounterController::index
  * @see app/Http/Controllers/Settings/DocumentCounterController.php:12
@@ -42,6 +42,41 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
+    /**
+* @see \App\Http\Controllers\Settings\DocumentCounterController::index
+ * @see app/Http/Controllers/Settings/DocumentCounterController.php:12
+ * @route '/settings/document-counter'
+ */
+    const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: index.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Settings\DocumentCounterController::index
+ * @see app/Http/Controllers/Settings/DocumentCounterController.php:12
+ * @route '/settings/document-counter'
+ */
+        indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Settings\DocumentCounterController::index
+ * @see app/Http/Controllers/Settings/DocumentCounterController.php:12
+ * @route '/settings/document-counter'
+ */
+        indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    index.form = indexForm
 /**
 * @see \App\Http\Controllers\Settings\DocumentCounterController::update
  * @see app/Http/Controllers/Settings/DocumentCounterController.php:28
@@ -75,6 +110,28 @@ update.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: update.url(options),
     method: 'post',
 })
+
+    /**
+* @see \App\Http\Controllers\Settings\DocumentCounterController::update
+ * @see app/Http/Controllers/Settings/DocumentCounterController.php:28
+ * @route '/settings/document-counter'
+ */
+    const updateForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: update.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Settings\DocumentCounterController::update
+ * @see app/Http/Controllers/Settings/DocumentCounterController.php:28
+ * @route '/settings/document-counter'
+ */
+        updateForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: update.url(options),
+            method: 'post',
+        })
+    
+    update.form = updateForm
 const DocumentCounterController = { index, update }
 
 export default DocumentCounterController
