@@ -16,7 +16,7 @@ export function Pagination({ links }: { links: any[] }) {
                             className="h-8 px-3 text-xs"
                             asChild
                         >
-                            <Link href={link.url} dangerouslySetInnerHTML={{ __html: link.label }} />
+                            <Link href={link.url} preserveScroll preserveState dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Button>
                     )}
                 </div>
