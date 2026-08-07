@@ -35,7 +35,25 @@ export default function HeadmasterSettings({ headmaster }: Props) {
                     </p>
                 </div>
 
-                <div className="max-w-xl">
+                <div className="max-w-xl space-y-6">
+                    {headmaster ? (
+                        <div className="rounded-lg border bg-muted/30 p-4">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                                    <User className="h-6 w-6 text-primary" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Kepala Sekolah Saat Ini</p>
+                                    <p className="text-lg font-semibold">{headmaster.name}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="rounded-lg border border-dashed p-4 text-center">
+                            <p className="text-sm text-muted-foreground">Belum ada data Kepala Sekolah yang diatur.</p>
+                        </div>
+                    )}
+
                     <form onSubmit={submit} className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-6">
                         <div className="space-y-4">
                             <div className="space-y-2">
