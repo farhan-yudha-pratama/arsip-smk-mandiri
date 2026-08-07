@@ -24,7 +24,7 @@ import documents from '@/routes/documents';
 import templates from '@/routes/templates';
 import headmaster from '@/routes/headmaster';
 
-const mainNavItems: NavItem[] = [
+const platformItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
@@ -48,13 +48,9 @@ const mainNavItems: NavItem[] = [
         icon: BookOpen,
         roles: ['SUPERADMIN', 'ADMIN', 'OPERATOR'],
     },
+];
 
-    {
-        title: 'Manajemen Pengguna',
-        href: users.index(),
-        icon: Users,
-        roles: ['SUPERADMIN'],
-    },
+const masterDataItems: NavItem[] = [
     {
         title: 'Data Siswa',
         href: students.index(),
@@ -67,35 +63,48 @@ const mainNavItems: NavItem[] = [
         icon: Briefcase,
         roles: ['SUPERADMIN', 'ADMIN'],
     },
-
-    {
-        title: 'Templates',
-        href: templates.index(),
-        icon: LayoutTemplate,
-        roles: ['SUPERADMIN', 'ADMIN'],
-    },
-
-    {
-        title: 'Kategori Penomoran',
-        href: categoryNumbering.index(),
-        icon: Hash,
-        roles: ['SUPERADMIN', 'ADMIN'],
-    },
     {
         title: 'Kepala Sekolah',
         href: headmaster.index(),
         icon: Users,
         roles: ['SUPERADMIN', 'ADMIN'],
     },
+    {
+        title: 'Templates',
+        href: templates.index(),
+        icon: LayoutTemplate,
+        roles: ['SUPERADMIN', 'ADMIN'],
+    },
+    {
+        title: 'Kategori Penomoran',
+        href: categoryNumbering.index(),
+        icon: Hash,
+        roles: ['SUPERADMIN', 'ADMIN'],
+    },
+];
+
+const settingsItems: NavItem[] = [
+    {
+        title: 'Manajemen Pengguna',
+        href: users.index(),
+        icon: Users,
+        roles: ['SUPERADMIN'],
+    },
 ];
 
 export function AppSidebar() {
     const { auth } = usePage().props;
 
-    const filteredNavItems = mainNavItems.filter((item) => {
-        if (!item.roles) return true;
-        return auth.user?.roles?.some((role) => item.roles?.includes(role));
-    });
+    const filterItems = (items: NavItem[]) => {
+        return items.filter((item) => {
+            if (!item.roles) return true;
+            return auth.user?.roles?.some((role) => item.roles?.includes(role));
+        });
+    };
+
+    const filteredPlatformItems = filterItems(platformItems);
+    const filteredMasterDataItems = filterItems(masterDataItems);
+    const filteredSettingsItems = filterItems(settingsItems);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -115,7 +124,9 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={filteredNavItems} />
+                {filteredPlatformItems.length > 0 && <NavMain items={filteredPlatformItems} label="Menu Utama" />}
+                {filteredMasterDataItems.length > 0 && <NavMain items={filteredMasterDataItems} label="Data Master" />}
+                {filteredSettingsItems.length > 0 && <NavMain items={filteredSettingsItems} label="Pengaturan" />}
             </SidebarContent>
 
             <SidebarFooter>

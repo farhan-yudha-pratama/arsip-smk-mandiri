@@ -10,8 +10,35 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $kelasOptions = Student::select('kelas')->distinct()->whereNotNull('kelas')->pluck('kelas');
-        $periodeOptions = Student::select('periode')->distinct()->whereNotNull('periode')->pluck('periode');
+        $kelasOptions = Student::select('kelas')
+            ->distinct()
+            ->whereNotNull('kelas')
+            ->pluck('kelas')
+            ->sort(function ($a, $b) {
+                $getSortableArray = function($kelas) {
+                    if (preg_match('/^(XIII|XII|XI|X|IX|VIII|VII|VI|V|IV|III|II|I)(?:\s+|-|_)?(.*)$/i', trim($kelas), $matches)) {
+                        $map = [
+                            'I' => 1, 'II' => 2, 'III' => 3, 'IV' => 4, 'V' => 5, 
+                            'VI' => 6, 'VII' => 7, 'VIII' => 8, 'IX' => 9, 
+                            'X' => 10, 'XI' => 11, 'XII' => 12, 'XIII' => 13
+                        ];
+                        $grade = $map[strtoupper($matches[1])] ?? 99;
+                        return [$grade, trim($matches[2])];
+                    }
+                    return [99, trim($kelas)];
+                };
+
+                $arrA = $getSortableArray($a);
+                $arrB = $getSortableArray($b);
+                
+                if ($arrA[0] === $arrB[0]) {
+                    return strnatcasecmp($arrA[1], $arrB[1]);
+                }
+                return $arrA[0] <=> $arrB[0];
+            })
+            ->values();
+
+        $periodeOptions = Student::select('periode')->distinct()->whereNotNull('periode')->orderBy('periode', 'desc')->pluck('periode');
 
         $sort = $request->get('sort', 'created_at');
         $order = $request->get('order', 'desc');

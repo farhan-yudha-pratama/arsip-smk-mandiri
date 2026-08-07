@@ -34,7 +34,7 @@ export default function StudentIndex({ students, filters, kelasOptions, periodeO
     // Debounce search
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (search !== filters.search) {
+            if (search !== (filters.search || '')) {
                 applyFilters({ search });
             }
         }, 300);
