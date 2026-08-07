@@ -13,9 +13,10 @@ services:
             DB_CONNECTION: pgsql
             DB_HOST: global-postgres-db
             DB_PORT: 5432
-            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_prod}
+            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_stag}
             DB_USERNAME: ${DB_USERNAME:-postgres}
             DB_PASSWORD: ${DB_PASSWORD:-root}
+            REDIS_HOST: redis
         volumes:
             - public_data_staging:/var/www/public_shared
             - storage_data_staging:/var/www/storage
@@ -26,6 +27,29 @@ services:
                    php-fpm"
         networks:
             - global-vps-network
+
+    queue-worker:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: arsip-smk-mandiri-staging-worker
+        restart: always
+        environment:
+            DB_CONNECTION: pgsql
+            DB_HOST: global-postgres-db
+            DB_PORT: 5432
+            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_stag}
+            DB_USERNAME: ${DB_USERNAME:-postgres}
+            DB_PASSWORD: ${DB_PASSWORD:-root}
+            REDIS_HOST: redis
+        volumes:
+            - public_data_staging:/var/www/public_shared
+            - storage_data_staging:/var/www/storage
+        command: php artisan queue:work --verbose --tries=3
+        networks:
+            - global-vps-network
+        depends_on:
+            - app
 
     webserver:
         image: nginx:alpine
