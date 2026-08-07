@@ -7,23 +7,21 @@ services:
             dockerfile: Dockerfile
             args:
                 - VITE_BINDUK_APP_URL=${VITE_BINDUK_APP_URL:-http://localhost}
-        container_name: arsip-smk-mandiri-staging-app
+        container_name: arsip-smk-mandiri-app
         restart: always
         environment:
             DB_CONNECTION: pgsql
             DB_HOST: global-postgres-db
             DB_PORT: 5432
-            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_stag}
+            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_prod}
             DB_USERNAME: ${DB_USERNAME:-postgres}
             DB_PASSWORD: ${DB_PASSWORD:-root}
             REDIS_HOST: redis
         volumes:
             - public_data_staging:/var/www/public_shared
             - storage_data_staging:/var/www/storage
-        # Perubahan pada command: Hapus folder public_shared terlebih dahulu agar tidak ada sisa build lama
         command: >
-            sh -c "rm -rf /var/www/public_shared/* &&
-                   cp -a /var/www/public/. /var/www/public_shared/ && 
+            sh -c "cp -a /var/www/public/. /var/www/public_shared/ && 
                    chown -R www-data:www-data /var/www/public_shared && 
                    chmod -R 755 /var/www/public_shared && 
                    php-fpm"
@@ -34,13 +32,13 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        container_name: arsip-smk-mandiri-staging-worker
+        container_name: arsip-smk-mandiri-worker
         restart: always
         environment:
             DB_CONNECTION: pgsql
             DB_HOST: global-postgres-db
             DB_PORT: 5432
-            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_stag}
+            DB_DATABASE: ${DB_DATABASE:-arsip_smk_mandiri_prod}
             DB_USERNAME: ${DB_USERNAME:-postgres}
             DB_PASSWORD: ${DB_PASSWORD:-root}
             REDIS_HOST: redis
@@ -55,10 +53,10 @@ services:
 
     webserver:
         image: nginx:alpine
-        container_name: arsip-smk-mandiri-staging-nginx
+        container_name: arsip-smk-mandiri-nginx
         restart: always
         ports:
-            - '8081:80'
+            - '8080:80'
         volumes:
             - public_data_staging:/var/www/public
             - storage_data_staging:/var/www/storage
@@ -71,7 +69,6 @@ services:
 volumes:
     public_data_staging:
     storage_data_staging:
-
 networks:
     global-vps-network:
         external: true
