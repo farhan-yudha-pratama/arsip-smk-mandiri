@@ -20,8 +20,10 @@ services:
         volumes:
             - public_data_staging:/var/www/public_shared
             - storage_data_staging:/var/www/storage
+        # Perubahan pada command: Hapus folder public_shared terlebih dahulu agar tidak ada sisa build lama
         command: >
-            sh -c "cp -a /var/www/public/. /var/www/public_shared/ && 
+            sh -c "rm -rf /var/www/public_shared/* &&
+                   cp -a /var/www/public/. /var/www/public_shared/ && 
                    chown -R www-data:www-data /var/www/public_shared && 
                    chmod -R 755 /var/www/public_shared && 
                    php-fpm"
@@ -69,6 +71,7 @@ services:
 volumes:
     public_data_staging:
     storage_data_staging:
+
 networks:
     global-vps-network:
         external: true
