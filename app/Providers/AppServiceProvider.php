@@ -29,8 +29,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS URL Scheme saat di Production / Staging / Non-Local
-        if (config('app.env') !== 'local' || str_starts_with(config('app.url'), 'https://') || request()->server('HTTP_X_FORWARDED_PROTO') === 'https') {
+        // Force HTTPS hanya jika APP_URL memang menggunakan https://
+        // atau jika berjalan di belakang reverse proxy yang sudah handle SSL (Nginx, Cloudflare, dll.)
+        // Tidak bergantung pada APP_ENV agar tidak ada asumsi nama environment tertentu
+        if (str_starts_with(config('app.url'), 'https://') || request()->server('HTTP_X_FORWARDED_PROTO') === 'https') {
             URL::forceScheme('https');
         }
 
