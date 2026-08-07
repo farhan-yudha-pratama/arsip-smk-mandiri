@@ -1,5 +1,4 @@
 import { Link } from '@inertiajs/react';
-import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export function Pagination({ links }: { links: any[] }) {
@@ -7,23 +6,30 @@ export function Pagination({ links }: { links: any[] }) {
 
     return (
         <div className="flex flex-wrap items-center gap-1">
-            {links.map((link, k) => (
-                <div key={k}>
-                    {link.url === null ? (
-                        <Button variant="outline" disabled className="h-8 px-3 text-xs" dangerouslySetInnerHTML={{ __html: link.label }} />
-                    ) : (
-                        <Link
-                            href={link.url}
-                            preserveState
-                            className={cn(
-                                buttonVariants({ variant: link.active ? "default" : "outline" }),
-                                "h-8 px-3 text-xs"
-                            )}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    )}
-                </div>
-            ))}
+            {links.map((link, k) => {
+                const baseClasses = "inline-flex items-center justify-center rounded-md border h-8 px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
+                const activeClasses = "bg-primary text-primary-foreground shadow hover:bg-primary/90 border-transparent";
+                const outlineClasses = "bg-background shadow-sm hover:bg-accent hover:text-accent-foreground border-input";
+                
+                return (
+                    <div key={k}>
+                        {link.url === null ? (
+                            <button 
+                                disabled 
+                                className={cn(baseClasses, outlineClasses)} 
+                                dangerouslySetInnerHTML={{ __html: link.label }} 
+                            />
+                        ) : (
+                            <Link
+                                href={link.url}
+                                preserveState
+                                className={cn(baseClasses, link.active ? activeClasses : outlineClasses)}
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                            />
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 }
