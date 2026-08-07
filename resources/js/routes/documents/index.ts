@@ -108,7 +108,7 @@ view.head = (args: { document: string | { id: string } } | [document: string | {
  * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
-export const download = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const download = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: download.url(args, options),
     method: 'get',
 })
@@ -123,7 +123,7 @@ download.definition = {
  * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
-download.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+download.url = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { document: args }
     }
@@ -156,7 +156,7 @@ download.url = (args: { document: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
-download.get = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+download.get = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: download.url(args, options),
     method: 'get',
 })
@@ -165,7 +165,7 @@ download.get = (args: { document: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/DocumentController.php:265
  * @route '/documents/{document}/download'
  */
-download.head = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+download.head = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: download.url(args, options),
     method: 'head',
 })
@@ -175,7 +175,7 @@ download.head = (args: { document: string | number | { id: string | number } } |
  * @see app/Http/Controllers/DocumentController.php:326
  * @route '/documents/{document}/signed'
  */
-export const uploadSigned = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const uploadSigned = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: uploadSigned.url(args, options),
     method: 'post',
 })
@@ -190,7 +190,7 @@ uploadSigned.definition = {
  * @see app/Http/Controllers/DocumentController.php:326
  * @route '/documents/{document}/signed'
  */
-uploadSigned.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+uploadSigned.url = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { document: args }
     }
@@ -223,7 +223,7 @@ uploadSigned.url = (args: { document: string | number | { id: string | number } 
  * @see app/Http/Controllers/DocumentController.php:326
  * @route '/documents/{document}/signed'
  */
-uploadSigned.post = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+uploadSigned.post = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: uploadSigned.url(args, options),
     method: 'post',
 })
@@ -233,7 +233,7 @@ uploadSigned.post = (args: { document: string | number | { id: string | number }
  * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/{document}/archive'
  */
-export const archive = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const archive = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: archive.url(args, options),
     method: 'post',
 })
@@ -248,7 +248,7 @@ archive.definition = {
  * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/{document}/archive'
  */
-archive.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+archive.url = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { document: args }
     }
@@ -281,7 +281,7 @@ archive.url = (args: { document: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/DocumentController.php:366
  * @route '/documents/{document}/archive'
  */
-archive.post = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+archive.post = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: archive.url(args, options),
     method: 'post',
 })
@@ -291,7 +291,7 @@ archive.post = (args: { document: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/DocumentController.php:185
  * @route '/documents/{document}'
  */
-export const update = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -306,7 +306,7 @@ update.definition = {
  * @see app/Http/Controllers/DocumentController.php:185
  * @route '/documents/{document}'
  */
-update.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { document: args }
     }
@@ -339,7 +339,7 @@ update.url = (args: { document: string | number | { id: string | number } } | [d
  * @see app/Http/Controllers/DocumentController.php:185
  * @route '/documents/{document}'
  */
-update.put = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -349,7 +349,7 @@ update.put = (args: { document: string | number | { id: string | number } } | [d
  * @see app/Http/Controllers/DocumentController.php:308
  * @route '/documents/{document}'
  */
-export const destroy = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -364,7 +364,7 @@ destroy.definition = {
  * @see app/Http/Controllers/DocumentController.php:308
  * @route '/documents/{document}'
  */
-destroy.url = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { document: args }
     }
@@ -397,7 +397,7 @@ destroy.url = (args: { document: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/DocumentController.php:308
  * @route '/documents/{document}'
  */
-destroy.delete = (args: { document: string | number | { id: string | number } } | [document: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { document: string | { id: string } } | [document: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })

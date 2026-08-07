@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function Pagination({ links }: { links: any[] }) {
     if (links.length <= 3) return null;
@@ -11,13 +12,15 @@ export function Pagination({ links }: { links: any[] }) {
                     {link.url === null ? (
                         <Button variant="outline" disabled className="h-8 px-3 text-xs" dangerouslySetInnerHTML={{ __html: link.label }} />
                     ) : (
-                        <Button
-                            variant={link.active ? "default" : "outline"}
-                            className="h-8 px-3 text-xs"
-                            asChild
-                        >
-                            <Link href={link.url} preserveScroll preserveState dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Button>
+                        <Link
+                            href={link.url}
+                            preserveState
+                            className={cn(
+                                buttonVariants({ variant: link.active ? "default" : "outline" }),
+                                "h-8 px-3 text-xs"
+                            )}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                        />
                     )}
                 </div>
             ))}
